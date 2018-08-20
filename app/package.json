@@ -1,0 +1,203 @@
+{
+  "name": "bloom-web-client",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": "^8.9.4",
+    "yarn": "^1.3.2"
+  },
+  "dependencies": {
+    "@types/async": "^2.0.47",
+    "@types/bignumber.js": "^4.0.3",
+    "@types/chalk": "^2.2.0",
+    "@types/common-tags": "^1.4.0",
+    "@types/compression": "^0.0.36",
+    "@types/dotenv": "^4.0.2",
+    "@types/express": "^4.0.39",
+    "@types/helmet": "^0.0.37",
+    "@types/jest": "^21.1.2",
+    "@types/jquery": "^3.3.2",
+    "@types/kue": "^0.11.8",
+    "@types/lodash": "^4.14.85",
+    "@types/morgan": "^1.7.35",
+    "@types/node": "^10.3.2",
+    "@types/node-fetch": "^2.1.1",
+    "@types/optimize-css-assets-webpack-plugin": "^1.3.3",
+    "@types/ramda": "^0.24.17",
+    "@types/raven": "^2.1.3",
+    "@types/raven-js": "^3.10.0",
+    "@types/react-syntax-highlighter": "^0.0.5",
+    "@types/supertest": "^2.0.4",
+    "@types/underscore": "^1.8.5",
+    "@types/urijs": "^1.15.36",
+    "@types/webpack": "3.8.1",
+    "@types/winston": "^2.3.7",
+    "async": "^2.6.0",
+    "attestations-lib": "https://github.com/hellobloom/attestations-lib/releases/download/0.1.4/attestations-lib-v0.1.4.tgz",
+    "babel-preset-stage-3": "^6.24.1",
+    "babel-register": "^6.26.0",
+    "bignumber.js": "^5.0.0",
+    "bn.js": "^4.11.8",
+    "body-parser": "^1.18.3",
+    "case": "^1.5.5",
+    "chalk": "^2.3.0",
+    "common-tags": "^1.8.0",
+    "compression": "^1.7.2",
+    "customerio-node": "^0.4.0",
+    "date-fns": "^1.29.0",
+    "deepcopy": "^1.0.0",
+    "dotenv": "4.0.0",
+    "enzyme-to-json": "^3.3.4",
+    "eth-sig-util": "^2.0.1",
+    "ethereumjs-util": "^5.1.2",
+    "ethereumjs-wallet": "^0.6.0",
+    "express": "^4.16.2",
+    "fs-extra": "3.0.1",
+    "helmet": "^3.9.0",
+    "http": "^0.0.0",
+    "husky": "^0.14.3",
+    "jest": "20.0.4",
+    "kue": "^0.11.6",
+    "lodash": "^4.17.4",
+    "morgan": "^1.9.0",
+    "newrelic": "^4.1.1",
+    "optimize-css-assets-webpack-plugin": "^4.0.2",
+    "pg": "6.4.1",
+    "pg-boss": "^2.5.1",
+    "prerender-node": "^3.1.1",
+    "prettier": "^1.12.1",
+    "promise": "8.0.1",
+    "ramda": "^0.25.0",
+    "raven": "^2.3.0",
+    "raven-js": "^3.22.0",
+    "reflect-metadata": "^0.1.12",
+    "sequelize": "^4.28.5",
+    "sequelize-cli": "^3.2.0",
+    "sequelize-typescript": "^0.6.1",
+    "solc": "0.4.23",
+    "supertest": "^3.0.0",
+    "truffle": "^4.1.11",
+    "truffle-contract": "^3.0.1",
+    "truffle-hdwallet-provider": "^0.0.3",
+    "ts-jest": "^22.0.0",
+    "typescript": "~2.8.3",
+    "underscore": "^1.8.3",
+    "urijs": "^1.19.1",
+    "uuidv4": "^1.0.0",
+    "web3-provider-engine": "^13.4.0",
+    "web3-shh": "^1.0.0-beta.34",
+    "web3-utils": "^1.0.0-beta.33",
+    "winston": "^2.4.0"
+  },
+  "proxy": "http://localhost:5000",
+  "lint-staged": {
+    "src/**/*.{js,jsx,ts,tsx,json,css}": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "scripts": {
+    "preinstall": "./bin/require-yarn",
+    "start:dev": "./bin/start-dev",
+    "heroku-postbuild": "yarn build",
+    "start": "./bin/start-prod",
+    "build": "./bin/build",
+    "build-contracts": "./bin/compile-contracts",
+    "build-client": "./bin/build-client",
+    "build-server": "./bin/build-server",
+    "test": "./bin/test",
+    "storybook": "start-storybook -p 6006 -c client/.storybook",
+    "build-storybook": "build-storybook -c client/.storybook"
+  },
+  "devDependencies": {
+    "@types/compression-webpack-plugin": "^0.4.2",
+    "@types/html-webpack-plugin": "^2.30.3",
+    "@types/mini-css-extract-plugin": "^0.2.0",
+    "@types/uglifyjs-webpack-plugin": "^1.1.0",
+    "@types/webpack-merge": "^4.1.3",
+    "@types/webpack-serve": "^1.0.1",
+    "compression-webpack-plugin": "^1.1.11",
+    "connect-history-api-fallback": "^1.5.0",
+    "enzyme": "^3.4.3",
+    "escape-string-regexp": "^1.0.5",
+    "express-request-mock": "^2.0.0",
+    "ganache-cli": "^6.0.3",
+    "http-proxy-middleware": "^0.18.0",
+    "identity-obj-proxy": "^3.0.0",
+    "ipfs-mini": "^1.1.2",
+    "jest-diff": "^22.0.6",
+    "koa-connect": "^2.0.1",
+    "mini-css-extract-plugin": "^0.4.0",
+    "nodemon": "^1.13.3",
+    "ts-loader": "3.2.0",
+    "ts-node": "^6.1.0",
+    "tsconfig-paths": "^3.3.2",
+    "tsconfig-paths-webpack-plugin": "^3.1.4",
+    "tslint": "^5.10.0",
+    "tslint-microsoft-contrib": "^5.0.3",
+    "tslint-no-focused-test": "^0.1.2",
+    "tslint-react": "^3.6.0",
+    "uglifyjs-webpack-plugin": "^1.2.5",
+    "web3-fake-provider": "^0.1.0",
+    "webpack": "3.10.0",
+    "webpack-cli": "^3.0.3",
+    "webpack-merge": "^4.1.2",
+    "webpack-node-externals": "^1.7.2",
+    "webpack-serve": "^1.0.4",
+    "webpack-serve-waitpage": "^1.0.0"
+  },
+  "jest": {
+    "snapshotSerializers": [
+      "enzyme-to-json/serializer"
+    ],
+    "mapCoverage": true,
+    "collectCoverageFrom": [
+      "api/**/*.{js,jsx,ts,tsx}",
+      "worker/**/*.{js,jsx,ts,tsx}",
+      "whisperWorker/**/*.{js,jsx,ts,tsx}",
+      "shared/**/*.{js,jsx,ts,tsx}"
+    ],
+    "setupFiles": [
+      "<rootDir>/test/delayedJobSetup.ts",
+      "<rootDir>/test/loggerSetup.ts"
+    ],
+    "testMatch": [
+      "<rootDir>/api/**/?(*.)test.ts?(x)",
+      "<rootDir>/worker/**/?(*.)test.ts?(x)",
+      "<rootDir>/whisperWorker/**/?(*.)test.ts?(x)",
+      "<rootDir>/shared/**/?(*.)test.ts?(x)"
+    ],
+    "testEnvironment": "node",
+    "testURL": "http://localhost",
+    "transform": {
+      "^.+\\.tsx?$": "<rootDir>/bin/testjs/typescriptTransform.js",
+      "^(?!.*\\.(js|jsx|css|json)$)": "<rootDir>/bin/testjs/fileTransform.js"
+    },
+    "transformIgnorePatterns": [
+      "[/\\\\]node_modules[/\\\\].+\\.(js|jsx|ts|tsx)$"
+    ],
+    "moduleNameMapper": {
+      "@api/(.*)": "<rootDir>/api/src/$1",
+      "@worker/(.*)": "<rootDir>/worker/$1",
+      "@shared/(.*)": "<rootDir>/shared/$1",
+      "@test/(.*)": "<rootDir>/test/$1"
+    },
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
+    "globals": {
+      "ts-jest": {
+        "tsConfigFile": "./tsconfig.test.json"
+      }
+    }
+  },
+  "babel": {
+    "presets": []
+  },
+  "license": "UNLICENSED"
+}

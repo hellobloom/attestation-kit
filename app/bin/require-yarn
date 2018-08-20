@@ -1,0 +1,29 @@
+#!/bin/bash
+
+source './bin/shared/strict-mode.sh'
+
+no_runner="undefined"
+npm_runner="${npm_execpath:-$no_runner}"
+
+if [ "$npm_runner" = "$no_runner" ]; then
+  echo "You aren't supposed to run $0 directly!"
+  echo 'Just run yarn install'
+  exit 1
+fi
+
+is_yarn() {
+  [[ "$npm_runner" = *yarn.js ]]
+}
+
+# Help Bloom engineers out by stopping them if they accidentally use npm
+if ! is_yarn; then
+  # npm will output its own error, so this isn't just decoration, we're trying to make our message stand out
+  echo "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
+  echo "┃  Use yarn, not npm! If you don't have yarn, install it:  ┃"
+  echo "┃                                                          ┃"
+  echo "┃        https://yarnpkg.com/lang/en/docs/install/         ┃"
+  echo "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
+
+  exit 1
+fi
+

@@ -1,0 +1,28 @@
+#!/bin/bash
+
+if [ ! -f /app/.env ]; then 
+  cp /app/.env.sample /app/.env
+fi 
+
+if [ -f /app/.env ]; then 
+  sed -i '/API_KEY_SHA256/d' /app/.env
+
+  sed -i '/NEWRELIC_KEY/d' /app/.env
+  sed -i '/NEWRELIC_APPNAME/d' /app/.env
+  sed -i '/SENTRY_DSN/d' /app/.env
+
+  sed -i '/PIPELINE_STAGE/d' /app/.env
+  sed -i '/NODE_ENV/d' /app/.env
+
+  sed -i '/HOSTNAME/d' /app/.env
+  sed -i '/WEB3_PROVIDER/d' /app/.env
+  sed -i '/RINKEBY_WEB3_PROVIDER/d' /app/.env
+  sed -i '/WHISPER_PROVIDER/d' /app/.env
+
+  sed -i '/WHISPER_PASSWORD/d' /app/.env
+
+  sed -i '/BLOOM_WHISPER_PG_URL/d' /app/.env
+
+  sed -i '/WHISPER_TOPICS/d' /app/.env
+  sed -i '/ATTESTER_MIN_REWARDS/d' /app/.env
+fi

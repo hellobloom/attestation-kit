@@ -1,0 +1,10 @@
+#!/bin/bash
+
+geth                          \
+  --verbosity=3               \
+  --syncmode "light"          \
+  --shh                       \
+  --ws                        \
+  --wsaddr="localhost"          \
+  --wsorigins "*"             \
+  --datadir ./datadir         

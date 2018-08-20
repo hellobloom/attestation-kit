@@ -1,0 +1,5 @@
+#!/bin/bash
+source './bin/shared/strict-mode.sh'
+
+dropdb bloom-whisper
+createdb bloom-whisper

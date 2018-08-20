@@ -1,0 +1,32 @@
+#!/bin/bash
+
+./bin/start-dev-whisper &
+
+# Make sure that build files exists before we run it
+./node_modules/webpack/bin/webpack.js --config config/webpack.server.ts
+
+# Start whisper worker process
+node_modules/nodemon/bin/nodemon.js \
+    --watch 'whisperWorker/**/*.ts' \
+    --watch 'shared/**/*.ts' \
+    --ignore 'whisperWorker/**/*.spec.ts' \
+    --exec 'node' build/whisperWorker.js &
+
+# Start delayed job worker process
+node_modules/nodemon/bin/nodemon.js \
+    --watch 'worker/**/*.ts' \
+    --watch 'shared/**/*.ts' \
+    --ignore 'worker/**/*.spec.ts' \
+    --exec 'node' build/worker.js \
+
+# Start api process
+node_modules/nodemon/bin/nodemon.js \
+    --watch 'api/**/*.ts' \
+    --watch 'shared/**/*.ts' \
+    --ignore 'api/**/*.spec.ts' \
+    --exec 'node' build/api.js &
+
+# Rebuild the worker now that it exists and we are rebuilding on change
+./node_modules/webpack/bin/webpack.js --config config/webpack.server.ts --watch &
+
+wait

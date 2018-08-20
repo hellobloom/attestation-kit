@@ -1,0 +1,9 @@
+#!/bin/bash
+
+source './bin/shared/strict-mode.sh'
+
+NODE_ENV=${NODE_ENV:-DEVELOPMENT}
+
+# Run a Typescript file with an arbitrary number of arguments, with support
+# for importing modules from the rest of the project.
+./node_modules/.bin/ts-node -P tsconfig.server.json -r tsconfig-paths/register "$@"

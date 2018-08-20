@@ -1,0 +1,20 @@
+#!/bin/bash
+source './bin/shared/strict-mode.sh'
+
+# Kill our process and all of our child processes upon ctrl+c.
+trap "exit" INT TERM ERR
+trap "kill 0" EXIT
+
+if ! pgrep -f "geth --shh --syncmode light" > /dev/null
+then
+  geth --shh --syncmode 'light' --cache 1024 --nodiscover --verbosity 3 --port 40404 --rpc --rpcaddr=0.0.0.0 --rpcport 8645 --ws --wsaddr=0.0.0.0 --wsport=8646 --wsorigins=* & 
+fi
+
+docker-compose -f docker-compose.dev.yml down &&
+docker-compose -f docker-compose.dev.yml build && 
+docker-compose -f docker-compose.dev.yml up & 
+
+wait %1
+wait %2
+wait %3
+wait %4

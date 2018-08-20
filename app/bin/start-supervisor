@@ -1,0 +1,6 @@
+#!/bin/bash
+
+echo "Current node env: $NODE_ENV"
+bin/migrate
+touch newrelic_agent.log
+/usr/local/bin/supervisord -n -c /etc/supervisord.conf
