@@ -1,5 +1,4 @@
 import {isValidAddress, toBuffer} from 'ethereumjs-util'
-import {serverLogger} from '@shared/logger'
 import {uniq} from 'lodash'
 const ethSigUtil = require('eth-sig-util')
 
