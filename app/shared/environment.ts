@@ -49,6 +49,16 @@ export interface IAttestationTypesToArr {
   google?: string[]
   linkedin?: string[]
   twitter?: string[]
+  payroll?: string[]
+  ssn?: string[]
+  criminal?: string[]
+  offense?: string[]
+  driving?: string[]
+  employment?: string[]
+  education?: string[]
+  drug?: string[]
+  bank?: string[]
+  utility?: string[]
 }
 
 export interface IAttestationTypesToStr {
@@ -62,6 +72,16 @@ export interface IAttestationTypesToStr {
   google?: string
   linkedin?: string
   twitter?: string
+  payroll?: string
+  ssn?: string
+  criminal?: string
+  offense?: string
+  driving?: string
+  employment?: string
+  education?: string
+  drug?: string
+  bank?: string
+  utility?: string
 }
 
 interface IWhisperTopics {
@@ -74,6 +94,16 @@ interface IWhisperTopics {
   google: string
   linkedin: string
   twitter: string
+  payroll: string
+  ssn: string
+  criminal: string
+  offense: string
+  driving: string
+  employment: string
+  education: string
+  drug: string
+  bank: string
+  utility: string
 }
 
 // Throw an error if the specified environment variable is not defined

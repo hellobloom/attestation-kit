@@ -50,6 +50,16 @@ export enum Entities {
   linkedinAttester = 'LinkedinAttester',
   googleAttester = 'GoogleAttester',
   twitterAttester = 'TwitterAttester',
+  payrollAttester = 'PayrollAttester',
+  ssnAttester = 'SSNAttester',
+  criminalAttester = 'CriminalAttester',
+  offenseAttester = 'OffenseAttester',
+  drivingAttester = 'DrivingAttester',
+  employmentAttester = 'EmploymentAttester',
+  educationAttester = 'EducationAttester',
+  drugAttester = 'DrugAttester',
+  bankAttester = 'BankAttester',
+  utilityAttester = 'UtilityAttester',
 }
 
 export const AttestationTypeToEntity = {
@@ -63,6 +73,16 @@ export const AttestationTypeToEntity = {
   google: Entities.googleAttester,
   linkedin: Entities.linkedinAttester,
   twitter: Entities.twitterAttester,
+  payroll: Entities.payrollAttester,
+  ssn: Entities.ssnAttester,
+  criminal: Entities.criminalAttester,
+  offense: Entities.offenseAttester,
+  driving: Entities.drivingAttester,
+  employment: Entities.employmentAttester,
+  education: Entities.educationAttester,
+  drug: Entities.drugAttester,
+  bank: Entities.bankAttester,
+  utility: Entities.utilityAttester,
 }
 
 export type TMessageHandler = (...args: any[]) => Promise<IMessageDecision | false>

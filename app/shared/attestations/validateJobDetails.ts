@@ -183,6 +183,26 @@ export const validateSubjectDataComponent = (
       obj = JSON.parse(input.data)
       validData = every(['id'], (key: any) => typeof obj[key] !== 'undefined')
       break
+    case AttestationTypeID.payroll:
+      break
+    case AttestationTypeID.ssn:
+      break
+    case AttestationTypeID.criminal:
+      break
+    case AttestationTypeID.offense:
+      break
+    case AttestationTypeID.driving:
+      break
+    case AttestationTypeID.employment:
+      break
+    case AttestationTypeID.education:
+      break
+    case AttestationTypeID.drug:
+      break
+    case AttestationTypeID.bank:
+      break
+    case AttestationTypeID.utility:
+      break
     default:
       break
   }
