@@ -7,7 +7,7 @@ import {
   sendJobDetails,
 } from '@shared/attestations/whisperRequesterActions'
 import {requesterWallet} from '@shared/attestations/attestationWallets'
-import {AttestationUtils} from 'attestations-lib'
+import {getAttestationTypeStr} from 'attestations-lib'
 import {toBuffer} from 'ethereumjs-util'
 import {toTopic} from '@shared/attestations/whisper'
 
@@ -31,8 +31,7 @@ export const show = (req: any, res: any) => {
 // create request
 export const create = async (req: any, res: any) => {
   const attestation_type =
-    req.body.attestation_type ||
-    AttestationUtils.getAttestationTypeStr(req.body.attestation_type_id)
+    req.body.attestation_type || getAttestationTypeStr(req.body.attestation_type_id)
 
   const attestation = await m.Attestation.create({
     subject: toBuffer(req.body.subject_eth_address),
