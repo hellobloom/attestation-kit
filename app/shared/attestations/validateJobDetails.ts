@@ -158,7 +158,7 @@ export const validateSubjectDataComponent = (
     case AttestationTypeID.sanctionScreen:
       // Note: temporarily validating only that there is a non-empty / whitespace id prop on the provided JSON
       // This is essentially the same validation bloom-web is doing
-      const objWithIdProp: {id?: string} = JSON.parse(obj)
+      const objWithIdProp: {id?: string} = JSON.parse(input.data)
       validData = objWithIdProp.id !== undefined && objWithIdProp.id.trim() !== ''
       break
     case AttestationTypeID.pepScreen:
