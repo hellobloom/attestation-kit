@@ -152,6 +152,7 @@ const handleMessage = async (
         messageDecision = await handleUnknownMessageType(body, messageTopic)
     }
   } else {
+    serverLogger.debug('Handling unknown message (no type specified)')
     messageDecision = await handleUnknownMessageType(body, messageTopic)
   }
   serverLogger.debug('Message decision', messageDecision)
@@ -303,7 +304,9 @@ export const handleMessages = async (entity: string, wallet: Wallet.Wallet) => {
         serverLogger.info('Decoding Whisper message', web3.toAscii(message.payload))
       } catch {}
       const body: TBloomMessage = JSON.parse(web3.toAscii(message.payload))
+      serverLogger.info('Decoded Whisper message...', body)
       const messageTopic: string = message.topic
+      serverLogger.info('Received message decision', messageDecision)
       const messageDecision = await handleMessage(body, messageTopic, entity, wallet)
       if (messageDecision) {
         messageDecisions.push(messageDecision)
@@ -315,7 +318,8 @@ export const handleMessages = async (entity: string, wallet: Wallet.Wallet) => {
       })
       serverLogger.warn(
         'Encountered an error while handling whisper messages',
-        error.message
+        error.message,
+        error.stack
       )
     }
   }
