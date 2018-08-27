@@ -298,6 +298,10 @@ export const handleMessages = async (entity: string, wallet: Wallet.Wallet) => {
   const web3 = new Web3(new Web3.providers.HttpProvider(env.web3Provider))
   for (let message of newMessages) {
     try {
+      try {
+        serverLogger.info('Attempting to handle Whisper message', message.payload)
+        serverLogger.info('Decoding Whisper message', web3.toAscii(message.payload))
+      } catch {}
       const body: TBloomMessage = JSON.parse(web3.toAscii(message.payload))
       const messageTopic: string = message.topic
       const messageDecision = await handleMessage(body, messageTopic, entity, wallet)

@@ -12,10 +12,10 @@ Visit https://docs.docker.com/compose/install/ to follow current instructions to
 
 ## Download code
 
-Clone the https://github.com/hellobloom/whisper-docker repository to your chosen location on your server:
+Clone the https://github.com/hellobloom/attestation-kit repository to your chosen location on your server:
 
 ```
-git clone https://github.com/hellobloom/whisper-docker /srv/whisper-docker
+git clone https://github.com/hellobloom/attestation-kit /srv/attestation-kit
 ```
 
 ## Configuration
@@ -83,4 +83,4 @@ To spin down your instance, run `docker-compose down`, or `docker-compose -f doc
 
 `docker exec -it CONTAINER_NAME /bin/bash`
 
-COINTAINER_NAME should look something like `whisper-docker_app_1`
+CONTAINER_NAME should look something like `attestation-kit_app_1`

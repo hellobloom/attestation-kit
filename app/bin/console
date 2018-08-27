@@ -29,7 +29,7 @@ const injectedValuesList = Object.keys(customReplContext)
   .map(key => `   - ${key}`)
   .join('\n')
 
-console.log(`Welcome to the whisper-docker REPL!`)
+console.log(`Welcome to the attestation-kit REPL!`)
 console.log(`The following values are already available in the REPL for you:\n`)
 console.log(injectedValuesList)
 console.log()
@@ -60,7 +60,7 @@ console.log()
  * Initialize REPLs
  */
 
-const replSession = repl.start({prompt: `whisper-docker (${env.nodeEnv})> `})
+const replSession = repl.start({prompt: `attestation-kit (${env.nodeEnv})> `})
 
 // Inject our customReplContext into the env so they are avaialable top level
 for (key in customReplContext) {
