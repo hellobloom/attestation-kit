@@ -306,8 +306,8 @@ export const handleMessages = async (entity: string, wallet: Wallet.Wallet) => {
       const body: TBloomMessage = JSON.parse(web3.toAscii(message.payload))
       serverLogger.info('Decoded Whisper message...', body)
       const messageTopic: string = message.topic
-      serverLogger.info('Received message decision', messageDecision)
       const messageDecision = await handleMessage(body, messageTopic, entity, wallet)
+      serverLogger.info('Received message decision', messageDecision)
       if (messageDecision) {
         messageDecisions.push(messageDecision)
       }
