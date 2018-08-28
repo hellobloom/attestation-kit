@@ -248,6 +248,17 @@ export default class Attestation extends Sequelize.Model<Attestation> {
     }
   }
 
+  clearAllData = () => {
+    this.update({data: null})
+  }
+
+  clearSensitiveData = () => {
+    const {data, ...otherFields} = this.data
+    this.update({
+      data: otherFields,
+    })
+  }
+
   /**
    * Given (negotiationId), returns an Attestation model
    * @param negotiationId Foreign key referencing Negotiations

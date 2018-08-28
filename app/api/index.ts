@@ -1,6 +1,7 @@
 import * as express from 'express'
 // import * as path from 'path'
 import {env} from '@shared/environment'
+import * as genCtrl from '@api/controllers/general'
 import * as attCtrl from '@api/controllers/attestation'
 import * as reqCtrl from '@api/controllers/request'
 import {sha256} from 'ethereumjs-util'
@@ -42,10 +43,15 @@ app.get('/', (req, res) => {
   res.json({success: true, message: 'Successfully authenticated.'})
 })
 
+// General API
+app.post('/api/attestations/:id/clear_data', genCtrl.clearData)
+
+// Requester API
 app.get('/api/requests', reqCtrl.show)
 app.post('/api/requests', reqCtrl.create)
 app.post('/api/requests/send', reqCtrl.sendjob)
 
+// Attester API
 app.get('/api/attestations', attCtrl.show)
 app.post('/api/attestations', attCtrl.perform)
 

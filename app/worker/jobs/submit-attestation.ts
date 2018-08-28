@@ -64,9 +64,7 @@ export const submitAttestation = async (job: any) => {
       env.clearAttestationData &&
       ['both', 'attester'].indexOf(env.clearAttestationData) != -1
     ) {
-      await attestation.update({
-        data: null,
-      })
+      await attestation.clearSensitiveData()
     }
   } else {
     newrelic.recordCustomEvent('ContractError', {
