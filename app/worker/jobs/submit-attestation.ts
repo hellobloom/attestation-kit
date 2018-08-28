@@ -53,12 +53,21 @@ export const submitAttestation = async (job: any) => {
       data: null,
     })
 
-    notifyAttestationCompleted(
+    await notifyAttestationCompleted(
       attestation.id,
       attestationLogs.transactionHash,
       attestationParams.data.dataHash,
       JSON.stringify(result)
     )
+
+    if (
+      env.clearAttestationData &&
+      ['both', 'attester'].indexOf(env.clearAttestationData) != -1
+    ) {
+      await attestation.update({
+        data: null,
+      })
+    }
   } else {
     newrelic.recordCustomEvent('ContractError', {
       Action: 'SendAttestationFailed',

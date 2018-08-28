@@ -35,6 +35,7 @@ interface IEnvironmentConfig {
   webhook_host: string
   webhook_key: string
   log_level?: string
+  clearAttestationData: string
 }
 
 export interface IAttestationTypesToArr {
@@ -171,4 +172,5 @@ export const env: IEnvironmentConfig = {
   webhook_host: envVar('WEBHOOK_HOST'),
   webhook_key: envVar('WEBHOOK_KEY'),
   log_level: optionalEnvVar('LOG_LEVEL', false),
+  clearAttestationData: optionalEnvVar('CLEAR_ATTESTATION_DATA'),
 }
