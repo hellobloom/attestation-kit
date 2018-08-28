@@ -164,6 +164,10 @@ export const validateSubjectDataComponent = (
     case AttestationTypeID.pepScreen:
       break
     case AttestationTypeID.idDocument:
+      const idDocumentData = JSON.parse(input.data)
+      validData = idDocumentData
+        && idDocumentData.authenticationResult
+        && idDocumentData.authenticationResult === 1 // Passed
       break
     case AttestationTypeID.google:
       obj = JSON.parse(input.data)

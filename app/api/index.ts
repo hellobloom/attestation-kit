@@ -20,7 +20,13 @@ const captureRawBody = (
   return true
 }
 
-app.use(bodyParser.json({type: '*/*', verify: captureRawBody}))
+app.use(
+  bodyParser.json({
+    type: '*/*',
+    verify: captureRawBody,
+    limit: '10mb', // https://stackoverflow.com/a/19965089/1165441
+  })
+)
 
 // kick out unauthenticated requests
 app.use((req, res, next) => {
