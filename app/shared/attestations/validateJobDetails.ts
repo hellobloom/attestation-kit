@@ -16,6 +16,8 @@ import {
 import {requiredField} from '@shared/requiredField'
 import {every} from 'lodash'
 
+import {serverLogger} from '@shared/logger'
+
 interface IInvalidParamError {
   kind: 'invalid_param'
   message: string
@@ -110,6 +112,7 @@ const validateParamsType = (
     if (validation(data[fieldName])) {
       return true
     }
+    serverLogger.info('Validation failed for field', fieldName, data[fieldName])
     reject(`Invalid ${fieldName}`)
     return false
   })
@@ -165,9 +168,10 @@ export const validateSubjectDataComponent = (
       break
     case AttestationTypeID.idDocument:
       const idDocumentData = JSON.parse(input.data)
-      validData = idDocumentData
-        && idDocumentData.authenticationResult
-        && idDocumentData.authenticationResult === 1 // Passed
+      validData =
+        idDocumentData &&
+        idDocumentData.authenticationResult &&
+        idDocumentData.authenticationResult === 1 // Passed
       break
     case AttestationTypeID.google:
       obj = JSON.parse(input.data)
