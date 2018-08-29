@@ -113,10 +113,15 @@ const validateParamsType = (
 
   // TODO: This could be collapsed into validations similar to above
   const requiredFields = uniq(validations.map(([first]) => first))
+  serverLogger.info(
+    'Do all required fields exist?',
+    requiredFields.map(f => [f, requiredField(reject, data)(f)])
+  )
 
   if (!requiredFields.every(requiredField(reject, data))) return false
 
   const allValidationsPassed = validations.every(([fieldName, validation]) => {
+    serverLogger.info('Validating field', fieldName, data[fieldName])
     if (validation(data[fieldName])) {
       return true
     }
