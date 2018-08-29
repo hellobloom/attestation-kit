@@ -62,6 +62,7 @@ const agreementData = (input: TUnvalidated<IJobDetails>) => [
 const validateSubjectSig = (unvalidatedJobDetails: TUnvalidated<IJobDetails>) => (
   subjectSig: string
 ) => {
+  serverLogger.debug('Validating subject sig', subjectSig)
   const agreementDataInput = {
     requestNonce: unvalidatedJobDetails.requestNonce,
     types: unvalidatedJobDetails.types,
