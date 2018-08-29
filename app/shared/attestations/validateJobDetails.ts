@@ -76,10 +76,17 @@ const validateSubjectSig = (unvalidatedJobDetails: TUnvalidated<IJobDetails>) =>
   const expectedDigest = ethSigUtil.typedSignatureHash(
     agreementData(agreementDataInput)
   )
+  serverLogger.debug('Agreement data input', agreementDataInput)
+  serverLogger.debug('Expected digest', expectedDigest)
   const subjectETHAddress = toBuffer(unvalidatedJobDetails.subject)
   const recoveredETHAddress = U.recoverEthAddressFromDigest(
     toBuffer(expectedDigest),
     subjectSig
+  )
+  serverLogger.debug(
+    'Eth addresses of signature',
+    subjectETHAddress,
+    recoveredETHAddress
   )
   return recoveredETHAddress.equals(subjectETHAddress)
 }
