@@ -62,7 +62,7 @@ const agreementData = (input: TUnvalidated<IJobDetails>) => [
 const validateSubjectSig = (unvalidatedJobDetails: TUnvalidated<IJobDetails>) => (
   subjectSig: string
 ) => {
-  serverLogger.debug('Validating subject sig', subjectSig)
+  serverLogger.info('Validating subject sig', subjectSig)
   const agreementDataInput = {
     requestNonce: unvalidatedJobDetails.requestNonce,
     types: unvalidatedJobDetails.types,
@@ -77,14 +77,14 @@ const validateSubjectSig = (unvalidatedJobDetails: TUnvalidated<IJobDetails>) =>
   const expectedDigest = ethSigUtil.typedSignatureHash(
     agreementData(agreementDataInput)
   )
-  serverLogger.debug('Agreement data input', agreementDataInput)
-  serverLogger.debug('Expected digest', expectedDigest)
+  serverLogger.info('Agreement data input', agreementDataInput)
+  serverLogger.info('Expected digest', expectedDigest)
   const subjectETHAddress = toBuffer(unvalidatedJobDetails.subject)
   const recoveredETHAddress = U.recoverEthAddressFromDigest(
     toBuffer(expectedDigest),
     subjectSig
   )
-  serverLogger.debug(
+  serverLogger.info(
     'Eth addresses of signature',
     subjectETHAddress,
     recoveredETHAddress
