@@ -63,8 +63,12 @@ export const create = async (req: any, res: any) => {
 
 // send job
 export const sendjob = async (req: any, res: any) => {
-  await sendJobDetails(req.body.message, requesterWallet)
+  try {
+    await sendJobDetails(req.body.message, requesterWallet)
 
-  // tie in - initiate whisper interactions
-  res.json({success: true})
+    // tie in - initiate whisper interactions
+    res.json({success: true})
+  } catch {
+    res.json({success: false})
+  }
 }
