@@ -159,7 +159,7 @@ export const validateSubjectDataComponent = (
   type: AttestationTypeID
 ): boolean => {
   let validData: boolean = false
-  var obj: any
+  let obj: any
   switch (type) {
     case AttestationTypeID.phone:
       validData = U.isValidPhoneNumber(input.data)
@@ -178,6 +178,8 @@ export const validateSubjectDataComponent = (
       validData = objWithIdProp.id !== undefined && objWithIdProp.id.trim() !== ''
       break
     case AttestationTypeID.pepScreen:
+      obj = JSON.parse(input.data)
+      validData = obj !== null // EH TODO Add proper validation
       break
     case AttestationTypeID.idDocument:
       const idDocumentData = JSON.parse(input.data)
