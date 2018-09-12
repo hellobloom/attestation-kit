@@ -811,9 +811,9 @@ atob@^2.0.0:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/atob/-/atob-2.0.3.tgz#19c7a760473774468f20b2d2d03372ad7d4cbf5d"
 
-"attestations-lib@https://github.com/hellobloom/attestations-lib/releases/download/0.1.5/attestations-lib-v0.1.5.tgz":
-  version "0.1.5"
-  resolved "https://github.com/hellobloom/attestations-lib/releases/download/0.1.5/attestations-lib-v0.1.5.tgz#488a039a7e6fdec09f83cf5d50b7ae0b5ba7c614"
+"attestations-lib@https://github.com/hellobloom/attestations-lib/releases/download/0.1.6/attestations-lib-v0.1.6.tgz":
+  version "0.1.6"
+  resolved "https://github.com/hellobloom/attestations-lib/releases/download/0.1.6/attestations-lib-v0.1.6.tgz#857d9b1b62d184eb9f1f7ae228e6b4988719183f"
   dependencies:
     "@types/lodash" "^4.14.116"
     lodash "^4.17.10"
@@ -9052,8 +9052,8 @@ tsconfig-paths@^3.2.0, tsconfig-paths@^3.3.2:
     strip-json-comments "^2.0.1"
 
 tsconfig-paths@^3.5.0:
-  version "3.5.0"
-  resolved "https://registry.yarnpkg.com/tsconfig-paths/-/tsconfig-paths-3.5.0.tgz#a447c7721e49281af97343d9a850864e949a0b51"
+  version "3.6.0"
+  resolved "https://registry.yarnpkg.com/tsconfig-paths/-/tsconfig-paths-3.6.0.tgz#f14078630d9d6e8b1dc690c1fc0cfb9cd0663891"
   dependencies:
     "@types/json5" "^0.0.29"
     deepmerge "^2.0.1"
