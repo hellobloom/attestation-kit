@@ -56,11 +56,11 @@ export const recoverSessionIDSig = (session: string, signature: string) =>
 const serializeData = (data: object) => JSON.stringify(data)
 
 const hashAttestationData = (input: IAttestationData) => {
-  return soliditySha3({type: 'string', name: 'data', value: serializeData(input)})
+  return soliditySha3({type: 'string', value: serializeData(input)})
 }
 
 const hashCombinedAttestationData = (input: object) => {
-  return soliditySha3({type: 'string', name: 'data', value: serializeData(input)})
+  return soliditySha3({type: 'string', value: serializeData(input)})
 }
 
 export const hashCompleteAttestationData = (input: IAttestationData[]) => {
@@ -72,7 +72,7 @@ export const hashTypeIds = (input: AttestationTypeID[]) => {
 }
 
 export const generateSigNonce = () =>
-  bufferToHex(soliditySha3({type: 'string', name: 'nonce', value: uuid()}))
+  bufferToHex(soliditySha3({type: 'string', value: uuid()}))
 
 export const getFormattedTypedDataAttestationRequestLegacy = (
   subject: string,
