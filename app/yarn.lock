@@ -811,9 +811,9 @@ atob@^2.0.0:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/atob/-/atob-2.0.3.tgz#19c7a760473774468f20b2d2d03372ad7d4cbf5d"
 
-"attestations-lib@https://github.com/hellobloom/attestations-lib/releases/download/0.1.6/attestations-lib-v0.1.6.tgz":
-  version "0.1.6"
-  resolved "https://github.com/hellobloom/attestations-lib/releases/download/0.1.6/attestations-lib-v0.1.6.tgz#857d9b1b62d184eb9f1f7ae228e6b4988719183f"
+"attestations-lib@https://github.com/hellobloom/attestations-lib/releases/download/0.1.7/attestations-lib-v0.1.7.tgz":
+  version "0.1.7"
+  resolved "https://github.com/hellobloom/attestations-lib/releases/download/0.1.7/attestations-lib-v0.1.7.tgz#62b4d2e7b73f8fb79836f1b0877d93bf63987a2f"
   dependencies:
     "@types/lodash" "^4.14.116"
     lodash "^4.17.10"
@@ -5653,9 +5653,13 @@ lodash@^4.0.0, lodash@^4.13.1, lodash@^4.14.0, lodash@^4.17.0, lodash@^4.17.1, l
   version "4.17.4"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
 
-lodash@^4.15.0, lodash@^4.17.10, lodash@^4.17.5:
+lodash@^4.15.0, lodash@^4.17.5:
   version "4.17.10"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.10.tgz#1b7793cf7259ea38fb3661d4d38b3260af8ae4e7"
+
+lodash@^4.17.10:
+  version "4.17.11"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.11.tgz#b39ea6229ef607ecd89e2c8df12536891cac9b8d"
 
 log-symbols@^2.1.0:
   version "2.2.0"
