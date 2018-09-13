@@ -20,7 +20,7 @@ git clone https://github.com/hellobloom/attestation-kit /srv/attestation-kit
 
 ## Configuration
 
-See [Bloom Docker](https://bloom.co/docs/docker/env) docs for most up-to-date info on editing the .env file.
+See [Bloom Docker](https://bloom.co/docs/attestation-kit/env) docs for most up-to-date info on editing the .env file.
 
 ## Networking
 
