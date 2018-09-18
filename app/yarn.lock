@@ -811,14 +811,18 @@ atob@^2.0.0:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/atob/-/atob-2.0.3.tgz#19c7a760473774468f20b2d2d03372ad7d4cbf5d"
 
-"attestations-lib@https://github.com/hellobloom/attestations-lib/releases/download/0.1.7/attestations-lib-v0.1.7.tgz":
-  version "0.1.7"
-  resolved "https://github.com/hellobloom/attestations-lib/releases/download/0.1.7/attestations-lib-v0.1.7.tgz#62b4d2e7b73f8fb79836f1b0877d93bf63987a2f"
+"attestations-lib@https://github.com/hellobloom/attestations-lib/releases/download/v0.2.1/attestations-lib-v0.2.1.tgz":
+  version "0.2.1"
+  resolved "https://github.com/hellobloom/attestations-lib/releases/download/v0.2.1/attestations-lib-v0.2.1.tgz#d2b77ee6107df3695f7fea6c41a3afa736573278"
   dependencies:
     "@types/lodash" "^4.14.116"
+    js-sha3 "^0.8.0"
     lodash "^4.17.10"
+    merkletreejs "^0.0.10"
     ts-node "^7.0.1"
     tsconfig-paths "^3.5.0"
+    uuidv4 "^1.0.1"
+    web3-utils "^1.0.0-beta.36"
 
 autoprefixer@^6.3.1:
   version "6.7.7"
@@ -1687,6 +1691,10 @@ buffer-from@^1.0.0:
 buffer-from@^1.1.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/buffer-from/-/buffer-from-1.1.1.tgz#32713bc028f75c02fdb710d7c7bcec1f2c6070ef"
+
+buffer-reverse@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/buffer-reverse/-/buffer-reverse-1.0.1.tgz#49283c8efa6f901bc01fa3304d06027971ae2f60"
 
 buffer-to-arraybuffer@^0.0.5:
   version "0.0.5"
@@ -4377,6 +4385,10 @@ is-buffer@^1.1.5:
   version "1.1.6"
   resolved "https://registry.yarnpkg.com/is-buffer/-/is-buffer-1.1.6.tgz#efaa2ea9daa0d7ab2ea13a97b2b8ad51fefbe8be"
 
+is-buffer@^2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/is-buffer/-/is-buffer-2.0.3.tgz#4ecf3fcf749cbd1e472689e109ac66261a25e725"
+
 is-builtin-module@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/is-builtin-module/-/is-builtin-module-1.0.0.tgz#540572d34f7ac3119f8f76c30cbc1b1e037affbe"
@@ -5111,6 +5123,10 @@ js-sha3@0.5.5:
 js-sha3@^0.3.1:
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/js-sha3/-/js-sha3-0.3.1.tgz#86122802142f0828502a0d1dee1d95e253bb0243"
+
+js-sha3@^0.8.0:
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/js-sha3/-/js-sha3-0.8.0.tgz#b9b7a5da73afad7dedd0f8c463954cbde6818840"
 
 js-string-escape@1.0.1:
   version "1.0.1"
@@ -5864,6 +5880,14 @@ merkle-patricia-tree@^2.1.2:
     readable-stream "^2.0.0"
     rlp "^2.0.0"
     semaphore ">=1.0.1"
+
+merkletreejs@^0.0.10:
+  version "0.0.10"
+  resolved "https://registry.yarnpkg.com/merkletreejs/-/merkletreejs-0.0.10.tgz#c282e714d9db10b1ac2ac478b1dfae242e76e795"
+  dependencies:
+    buffer-reverse "^1.0.1"
+    crypto-js "^3.1.9-1"
+    is-buffer "^2.0.3"
 
 methods@^1.1.1, methods@^1.1.2, methods@~1.1.2:
   version "1.1.2"
@@ -9396,6 +9420,10 @@ uuid@3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.0.0.tgz#6728fc0459c450d796a99c31837569bdf672d728"
 
+uuid@3.2.1, uuid@^3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.2.1.tgz#12c528bb9d58d0b9265d9a2f6f0fe8be17ff1f14"
+
 uuid@^2.0.1:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-2.0.3.tgz#67e2e863797215530dff318e5bf9dcebfd47b21a"
@@ -9404,15 +9432,18 @@ uuid@^3.0.0, uuid@^3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.1.0.tgz#3dd3d3e790abc24d7b0d3a034ffababe28ebbc04"
 
-uuid@^3.2.1:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.2.1.tgz#12c528bb9d58d0b9265d9a2f6f0fe8be17ff1f14"
-
 uuidv4@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/uuidv4/-/uuidv4-1.0.0.tgz#f30a2e10f65b2381fb9a577681337efb17eb484f"
   dependencies:
     sha-1 "0.1.1"
+
+uuidv4@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/uuidv4/-/uuidv4-1.0.1.tgz#0a670756781674480a7c4d00df4a8d1963ea4745"
+  dependencies:
+    sha-1 "0.1.1"
+    uuid "3.2.1"
 
 v8-compile-cache@^2.0.0:
   version "2.0.0"
@@ -9634,6 +9665,18 @@ web3-utils@1.0.0-beta.34:
 web3-utils@^1.0.0-beta.33:
   version "1.0.0-beta.33"
   resolved "https://registry.yarnpkg.com/web3-utils/-/web3-utils-1.0.0-beta.33.tgz#e091b7994f09b714b0198a4057d3ad2eb8cbe238"
+  dependencies:
+    bn.js "4.11.6"
+    eth-lib "0.1.27"
+    ethjs-unit "0.1.6"
+    number-to-bn "1.7.0"
+    randomhex "0.1.5"
+    underscore "1.8.3"
+    utf8 "2.1.1"
+
+web3-utils@^1.0.0-beta.36:
+  version "1.0.0-beta.36"
+  resolved "https://registry.yarnpkg.com/web3-utils/-/web3-utils-1.0.0-beta.36.tgz#dc19c9aeec009b1816cc91ef64d7fe9f8ee344c9"
   dependencies:
     bn.js "4.11.6"
     eth-lib "0.1.27"
