@@ -11,7 +11,7 @@ module.exports = {
     `)
     await queryInterface.sequelize.query(`
       CREATE TYPE "attestation_type"
-        AS ENUM('phone','email','facebook','sanction-screen','pep-screen','id-document','google','linkedin','twitter','payroll','ssn','criminal','offense','driving','employment','education','drug','bank','utility');
+        AS ENUM('phone','email','facebook','sanction-screen','pep-screen','id-document','google','linkedin','twitter','payroll','ssn','criminal','offense','driving','employment','education','drug','bank','utility','income','assets');
     `)
     await queryInterface.sequelize.query(`
       CREATE TYPE "attestation_role"
