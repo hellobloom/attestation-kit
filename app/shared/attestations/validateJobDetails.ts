@@ -4,7 +4,11 @@ const ethSigUtil = require('eth-sig-util')
 
 import {TUnvalidated} from '@shared/params/validation'
 import * as U from '@shared/utils'
-import {AttestationTypeID} from 'attestations-lib'
+import {
+  AttestationTypeID,
+  getAttestationTypeStr,
+  TAttestationTypeNames,
+} from 'attestations-lib'
 import {
   hashCompleteAttestationData,
   hashTypeIds,
@@ -158,76 +162,82 @@ export const validateSubjectDataComponent = (
   input: IAttestationData,
   type: AttestationTypeID
 ): boolean => {
-  let validData: boolean = false
+  let dataIsValid: boolean = false
   var obj: any
-  switch (type) {
-    case AttestationTypeID.phone:
-      validData = U.isValidPhoneNumber(input.data)
+  const typeStr: TAttestationTypeNames = getAttestationTypeStr(type)
+
+  switch (typeStr) {
+    case 'phone':
+      dataIsValid = U.isValidPhoneNumber(input.data)
       break
-    case AttestationTypeID.email:
-      validData = U.isValidEmail(input.data)
+    case 'email':
+      dataIsValid = U.isValidEmail(input.data)
       break
-    case AttestationTypeID.facebook:
+    case 'facebook':
       obj = JSON.parse(input.data)
-      validData = every(['id'], (key: any) => typeof obj[key] !== 'undefined')
+      dataIsValid = every(['id'], (key: any) => typeof obj[key] !== 'undefined')
       break
-    case AttestationTypeID.sanctionScreen:
+    case 'sanction-screen':
       // Note: temporarily validating only that there is a non-empty / whitespace id prop on the provided JSON
       // This is essentially the same validation bloom-web is doing
       const objWithIdProp: {id?: string} = JSON.parse(input.data)
-      validData = objWithIdProp.id !== undefined && objWithIdProp.id.trim() !== ''
+      dataIsValid = objWithIdProp.id !== undefined && objWithIdProp.id.trim() !== ''
       break
-    case AttestationTypeID.pepScreen:
+    case 'pep-screen':
       break
-    case AttestationTypeID.idDocument:
+    case 'id-document':
       const idDocumentData = JSON.parse(input.data)
-      validData =
+      dataIsValid =
         idDocumentData &&
         idDocumentData.authenticationResult &&
         idDocumentData.authenticationResult === 1 // Passed
       break
-    case AttestationTypeID.google:
+    case 'google':
       obj = JSON.parse(input.data)
-      validData = every(
+      dataIsValid = every(
         ['resourceName'],
         (key: any) => typeof obj[key] !== 'undefined'
       )
       break
-    case AttestationTypeID.linkedin:
+    case 'linkedin':
       obj = JSON.parse(input.data)
-      validData = every(
+      dataIsValid = every(
         ['firstName', 'id', 'lastName'],
         (key: any) => typeof obj[key] !== 'undefined'
       )
       break
-    case AttestationTypeID.twitter:
+    case 'twitter':
       obj = JSON.parse(input.data)
-      validData = every(['id'], (key: any) => typeof obj[key] !== 'undefined')
+      dataIsValid = every(['id'], (key: any) => typeof obj[key] !== 'undefined')
       break
-    case AttestationTypeID.payroll:
+    case 'payroll':
       break
-    case AttestationTypeID.ssn:
+    case 'ssn':
       break
-    case AttestationTypeID.criminal:
+    case 'criminal':
       break
-    case AttestationTypeID.offense:
+    case 'offense':
       break
-    case AttestationTypeID.driving:
+    case 'driving':
       break
-    case AttestationTypeID.employment:
+    case 'employment':
       break
-    case AttestationTypeID.education:
+    case 'education':
       break
-    case AttestationTypeID.drug:
+    case 'drug':
       break
-    case AttestationTypeID.bank:
+    case 'bank':
       break
-    case AttestationTypeID.utility:
+    case 'utility':
+      break
+    case 'income':
+      break
+    case 'assets':
       break
     default:
       break
   }
-  return validData
+  return dataIsValid
 }
 
 export const validateSubjectData = (

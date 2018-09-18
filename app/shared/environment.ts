@@ -43,10 +43,10 @@ export interface IAttestationTypesToArr {
   all?: string[]
   phone?: string[]
   email?: string[]
-  sanctionScreen?: string[]
+  'sanction-screen'?: string[]
   facebook?: string[]
-  pepScreen?: string[]
-  idDocument?: string[]
+  'pep-screen'?: string[]
+  'id-document'?: string[]
   google?: string[]
   linkedin?: string[]
   twitter?: string[]
@@ -66,10 +66,10 @@ export interface IAttestationTypesToStr {
   all?: string
   phone?: string
   email?: string
-  sanctionScreen?: string
+  'sanction-screen'?: string
   facebook?: string
-  pepScreen?: string
-  idDocument?: string
+  'pep-screen'?: string
+  'id-document'?: string
   google?: string
   linkedin?: string
   twitter?: string
@@ -88,10 +88,10 @@ export interface IAttestationTypesToStr {
 interface IWhisperTopics {
   phone: string
   email: string
-  sanctionScreen: string
+  'sanction-screen': string
   facebook: string
-  pepScreen: string
-  idDocument: string
+  'pep-screen': string
+  'id-document': string
   google: string
   linkedin: string
   twitter: string
