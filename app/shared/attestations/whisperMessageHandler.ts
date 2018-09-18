@@ -60,6 +60,8 @@ export enum Entities {
   drugAttester = 'DrugAttester',
   bankAttester = 'BankAttester',
   utilityAttester = 'UtilityAttester',
+  incomeAttester = 'incomeAttester',
+  assetsAttester = 'assetsAttester',
 }
 
 export const AttestationTypeToEntity = {
@@ -83,6 +85,8 @@ export const AttestationTypeToEntity = {
   drug: Entities.drugAttester,
   bank: Entities.bankAttester,
   utility: Entities.utilityAttester,
+  income: Entities.incomeAttester,
+  assets: Entities.assetsAttester,
 }
 
 export type TMessageHandler = (...args: any[]) => Promise<IMessageDecision | false>
