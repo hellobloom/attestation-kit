@@ -60,8 +60,8 @@ export enum Entities {
   drugAttester = 'DrugAttester',
   bankAttester = 'BankAttester',
   utilityAttester = 'UtilityAttester',
-  incomeAttester = 'incomeAttester',
-  assetsAttester = 'assetsAttester',
+  incomeAttester = 'IncomeAttester',
+  assetsAttester = 'AssetsAttester',
 }
 
 export const AttestationTypeToEntity = {
