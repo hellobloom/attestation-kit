@@ -9,7 +9,7 @@ import {
   hashCompleteAttestationData,
   signAttestationRequest,
 } from '@shared/ethereum/signingLogic'
-import {IAttestationData} from '@shared/models/Attestations/Attestation'
+import {IAttestationData} from '@shared/models/Attestation'
 
 beforeEach(() => {
   jest.clearAllMocks()

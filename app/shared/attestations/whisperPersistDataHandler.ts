@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js'
 import {Negotiation, NegotiationMsg, Attestation} from '@shared/models'
 import {toBuffer} from 'ethereumjs-util'
-import {IAttestationDataJSONB} from '@shared/models/Attestations/Attestation'
+import {IAttestationDataJSONB} from '@shared/models/Attestation'
 import {serverLogger} from '@shared/logger'
 
 export enum PersistDataTypes {

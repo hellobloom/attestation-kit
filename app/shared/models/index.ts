@@ -1,10 +1,10 @@
 import {Sequelize} from 'sequelize-typescript'
 import {env} from '@shared/environment'
 import * as config from '../../config/database'
-import Negotiation from '@shared/models/Attestations/Negotiation'
-import NegotiationMsg from '@shared/models/Attestations/NegotiationMsg'
-import WhisperFilters from '@shared/models/Attestations/WhisperFilters'
-import Attestation from '@shared/models/Attestations/Attestation'
+import Negotiation from '@shared/models/Negotiation'
+import NegotiationMsg from '@shared/models/NegotiationMsg'
+import WhisperFilters from '@shared/models/WhisperFilters'
+import Attestation from '@shared/models/Attestation'
 import GasPrice from '@shared/models/GasPrice'
 
 const environmentConfig = config[env.nodeEnv]

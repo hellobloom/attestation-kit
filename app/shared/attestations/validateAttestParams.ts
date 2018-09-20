@@ -9,7 +9,7 @@ import {
   getFormattedTypedDataReleaseTokensLegacy,
 } from '@shared/ethereum/signingLogic'
 import {AttestationTypeID} from 'attestations-lib'
-import {IAttestationDataJSONB} from '@shared/models/Attestations/Attestation'
+import {IAttestationDataJSONB} from '@shared/models/Attestation'
 import BigNumber from 'bignumber.js'
 import {requiredField} from '@shared/requiredField'
 import {serverLogger} from '@shared/logger'

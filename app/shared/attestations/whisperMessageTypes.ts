@@ -1,4 +1,4 @@
-import {IAttestationDataJSONB} from '@shared/models/Attestations/Attestation'
+import {IAttestationDataJSONB} from '@shared/models/Attestation'
 
 export enum MessageTypes {
   solicitation = 'solicitation',

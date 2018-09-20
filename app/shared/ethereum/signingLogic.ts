@@ -1,7 +1,7 @@
 const ethSigUtil = require('eth-sig-util')
 const {soliditySha3} = require('web3-utils')
 import {AttestationTypeID} from 'attestations-lib'
-import {IAttestationData} from '@shared/models/Attestations/Attestation'
+import {IAttestationData} from '@shared/models/Attestation'
 const uuid = require('uuidv4')
 import {bufferToHex} from 'ethereumjs-util'
 

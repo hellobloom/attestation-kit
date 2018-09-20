@@ -16,7 +16,7 @@ import {
 import {
   IAttestationData,
   IAttestationDataJSONB,
-} from '@shared/models/Attestations/Attestation'
+} from '@shared/models/Attestation'
 import {requiredField} from '@shared/requiredField'
 import {every} from 'lodash'
 
