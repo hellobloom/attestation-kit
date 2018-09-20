@@ -10,10 +10,7 @@ import {
   TAttestationTypeNames,
   HashingLogic,
 } from 'attestations-lib'
-import {
-  IAttestationData,
-  IAttestationDataJSONB,
-} from '@shared/models/Attestations/Attestation'
+import {IAttestationDataJSONB} from '@shared/models/Attestations/Attestation'
 import {requiredField} from '@shared/requiredField'
 import {every} from 'lodash'
 
@@ -43,26 +40,6 @@ export interface IJobDetails {
 
 type TReject = (error: string) => void
 
-const agreementData = (input: TUnvalidated<IJobDetails>) => {
-  console.log('input.data', JSON.stringify(input.data))
-  return [
-    {type: 'address', name: 'subject', value: input.subject},
-    {type: 'address', name: 'attester', value: input.attester},
-    {type: 'address', name: 'requester', value: input.requester},
-    {
-      type: 'bytes32',
-      name: 'dataHash',
-      value: HashingLogic.getMerkleTree(input.data.data).getRoot(),
-    },
-    {
-      type: 'bytes32',
-      name: 'typeHash',
-      value: HashingLogic.hashAttestationTypes(input.types),
-    },
-    {type: 'bytes32', name: 'nonce', value: input.requestNonce},
-  ]
-}
-
 const validateSubjectSig = (unvalidatedJobDetails: TUnvalidated<IJobDetails>) => (
   subjectSig: string
 ) => {
@@ -78,8 +55,20 @@ const validateSubjectSig = (unvalidatedJobDetails: TUnvalidated<IJobDetails>) =>
       data: unvalidatedJobDetails.data.data,
     },
   }
+  const merkleTree = HashingLogic.getMerkleTree(agreementDataInput.data.data)
+  const merkleTreeRootHash = merkleTree.getRoot().toString('hex')
+  console.log('---agreementData---')
+  console.log('agreementDataInput.data', JSON.stringify(agreementDataInput.data))
+  console.log('merkleTreeRootHash', merkleTreeRootHash)
   const expectedDigest = ethSigUtil.typedSignatureHash(
-    agreementData(agreementDataInput)
+    HashingLogic.getAttestationAgreement({
+      subject: agreementDataInput.subject,
+      requester: agreementDataInput.requester,
+      attester: agreementDataInput.attester,
+      dataHash: merkleTreeRootHash,
+      typeHash: HashingLogic.hashAttestationTypes(agreementDataInput.types),
+      nonce: agreementDataInput.requestNonce,
+    })
   )
   serverLogger.info('Agreement data input', agreementDataInput)
   serverLogger.info('Expected digest', expectedDigest)
@@ -159,7 +148,7 @@ export const validateJobDetails = async (
 }
 
 export const validateSubjectDataComponent = (
-  input: IAttestationData,
+  input: HashingLogic.IAttestationData,
   type: AttestationTypeID
 ): boolean => {
   let dataIsValid: boolean = false
