@@ -29,27 +29,34 @@ export const sendAttestTx = async (
   gasPrice: string
 ) => {
   serverLogger.info(`Sending attest transaction for ${attestationParams.subject}`)
+  serverLogger.debug(`attestationParams`, JSON.stringify(attestationParams))
 
-  const {logs} = ((await attestationLogic.attest(
-    attestationParams.subject,
-    attestationParams.requester,
-    attestationParams.reward,
-    attestationParams.paymentNonce,
-    attestationParams.requesterSig,
-    attestationParams.dataHash,
-    attestationParams.types,
-    attestationParams.requestNonce,
-    attestationParams.subjectSig,
-    {
-      from: account.address,
-      gasPrice: new BigNumber(gasPrice).toNumber(),
-      gas: 1000000,
+  try {
+    const {logs} = ((await attestationLogic.attest(
+      attestationParams.subject,
+      attestationParams.requester,
+      attestationParams.reward,
+      attestationParams.paymentNonce,
+      attestationParams.requesterSig,
+      '0x' + attestationParams.dataHash,
+      attestationParams.types,
+      attestationParams.requestNonce,
+      attestationParams.subjectSig,
+      {
+        from: account.address,
+        gasPrice: new BigNumber(gasPrice).toNumber(),
+        gas: 1000000,
+      }
+    )) as Web3.TransactionReceipt<any>) as Web3.TransactionReceipt<IAttestEventArgs>
+
+    serverLogger.info(`attestationLogic.attest logs: ${JSON.stringify(logs)}`)
+    const matchingLog = logs.find(log => log.event === 'TraitAttested')
+    if (!matchingLog) {
+      throw new Error('Matching log not found')
     }
-  )) as Web3.TransactionReceipt<any>) as Web3.TransactionReceipt<IAttestEventArgs>
-
-  const matchingLog = logs.find(log => log.event === 'TraitAttested')
-  if (!matchingLog) {
-    throw new Error('Matching log not found')
+    return matchingLog
+  } catch (e) {
+    serverLogger.debug(e)
+    throw e
   }
-  return matchingLog
 }
