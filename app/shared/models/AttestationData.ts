@@ -1,6 +1,7 @@
 import * as Sequelize from 'sequelize-typescript'
 import {Attestation} from '@shared/models'
 import {WhisperMsgDataType} from '@shared/models/NegotiationMsg'
+import {bufferToHex, sha256} from 'ethereumjs-util'
 
 @Sequelize.Table({tableName: 'attestation_data'})
 export default class AttestationData extends Sequelize.Model<AttestationData> {
@@ -63,4 +64,9 @@ export default class AttestationData extends Sequelize.Model<AttestationData> {
     type: Sequelize.DataType.STRING,
   })
   challenge: string
+
+  testChallenge = (passphrase: str) => {
+    let passphraseHash = bufferToHex(sha256(passphrase))
+    return passphrase && this.challenge && passphraseHash === this.challenge
+  }
 }
