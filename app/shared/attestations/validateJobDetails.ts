@@ -8,11 +8,8 @@ import {
   AttestationTypeID,
   getAttestationTypeStr,
   TAttestationTypeNames,
+  HashingLogic,
 } from 'attestations-lib'
-import {
-  hashCompleteAttestationData,
-  hashTypeIds,
-} from '@shared/ethereum/signingLogic'
 import {
   IAttestationData,
   IAttestationDataJSONB,
@@ -46,22 +43,25 @@ export interface IJobDetails {
 
 type TReject = (error: string) => void
 
-const agreementData = (input: TUnvalidated<IJobDetails>) => [
-  {type: 'address', name: 'subject', value: input.subject},
-  {type: 'address', name: 'attester', value: input.attester},
-  {type: 'address', name: 'requester', value: input.requester},
-  {
-    type: 'bytes32',
-    name: 'dataHash',
-    value: hashCompleteAttestationData(input.data.data),
-  },
-  {
-    type: 'bytes32',
-    name: 'typeHash',
-    value: hashTypeIds(input.types),
-  },
-  {type: 'bytes32', name: 'nonce', value: input.requestNonce},
-]
+const agreementData = (input: TUnvalidated<IJobDetails>) => {
+  console.log('input.data', JSON.stringify(input.data))
+  return [
+    {type: 'address', name: 'subject', value: input.subject},
+    {type: 'address', name: 'attester', value: input.attester},
+    {type: 'address', name: 'requester', value: input.requester},
+    {
+      type: 'bytes32',
+      name: 'dataHash',
+      value: HashingLogic.getMerkleTree(input.data.data).getRoot(),
+    },
+    {
+      type: 'bytes32',
+      name: 'typeHash',
+      value: HashingLogic.hashAttestationTypes(input.types),
+    },
+    {type: 'bytes32', name: 'nonce', value: input.requestNonce},
+  ]
+}
 
 const validateSubjectSig = (unvalidatedJobDetails: TUnvalidated<IJobDetails>) => (
   subjectSig: string

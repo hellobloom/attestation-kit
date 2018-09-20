@@ -5,11 +5,8 @@ import {
   validateJobDetails,
   IJobDetails,
 } from '@shared/attestations/validateJobDetails'
-import {
-  hashCompleteAttestationData,
-  signAttestationRequest,
-} from '@shared/ethereum/signingLogic'
-import {IAttestationData} from '@shared/models/Attestations/Attestation'
+import {signAttestationRequest} from '@shared/ethereum/signingLogic'
+import {HashingLogic} from 'attestations-lib'
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -37,19 +34,25 @@ const phoneNonce = uuid()
 const emailNonce = uuid()
 const requestNonce = uuid()
 
-const phoneData: IAttestationData = {
+const phoneData: HashingLogic.IAttestationData = {
   type: 'phone',
+  provider: 'Bloom',
   data: '12223334444',
   nonce: phoneNonce,
+  version: '1.0.0',
 }
 
-const emailData: IAttestationData = {
+const emailData: HashingLogic.IAttestationData = {
   type: 'email',
+  provider: 'Bloom',
   data: 'abc@google.com',
   nonce: emailNonce,
+  version: '1.0.0',
 }
 
-const hashedData = hashCompleteAttestationData([phoneData, emailData])
+const hashedData = HashingLogic.getMerkleTree([phoneData, emailData])
+  .getRoot()
+  .toString('hex')
 
 const subjectSig = signAttestationRequest(
   subjectAddress,

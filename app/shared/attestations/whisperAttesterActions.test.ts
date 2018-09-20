@@ -16,16 +16,13 @@ import {toBuffer} from 'ethereumjs-util'
 import * as Wallet from 'ethereumjs-wallet'
 import {signSessionID, signPaymentAuthorization} from '@shared/ethereum/signingLogic'
 import {PersistDataTypes} from '@shared/attestations/whisperPersistDataHandler'
-import {
-  hashCompleteAttestationData,
-  signAttestationRequest,
-} from '@shared/ethereum/signingLogic'
-import {IAttestationData} from '@shared/models/Attestations/Attestation'
+import {signAttestationRequest} from '@shared/ethereum/signingLogic'
 import {
   attesterWallet,
   requesterWallet,
 } from '@shared/attestations/attestationWallets'
 import {ExternalActionTypes} from '@shared/attestations/whisperExternalActionHandler'
+import {HashingLogic} from 'attestations-lib'
 
 const subjectPrivKey =
   '0xf90c991bd33e54abe929463e24c0d315abcf03a5ef1e628d587615371af8dff3'
@@ -94,19 +91,25 @@ const emailNonce = uuid()
 const requestNonce = uuid()
 const paymentNonce = uuid()
 
-const phoneData: IAttestationData = {
+const phoneData: HashingLogic.IAttestationData = {
   type: 'phone',
+  provider: 'Bloom',
   data: '12223334444',
   nonce: phoneNonce,
+  version: '1.0.0',
 }
 
-const emailData: IAttestationData = {
+const emailData: HashingLogic.IAttestationData = {
   type: 'email',
+  provider: 'Bloom',
   data: 'abc@google.com',
   nonce: emailNonce,
+  version: '1.0.0',
 }
 
-const hashedData = hashCompleteAttestationData([phoneData, emailData])
+const hashedData = HashingLogic.getMerkleTree([phoneData, emailData])
+  .getRoot()
+  .toString('hex')
 
 const subjectSig = signAttestationRequest(
   subjectAddress,
