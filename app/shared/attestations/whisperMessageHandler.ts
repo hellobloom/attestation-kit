@@ -15,7 +15,6 @@ import {
 } from '@shared/attestations/whisperMessageTypes'
 import * as Shh from 'web3-shh'
 import * as Wallet from 'ethereumjs-wallet'
-import {env} from '@shared/environment'
 import {fetchAllMessages} from '@shared/attestations/whisper'
 import {
   handleSolicitation,
