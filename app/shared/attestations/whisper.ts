@@ -8,10 +8,16 @@ import {serverLogger} from '@shared/logger'
 
 export const web3 = new Web3(new Web3.providers.HttpProvider(env.web3Provider))
 export const toTopic = (ascii: string) => web3.sha3(ascii).slice(0, 10)
-export var shh = new Shh(env.whisper.provider)
+export const wsProviderOptions = {
+  clientOptions: {
+    maxReceivedFrameSize: 100000000,
+    maxReceivedMessageSize: 100000000,
+  },
+}
+export var shh = new Shh(env.whisper.provider, wsProviderOptions)
 
 export const resetShh = () => {
-  shh = new Shh(env.whisper.provider)
+  shh = new Shh(env.whisper.provider, wsProviderOptions)
 }
 
 export const fetchAllMessages = async (entity: string) => {
