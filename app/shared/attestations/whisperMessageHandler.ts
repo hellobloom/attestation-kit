@@ -14,7 +14,6 @@ import {
   IBloomWhisperMessage,
 } from '@shared/attestations/whisperMessageTypes'
 import * as Shh from 'web3-shh'
-import * as Web3 from 'web3'
 import * as Wallet from 'ethereumjs-wallet'
 import {env} from '@shared/environment'
 import {fetchAllMessages} from '@shared/attestations/whisper'
@@ -301,7 +300,6 @@ export const handleMessages = async (entity: string, wallet: Wallet.Wallet) => {
   // Make sure attester is listening for solicitations
   let newMessages: Shh.Message[] = await fetchAllMessages(entity)
   let messageDecisions: IMessageDecision[] = []
-  const web3 = new Web3(new Web3.providers.HttpProvider(env.web3Provider))
   for (let message of newMessages) {
     try {
       try {
