@@ -90,7 +90,9 @@ export const handleSolicitation: TMessageHandler = async (
   // Bid acceptance would come through channel based on new session and new privkey
   const newTopic = toTopic(newSession)
 
+  serverLogger.info('Handling solicitation...', message, messageTopic)
   const attestationType = hashedTopicToAttestationType[messageTopic]
+  serverLogger.info('attestation type', attestationType)
 
   if (!env.attester_rewards) {
     throw new Error(
@@ -101,8 +103,10 @@ export const handleSolicitation: TMessageHandler = async (
   const acceptableReward = new BigNumber(
     Web3.prototype.toWei(env.attester_rewards[attestationType], 'ether')
   )
+  serverLogger.info('Acceptable reward', acceptableReward)
 
   const askReward = new BigNumber(message.rewardAsk)
+  serverLogger.info('askReward', askReward)
   if (acceptableReward.greaterThan(askReward)) {
     // future nice-to-have - Reply with acceptable bid
     return false
@@ -117,6 +121,7 @@ export const handleSolicitation: TMessageHandler = async (
     messageType: MessageTypes.attestationBid,
     rewardBid: message.rewardAsk,
   }
+  serverLogger.info('attestationBid', attestationBid)
 
   const newSubscription: IDirectMessageSubscriber = {
     messageType: MessageSubscribers.directMessage,
@@ -124,13 +129,20 @@ export const handleSolicitation: TMessageHandler = async (
     publicKey: 'new',
   }
 
+  serverLogger.info('newSubscription', newSubscription)
+
   const recipient: IDirectMessageSubscriber = {
     messageType: MessageSubscribers.directMessage,
     topic: toTopic(message.session),
     publicKey: message.replyTo,
   }
 
+  serverLogger.info('recipient', recipient)
+
   const bid: BigNumber = new BigNumber(message.rewardAsk)
+
+  serverLogger.info('bid', bid)
+
   const persistData: IAttestationBidStore = {
     messageType: PersistDataTypes.storeAttestationBid,
     session: newSession,
@@ -141,6 +153,8 @@ export const handleSolicitation: TMessageHandler = async (
     type: attestationType,
   }
 
+  serverLogger.info('persistData', persistData)
+
   decision = {
     unsubscribeFrom: null, // Don't unsubscribe from general channel with solicitations
     subscribeTo: newSubscription,
@@ -149,10 +163,15 @@ export const handleSolicitation: TMessageHandler = async (
     persist: persistData,
     externalAction: null,
   }
+
+  serverLogger.info('decision', decision)
+
   newrelic.recordCustomEvent('WhisperEvent', {
     Action: 'Bid',
     NegotiationSession: message.session,
   })
+
+  serverLogger.info('Returning decision...')
   return decision
 }
 
