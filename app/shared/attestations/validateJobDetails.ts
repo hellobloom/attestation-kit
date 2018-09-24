@@ -15,7 +15,8 @@ import {
 } from '@shared/ethereum/signingLogic'
 import {
   IAttestationData,
-  IAttestationDataJSONB,
+  TMaybeAttestationDataJSONB,
+  TAttestationDataJSONB,
 } from '@shared/models/Attestation'
 import {requiredField} from '@shared/requiredField'
 import {every} from 'lodash'
@@ -34,8 +35,18 @@ interface ISuccess {
 
 export type TValidateJobDetailsOutput = IInvalidParamError | ISuccess
 
+export interface IMaybeJobDetails {
+  data: TMaybeAttestationDataJSONB
+  requestNonce: string
+  types: number[]
+  subject: string
+  subjectSig: string
+  attester: string
+  requester: string
+}
+
 export interface IJobDetails {
-  data: IAttestationDataJSONB
+  data: TMaybeAttestationDataJSONB
   requestNonce: string
   types: number[]
   subject: string
@@ -241,7 +252,7 @@ export const validateSubjectDataComponent = (
 }
 
 export const validateSubjectData = (
-  input: IAttestationDataJSONB,
+  input: TAttestationDataJSONB,
   type: AttestationTypeID[]
 ): boolean => {
   if (!input || input.data.length !== type.length) return false

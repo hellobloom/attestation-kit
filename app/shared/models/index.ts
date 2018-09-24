@@ -5,6 +5,7 @@ import Negotiation from '@shared/models/Negotiation'
 import NegotiationMsg from '@shared/models/NegotiationMsg'
 import WhisperFilters from '@shared/models/WhisperFilters'
 import Attestation from '@shared/models/Attestation'
+import AttestationData from '@shared/models/AttestationData'
 import GasPrice from '@shared/models/GasPrice'
 
 const environmentConfig = config[env.nodeEnv]
@@ -29,6 +30,7 @@ sequelize.addModels([
   NegotiationMsg,
   WhisperFilters,
   Attestation,
+  AttestationData,
   GasPrice,
 ])
 
@@ -41,5 +43,6 @@ export {
   sequelize,
   WhisperFilters,
   Attestation,
+  AttestationData,
   GasPrice,
 }

@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js'
 import {Negotiation, NegotiationMsg, Attestation} from '@shared/models'
 import {toBuffer} from 'ethereumjs-util'
-import {IAttestationDataJSONB} from '@shared/models/Attestation'
+import {TMaybeAttestationDataJSONB} from '@shared/models/Attestation'
 import {serverLogger} from '@shared/logger'
 
 export enum PersistDataTypes {
@@ -72,7 +72,7 @@ export interface IStoreJobDetails {
   subject: string
   attester: string
   requester: string
-  subjectData: IAttestationDataJSONB
+  subjectData: TMaybeAttestationDataJSONB
   subjectRequestNonce: string
   typeIds: number[]
   type: string

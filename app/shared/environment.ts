@@ -4,6 +4,7 @@ import * as dotenv from 'dotenv'
 dotenv.config()
 
 interface IEnvironmentConfig {
+  hostname: string
   apiKey: string
   dbUrl: string
   rinkebyAccountRegistryAddress: string
@@ -141,6 +142,7 @@ Object.keys(topics).forEach(k => {
 })
 
 export const env: IEnvironmentConfig = {
+  hostname: envVar('HOSTNAME'),
   apiKey: envVar('API_KEY_SHA256'),
   dbUrl: envVar('BLOOM_WHISPER_PG_URL'),
   rinkebyAccountRegistryAddress: envVar('RINKEBY_ACCOUNT_REGISTRY_ADDRESS'),

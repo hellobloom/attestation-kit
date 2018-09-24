@@ -42,9 +42,26 @@ export interface IAttestationResult {
   certainty?: number
 }
 
+export interface IDataRetrievalKit {
+  dataHostedExternally: boolean
+  nodeHost: string
+  attestationDataId: string
+  passphrase: string
+}
+
+export interface IDataRetrievalOther {
+  dataHostedExternally: boolean
+  retrievalUrl: string
+  deletionUrl: string
+}
+
 export type AttestationRole = 'attester' | 'requester'
 
-export type IAttestationDataJSONB = IEmailAttestationJSONB | IPhoneAttestationJSONB
+export type TAttestationDataJSONB = IEmailAttestationJSONB | IPhoneAttestationJSONB
+
+export type TUnresolvedAttestationData = IDataRetrievalKit | IDataRetrievalOther
+
+export type TMaybeAttestationDataJSONB = TUnresolvedAttestationData | TAttestationDataJSONB 
 
 export const AttestationStatusDataType = Sequelize.DataType.ENUM(
   Object.keys(AttestationStatus)
@@ -96,7 +113,7 @@ export default class Attestation extends Sequelize.Model<Attestation> {
   get data() {
     return this.getDataValue('data')
   }
-  set data(value: IAttestationDataJSONB) {
+  set data(value: TAttestationDataJSONB) {
     this.setDataValue('data', value)
   }
 
@@ -166,7 +183,8 @@ export default class Attestation extends Sequelize.Model<Attestation> {
     )
   }
 
-  validateJobDetailsView(): IJobDetails {
+  validateJobDetailsView = (): IJobDetails => {
+    if (!this.data || !this.data.data) throw new Error('Invalid data')
     return {
       // Making sure the data prop only contains what the validate job details cares about
       data: {

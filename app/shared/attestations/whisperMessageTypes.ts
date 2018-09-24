@@ -1,4 +1,7 @@
-import {IAttestationDataJSONB} from '@shared/models/Attestation'
+import {
+  TAttestationDataJSONB,
+  TUnresolvedAttestationData,
+} from '@shared/models/Attestation'
 
 export enum MessageTypes {
   solicitation = 'solicitation',
@@ -53,7 +56,7 @@ export interface ISubmitSubjectData extends IBloomWhisperResponse {
 export interface ISendJobDetails extends IBloomWhisperResponse {
   messageType: MessageTypes.sendJobDetails
   reward: string
-  subjectData: IAttestationDataJSONB
+  subjectData: TUnresolvedAttestationData | TAttestationDataJSONB
   subjectRequestNonce: string
   typeIds: number[]
   subjectAddress: string

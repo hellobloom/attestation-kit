@@ -33,9 +33,9 @@ export default class AttestationData extends Sequelize.Model<AttestationData> {
   // Column to specify data storage type
   @Sequelize.Column({
     allowNull: false,
-    type: 'enum_whisper_msg_types',
+    type: WhisperMsgDataType,
   })
-  messageType: WhisperMsgDataType
+  messageType: string
 
   // Column to specify data storage type
   @Sequelize.Column({
@@ -65,7 +65,7 @@ export default class AttestationData extends Sequelize.Model<AttestationData> {
   })
   challenge: string
 
-  testChallenge = (passphrase: str) => {
+  testChallenge = (passphrase: string) => {
     let passphraseHash = bufferToHex(sha256(passphrase))
     return passphrase && this.challenge && passphraseHash === this.challenge
   }
