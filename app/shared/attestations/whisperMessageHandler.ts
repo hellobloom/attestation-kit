@@ -317,6 +317,7 @@ export const handleMessages = async (entity: string, wallet: Wallet.Wallet) => {
         messageDecisions.push(messageDecision)
       }
     } catch (error) {
+      console.log('???', error)
       newrelic.recordCustomEvent('WhisperError', {
         Stage: 'HandleMessages',
         Entity: entity,
