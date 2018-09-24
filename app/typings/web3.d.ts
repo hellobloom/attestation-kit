@@ -49,6 +49,16 @@ declare module 'web3' {
         callback: (err: Error, result: Web3.JSONRPCResponsePayload) => void
       ): void
     }
+    class WebsocketProvider implements Web3.Provider {
+      constructor(
+        url: string,
+        options?: object,
+      )
+      sendAsync(
+        payload: Web3.JSONRPCRequestPayload,
+        callback: (err: Error, result: Web3.JSONRPCResponsePayload) => void
+      ): void
+    }
   }
 
   namespace Web3 {

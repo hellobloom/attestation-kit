@@ -14,10 +14,18 @@ export const wsProviderOptions = {
     maxReceivedMessageSize: 100000000,
   },
 }
-export var shh = new Shh(env.whisper.provider, wsProviderOptions)
+export var wsProvider = new Web3.providers.WebsocketProvider(
+  env.whisper.provider,
+  wsProviderOptions
+)
+export var shh = new (Shh as any)(wsProvider)
 
 export const resetShh = () => {
-  shh = new Shh(env.whisper.provider, wsProviderOptions)
+  wsProvider = new Web3.providers.WebsocketProvider(
+    env.whisper.provider,
+    wsProviderOptions
+  )
+  shh = new (Shh as any)(wsProvider)
 }
 
 export const fetchAllMessages = async (entity: string) => {
