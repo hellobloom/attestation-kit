@@ -311,17 +311,7 @@ export const handleMessages = async (entity: string, wallet: Wallet.Wallet) => {
       const body: TBloomMessage = JSON.parse(web3utils.toAscii(message.payload))
       serverLogger.info('Decoded Whisper message...', body)
       const messageTopic: string = message.topic
-      try {
-        const messageDecision = await handleMessage(
-          body,
-          messageTopic,
-          entity,
-          wallet
-        )
-      } catch (error) {
-        console.log('Error handling Whisper message', error)
-        throw new Error(error)
-      }
+      const messageDecision = await handleMessage(body, messageTopic, entity, wallet)
       serverLogger.info('Received message decision', messageDecision)
       if (messageDecision) {
         messageDecisions.push(messageDecision)
@@ -331,7 +321,7 @@ export const handleMessages = async (entity: string, wallet: Wallet.Wallet) => {
         Stage: 'HandleMessages',
         Entity: entity,
       })
-      serverLogger.warn(
+      serverLogger.info(
         'Encountered an error while handling whisper messages',
         error.message,
         error.stack
