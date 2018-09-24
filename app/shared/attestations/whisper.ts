@@ -5,9 +5,10 @@ import {WhisperFilters} from '@shared/models'
 import {toBuffer} from 'ethereumjs-util'
 import {IBloomWhisperMessage} from '@shared/attestations/whisperMessageTypes'
 import {serverLogger} from '@shared/logger'
+var web3utils = require('web3-utils')
 
 export const web3 = new Web3(new Web3.providers.HttpProvider(env.web3Provider))
-export const toTopic = (ascii: string) => web3.sha3(ascii).slice(0, 10)
+export const toTopic = (ascii: string) => web3utils.sha3(ascii).slice(0, 10)
 export const wsProviderOptions = {
   clientOptions: {
     maxReceivedFrameSize: 100000000,

@@ -1,5 +1,5 @@
 import * as newrelic from 'newrelic'
-import * as Web3 from 'web3'
+// import * as Web3 from 'web3'
 import * as Raven from 'raven'
 // import BigNumber from 'bignumber.js'
 import {env} from '@shared/environment'
@@ -8,6 +8,7 @@ import {
   attesterWallet,
   requesterWallet,
 } from '@shared/attestations/attestationWallets'
+var web3utils = require('web3-utils')
 
 import {serverLogger} from '@shared/logger'
 
@@ -20,8 +21,8 @@ import {listenForSolicitations} from '@shared/attestations/whisperAttesterAction
 
 Raven.config(env.sentryDSN, {environment: env.nodeEnv}).install()
 
-const web3 = new Web3(new Web3.providers.HttpProvider(env.web3Provider))
-const toTopic = (ascii: string) => web3.sha3(ascii).slice(0, 10)
+// const web3 = new Web3(new Web3.providers.HttpProvider(env.web3Provider))
+const toTopic = (ascii: string) => web3utils.sha3(ascii).slice(0, 10)
 
 const password = env.whisper.password
 
