@@ -124,7 +124,7 @@ const handleMessage = async (
   entity: string,
   wallet: Wallet.Wallet
 ) => {
-  serverLogger.debug('Handling message', body)
+  serverLogger.debug('Handling message', JSON.stringify(body))
   let messageDecision: IMessageDecision | false
   if (body.hasOwnProperty('messageType')) {
     switch (body.messageType) {
