@@ -124,41 +124,43 @@ const handleMessage = async (
   entity: string,
   wallet: Wallet.Wallet
 ) => {
-  serverLogger.debug('Handling message', JSON.stringify(body))
+  serverLogger.info('Handling message...')
+  serverLogger.info('Message contents', JSON.stringify(body))
   let messageDecision: IMessageDecision | false
   if (body.hasOwnProperty('messageType')) {
     switch (body.messageType) {
       case MessageTypes.solicitation:
         // this check is here to make handleSolicitation testable
         // confirmRequesterFunds performs a blockchain state read
-        serverLogger.debug('Handling solicitation message')
+        serverLogger.info('Handling solicitation message')
         let confirmed = await confirmRequesterFunds(body)
         if (confirmed) {
           messageDecision = await handleSolicitation(body, messageTopic, wallet)
         } else {
           messageDecision = await handleUnknownMessageType(body, messageTopic)
         }
+        serverLogger.info('Handling solicitation response', messageDecision)
         if (!messageDecision) {
           return false
         }
         break
       case MessageTypes.attestationBid:
-        serverLogger.debug('Handling attestation message')
+        serverLogger.info('Handling attestation message')
         messageDecision = await handleAttestationBid(body, messageTopic, wallet)
         break
       case MessageTypes.sendJobDetails:
-        serverLogger.debug('Handling sendJobDetails message')
+        serverLogger.info('Handling sendJobDetails message')
         messageDecision = await handleJobDetails(body, messageTopic, wallet)
         break
       default:
-        serverLogger.debug('Handling unknown message')
+        serverLogger.info('Handling unknown message')
         messageDecision = await handleUnknownMessageType(body, messageTopic)
     }
   } else {
-    serverLogger.debug('Handling unknown message (no type specified)')
+    serverLogger.info('Handling unknown message (no type specified)')
     messageDecision = await handleUnknownMessageType(body, messageTopic)
   }
-  serverLogger.debug('Message decision', messageDecision)
+  serverLogger.info('Message decision', messageDecision)
   return messageDecision
 }
 
@@ -311,6 +313,7 @@ export const handleMessages = async (entity: string, wallet: Wallet.Wallet) => {
       const body: TBloomMessage = JSON.parse(web3utils.toAscii(message.payload))
       serverLogger.info('Decoded Whisper message...', body)
       const messageTopic: string = message.topic
+      serverLogger.info('Starting message deciding...', message.topic)
       const messageDecision = await handleMessage(body, messageTopic, entity, wallet)
       serverLogger.info('Received message decision', messageDecision)
       if (messageDecision) {
