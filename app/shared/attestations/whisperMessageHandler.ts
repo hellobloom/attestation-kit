@@ -38,6 +38,7 @@ import {
   performAttestation,
 } from '@shared/attestations/whisperExternalActionHandler'
 import {confirmRequesterFunds} from '@shared/attestations/whisperValidateMessage'
+var web3utils = require('web3-utils')
 
 export enum Entities {
   requester = 'Requester',
@@ -305,9 +306,12 @@ export const handleMessages = async (entity: string, wallet: Wallet.Wallet) => {
     try {
       try {
         serverLogger.info('Attempting to handle Whisper message', message.payload)
-        serverLogger.info('Decoding Whisper message', web3.toAscii(message.payload))
+        serverLogger.info(
+          'Decoding Whisper message',
+          web3utils.toAscii(message.payload)
+        )
       } catch {}
-      const body: TBloomMessage = JSON.parse(web3.toAscii(message.payload))
+      const body: TBloomMessage = JSON.parse(web3utils.toAscii(message.payload))
       serverLogger.info('Decoded Whisper message...', body)
       const messageTopic: string = message.topic
       const messageDecision = await handleMessage(body, messageTopic, entity, wallet)
