@@ -71,7 +71,7 @@ export const broadcastMessage = async (
       topic: messageTopic,
       powTarget: 2.01,
       powTime: 2,
-      payload: web3.fromAscii(JSON.stringify(message)),
+      payload: web3utils.fromAscii(JSON.stringify(message)),
       symKeyID: symkeyId,
     })
     if (!outcome) {
@@ -105,7 +105,7 @@ export const directMessage = async (
       topic: messageTopic,
       powTarget: 2.01,
       powTime: 2,
-      payload: web3.fromAscii(JSON.stringify(message)),
+      payload: web3utils.fromAscii(JSON.stringify(message)),
       pubKey: recipientPublicKeyString,
     })
     if (!outcome) {
