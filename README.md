@@ -1,4 +1,4 @@
-![Attestation Kit][logo.png]
+![Attestation Kit](logo.png)
 
 # Attestation Kit
 
