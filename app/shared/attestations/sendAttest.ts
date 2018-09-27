@@ -30,7 +30,8 @@ export const sendAttestTx = async (
 ) => {
   serverLogger.info(`Sending attest transaction for ${attestationParams.subject}`)
   serverLogger.debug(`attestationParams`, JSON.stringify(attestationParams))
-
+  serverLogger.debug(`account.address: ${account.address}`)
+  serverLogger.debug(`gasPrice: ${new BigNumber(gasPrice).toNumber().toString()}`)
   try {
     const {logs} = ((await attestationLogic.attest(
       attestationParams.subject,

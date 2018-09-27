@@ -56,7 +56,7 @@ const validateSubjectSig = (unvalidatedJobDetails: TUnvalidated<IJobDetails>) =>
     },
   }
   const merkleTree = HashingLogic.getMerkleTree(agreementDataInput.data.data)
-  const merkleTreeRootHash = merkleTree.getRoot().toString('hex')
+  const merkleTreeRootHash = '0x' + merkleTree.getRoot().toString('hex')
   console.log('---agreementData---')
   console.log('agreementDataInput.data', JSON.stringify(agreementDataInput.data))
   console.log('merkleTreeRootHash', merkleTreeRootHash)

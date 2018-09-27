@@ -141,7 +141,7 @@ const generateAttestParams = (
     reward: data.reward,
     paymentNonce: data.paymentNonce,
     requesterSig: data.requesterSig,
-    dataHash: HashingLogic.getMerkleTree(data.data.data)
+    dataHash: '0x' + HashingLogic.getMerkleTree(data.data.data)
       .getRoot()
       .toString('hex'), // IP TODO data.data.data is bad
     types: data.types,
