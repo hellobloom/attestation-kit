@@ -62,7 +62,7 @@ export const sendAttestTx = async (
       attestationParams.reward,
       attestationParams.paymentNonce,
       attestationParams.requesterSig,
-      '0x' + attestationParams.dataHash,
+      attestationParams.dataHash,
       attestationParams.types,
       attestationParams.requestNonce,
       attestationParams.subjectSig,
