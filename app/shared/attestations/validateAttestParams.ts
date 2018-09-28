@@ -1,4 +1,4 @@
-import {isValidAddress} from 'ethereumjs-util'
+import {isValidAddress, bufferToHex} from 'ethereumjs-util'
 import {uniq} from 'lodash'
 
 import {TUnvalidated} from '@shared/params/validation'
@@ -54,15 +54,20 @@ type TReject = (error: string) => void
 export const validateSubjectSig = (input: TUnvalidated<IAttestParams>) => (
   subjectSig: string
 ) => {
+  console.log('---validateSubjectSig---')
+  const x = {
+    subject: input.subject,
+    requester: input.requester,
+    attester: input.attester,
+    dataHash: input.dataHash,
+    typeHash: HashingLogic.hashAttestationTypes(input.types),
+    nonce: input.requestNonce,
+  }
+  console.log(JSON.stringify(x))
+  console.log('input.subjectSig', input.subjectSig)
+  console.log('subjectSig', subjectSig)
   const recoveredETHAddress: string = ethSigUtil.recoverTypedSignatureLegacy({
-    data: HashingLogic.getAttestationAgreement({
-      subject: input.subject,
-      requester: input.requester,
-      attester: input.attester,
-      dataHash: input.dataHash,
-      typeHash: HashingLogic.hashAttestationTypes(input.types),
-      nonce: input.requestNonce,
-    }),
+    data: HashingLogic.getAttestationAgreement(x),
     sig: input.subjectSig,
   })
   return recoveredETHAddress.toLowerCase() === input.subject.toLowerCase()
@@ -141,9 +146,7 @@ const generateAttestParams = (
     reward: data.reward,
     paymentNonce: data.paymentNonce,
     requesterSig: data.requesterSig,
-    dataHash: '0x' + HashingLogic.getMerkleTree(data.data.data)
-      .getRoot()
-      .toString('hex'), // IP TODO data.data.data is bad
+    dataHash: bufferToHex(HashingLogic.getMerkleTree(data.data.data).getRoot()), // IP TODO data.data.data is bad
     types: data.types,
     requestNonce: data.requestNonce,
     subjectSig: data.subjectSig,

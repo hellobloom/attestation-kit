@@ -1,4 +1,4 @@
-import {isValidAddress, toBuffer} from 'ethereumjs-util'
+import {isValidAddress, toBuffer, bufferToHex} from 'ethereumjs-util'
 import {uniq} from 'lodash'
 const ethSigUtil = require('eth-sig-util')
 
@@ -56,7 +56,7 @@ const validateSubjectSig = (unvalidatedJobDetails: TUnvalidated<IJobDetails>) =>
     },
   }
   const merkleTree = HashingLogic.getMerkleTree(agreementDataInput.data.data)
-  const merkleTreeRootHash = '0x' + merkleTree.getRoot().toString('hex')
+  const merkleTreeRootHash = bufferToHex(merkleTree.getRoot())
   console.log('---agreementData---')
   console.log('agreementDataInput.data', JSON.stringify(agreementDataInput.data))
   console.log('merkleTreeRootHash', merkleTreeRootHash)

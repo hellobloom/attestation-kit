@@ -50,6 +50,7 @@ const emailData: HashingLogic.IAttestationData = {
   version: '1.0.0',
 }
 
+// TODO FIX
 const hashedData = HashingLogic.getMerkleTree([phoneData, emailData])
   .getRoot()
   .toString('hex')

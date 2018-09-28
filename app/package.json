@@ -33,7 +33,7 @@
     "@types/webpack": "3.8.1",
     "@types/winston": "^2.3.7",
     "async": "^2.6.0",
-    "attestations-lib": "https://github.com/hellobloom/attestations-lib/releases/download/v0.4.0/attestations-lib-v0.4.0.tgz",
+    "attestations-lib": "https://github.com/hellobloom/attestations-lib/releases/download/v0.4.1/attestations-lib-v0.4.1.tgz",
     "babel-preset-stage-3": "^6.24.1",
     "babel-register": "^6.26.0",
     "bignumber.js": "^5.0.0",
