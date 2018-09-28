@@ -57,14 +57,11 @@ const validateSubjectSig = (unvalidatedJobDetails: TUnvalidated<IJobDetails>) =>
   }
   const merkleTree = HashingLogic.getMerkleTree(agreementDataInput.data.data)
   const merkleTreeRootHash = bufferToHex(merkleTree.getRoot())
-  console.log('---agreementData---')
-  console.log('agreementDataInput.data', JSON.stringify(agreementDataInput.data))
-  console.log('merkleTreeRootHash', merkleTreeRootHash)
   const expectedDigest = ethSigUtil.typedSignatureHash(
     HashingLogic.getAttestationAgreement({
       subject: agreementDataInput.subject,
-      requester: agreementDataInput.requester,
       attester: agreementDataInput.attester,
+      requester: agreementDataInput.requester,
       dataHash: merkleTreeRootHash,
       typeHash: HashingLogic.hashAttestationTypes(agreementDataInput.types),
       nonce: agreementDataInput.requestNonce,
