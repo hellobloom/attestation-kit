@@ -54,8 +54,7 @@ type TReject = (error: string) => void
 export const validateSubjectSig = (input: TUnvalidated<IAttestParams>) => (
   subjectSig: string
 ) => {
-  console.log('---validateSubjectSig---')
-  const x = {
+  const attestationAgreement = {
     subject: input.subject,
     requester: input.requester,
     attester: input.attester,
@@ -63,11 +62,8 @@ export const validateSubjectSig = (input: TUnvalidated<IAttestParams>) => (
     typeHash: HashingLogic.hashAttestationTypes(input.types),
     nonce: input.requestNonce,
   }
-  console.log(JSON.stringify(x))
-  console.log('input.subjectSig', input.subjectSig)
-  console.log('subjectSig', subjectSig)
   const recoveredETHAddress: string = ethSigUtil.recoverTypedSignatureLegacy({
-    data: HashingLogic.getAttestationAgreement(x),
+    data: HashingLogic.getAttestationAgreement(attestationAgreement),
     sig: input.subjectSig,
   })
   return recoveredETHAddress.toLowerCase() === input.subject.toLowerCase()
