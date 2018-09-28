@@ -12,7 +12,7 @@ import {
 } from '@shared/attestations/whisperMessageTypes'
 import {NegotiationMsg} from '@shared/models'
 import {MessageSubscribers} from '@shared/attestations/whisperSubscriptionHandler'
-import {toBuffer} from 'ethereumjs-util'
+import {toBuffer, bufferToHex} from 'ethereumjs-util'
 import * as Wallet from 'ethereumjs-wallet'
 import {signSessionID, signPaymentAuthorization} from '@shared/ethereum/signingLogic'
 import {PersistDataTypes} from '@shared/attestations/whisperPersistDataHandler'
@@ -107,10 +107,9 @@ const emailData: HashingLogic.IAttestationData = {
   version: '1.0.0',
 }
 
-// TODO FIX
-const hashedData = HashingLogic.getMerkleTree([phoneData, emailData])
-  .getRoot()
-  .toString('hex')
+const hashedData = bufferToHex(
+  HashingLogic.getMerkleTree([phoneData, emailData]).getRoot()
+)
 
 const subjectSig = signAttestationRequest(
   subjectAddress,
