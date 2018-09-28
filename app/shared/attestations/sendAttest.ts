@@ -29,9 +29,32 @@ export const sendAttestTx = async (
   gasPrice: string
 ) => {
   serverLogger.info(`Sending attest transaction for ${attestationParams.subject}`)
-  serverLogger.debug(`attestationParams`, JSON.stringify(attestationParams))
-  serverLogger.debug(`account.address: ${account.address}`)
-  serverLogger.debug(`gasPrice: ${new BigNumber(gasPrice).toNumber().toString()}`)
+  serverLogger.info(`sendAttestTx ${JSON.stringify(attestationParams)}`)
+  serverLogger.info(
+    `last param ${JSON.stringify({
+      from: account.address,
+      gasPrice: new BigNumber(gasPrice).toNumber(),
+      gas: 1000000,
+    })}`
+  )
+
+  // tslint:disable-next-line:max-line-length
+  serverLogger.info(
+    `CODE: al.attest("${attestationParams.subject}","${
+      attestationParams.requester
+    }","${attestationParams.reward.toString()}","${
+      attestationParams.paymentNonce
+    }","${attestationParams.requesterSig}","${
+      attestationParams.dataHash
+    }","${JSON.stringify(attestationParams.types)}","${
+      attestationParams.requestNonce
+    }","${attestationParams.subjectSig}",${JSON.stringify({
+      from: account.address,
+      gasPrice: new BigNumber(gasPrice).toNumber(),
+      gas: 1000000,
+    })})`
+  )
+
   try {
     const {logs} = ((await attestationLogic.attest(
       attestationParams.subject,
