@@ -1,6 +1,6 @@
 const uuid = require('uuidv4')
 import * as Wallet from 'ethereumjs-wallet'
-import {toBuffer} from 'ethereumjs-util'
+import {toBuffer, bufferToHex} from 'ethereumjs-util'
 import {
   validateJobDetails,
   IJobDetails,
@@ -50,10 +50,9 @@ const emailData: HashingLogic.IAttestationData = {
   version: '1.0.0',
 }
 
-// TODO FIX
-const hashedData = HashingLogic.getMerkleTree([phoneData, emailData])
-  .getRoot()
-  .toString('hex')
+const hashedData = bufferToHex(
+  HashingLogic.getMerkleTree([phoneData, emailData]).getRoot()
+)
 
 const subjectSig = signAttestationRequest(
   subjectAddress,
