@@ -56,8 +56,8 @@ export const validateSubjectSig = (input: TUnvalidated<IAttestParams>) => (
 ) => {
   const attestationAgreement = {
     subject: input.subject,
-    requester: input.requester,
     attester: input.attester,
+    requester: input.requester,
     dataHash: input.dataHash,
     typeHash: HashingLogic.hashAttestationTypes(input.types),
     nonce: input.requestNonce,
