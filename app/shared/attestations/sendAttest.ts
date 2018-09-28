@@ -29,58 +29,37 @@ export const sendAttestTx = async (
   gasPrice: string
 ) => {
   serverLogger.info(`Sending attest transaction for ${attestationParams.subject}`)
-  serverLogger.info(`sendAttestTx ${JSON.stringify(attestationParams)}`)
-  serverLogger.info(
-    `last param ${JSON.stringify({
+  serverLogger.debug(
+    `[sendAttestTx] attestationParams: ${JSON.stringify(attestationParams)}`
+  )
+  serverLogger.debug(
+    `[sendAttestTx] attest transaction options: ${JSON.stringify({
       from: account.address,
       gasPrice: new BigNumber(gasPrice).toNumber(),
       gas: 1000000,
     })}`
   )
 
-  // tslint:disable-next-line:max-line-length
-  serverLogger.info(
-    `CODE: al.attest("${attestationParams.subject}","${
-      attestationParams.requester
-    }","${attestationParams.reward.toString()}","${
-      attestationParams.paymentNonce
-    }","${attestationParams.requesterSig}","${
-      attestationParams.dataHash
-    }","${JSON.stringify(attestationParams.types)}","${
-      attestationParams.requestNonce
-    }","${attestationParams.subjectSig}",${JSON.stringify({
+  const {logs} = ((await attestationLogic.attest(
+    attestationParams.subject,
+    attestationParams.requester,
+    attestationParams.reward,
+    attestationParams.paymentNonce,
+    attestationParams.requesterSig,
+    attestationParams.dataHash,
+    attestationParams.types,
+    attestationParams.requestNonce,
+    attestationParams.subjectSig,
+    {
       from: account.address,
       gasPrice: new BigNumber(gasPrice).toNumber(),
       gas: 1000000,
-    })})`
-  )
-
-  try {
-    const {logs} = ((await attestationLogic.attest(
-      attestationParams.subject,
-      attestationParams.requester,
-      attestationParams.reward,
-      attestationParams.paymentNonce,
-      attestationParams.requesterSig,
-      attestationParams.dataHash,
-      attestationParams.types,
-      attestationParams.requestNonce,
-      attestationParams.subjectSig,
-      {
-        from: account.address,
-        gasPrice: new BigNumber(gasPrice).toNumber(),
-        gas: 1000000,
-      }
-    )) as Web3.TransactionReceipt<any>) as Web3.TransactionReceipt<IAttestEventArgs>
-
-    serverLogger.info(`attestationLogic.attest logs: ${JSON.stringify(logs)}`)
-    const matchingLog = logs.find(log => log.event === 'TraitAttested')
-    if (!matchingLog) {
-      throw new Error('Matching log not found')
     }
-    return matchingLog
-  } catch (e) {
-    serverLogger.debug(e)
-    throw e
+  )) as Web3.TransactionReceipt<any>) as Web3.TransactionReceipt<IAttestEventArgs>
+
+  const matchingLog = logs.find(log => log.event === 'TraitAttested')
+  if (!matchingLog) {
+    throw new Error('Matching log not found')
   }
+  return matchingLog
 }
