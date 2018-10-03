@@ -1,14 +1,10 @@
-import {isValidAddress} from 'ethereumjs-util'
+import {isValidAddress, bufferToHex} from 'ethereumjs-util'
 import {uniq} from 'lodash'
 
 import {TUnvalidated} from '@shared/params/validation'
 import * as U from '@shared/utils'
-import {
-  hashCompleteAttestationData,
-  getFormattedTypedDataAttestationRequestLegacy,
-  getFormattedTypedDataReleaseTokensLegacy,
-} from '@shared/ethereum/signingLogic'
-import {AttestationTypeID} from 'attestations-lib'
+import {getFormattedTypedDataReleaseTokensLegacy} from '@shared/ethereum/signingLogic'
+import {AttestationTypeID, HashingLogic} from 'attestations-lib'
 import {IAttestationDataJSONB} from '@shared/models/Attestations/Attestation'
 import BigNumber from 'bignumber.js'
 import {requiredField} from '@shared/requiredField'
@@ -58,15 +54,16 @@ type TReject = (error: string) => void
 export const validateSubjectSig = (input: TUnvalidated<IAttestParams>) => (
   subjectSig: string
 ) => {
+  const attestationAgreement = {
+    subject: input.subject,
+    attester: input.attester,
+    requester: input.requester,
+    dataHash: input.dataHash,
+    typeHash: HashingLogic.hashAttestationTypes(input.types),
+    nonce: input.requestNonce,
+  }
   const recoveredETHAddress: string = ethSigUtil.recoverTypedSignatureLegacy({
-    data: getFormattedTypedDataAttestationRequestLegacy(
-      input.subject,
-      input.attester,
-      input.requester,
-      input.dataHash,
-      input.types,
-      input.requestNonce
-    ),
+    data: HashingLogic.getAttestationAgreement(attestationAgreement),
     sig: input.subjectSig,
   })
   return recoveredETHAddress.toLowerCase() === input.subject.toLowerCase()
@@ -145,7 +142,7 @@ const generateAttestParams = (
     reward: data.reward,
     paymentNonce: data.paymentNonce,
     requesterSig: data.requesterSig,
-    dataHash: hashCompleteAttestationData(data.data.data), // IP TODO data.data.data is bad
+    dataHash: bufferToHex(HashingLogic.getMerkleTree(data.data.data).getRoot()), // IP TODO data.data.data is bad
     types: data.types,
     requestNonce: data.requestNonce,
     subjectSig: data.subjectSig,

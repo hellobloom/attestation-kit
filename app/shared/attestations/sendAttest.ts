@@ -29,6 +29,16 @@ export const sendAttestTx = async (
   gasPrice: string
 ) => {
   serverLogger.info(`Sending attest transaction for ${attestationParams.subject}`)
+  serverLogger.debug(
+    `[sendAttestTx] attestationParams: ${JSON.stringify(attestationParams)}`
+  )
+  serverLogger.debug(
+    `[sendAttestTx] attest transaction options: ${JSON.stringify({
+      from: account.address,
+      gasPrice: new BigNumber(gasPrice).toNumber(),
+      gas: 1000000,
+    })}`
+  )
 
   const {logs} = ((await attestationLogic.attest(
     attestationParams.subject,

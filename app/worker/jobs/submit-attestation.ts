@@ -5,9 +5,17 @@ import {sendAttestTx} from '@shared/attestations/sendAttest'
 import {IAttestationResult} from '@shared/models/Attestations/Attestation'
 import {notifyAttestationCompleted} from '@shared/webhookHandler'
 import {serverLogger} from '@shared/logger'
+import {env} from '@shared/environment'
 
 export const submitAttestation = async (job: any) => {
   serverLogger.info('Submitting attestation...')
+
+  if (env.skipValidations) {
+    serverLogger.info(
+      '[submit-attestation.ts] Skipping validation of subject signature.'
+    )
+    return
+  }
 
   const attestation = await Attestation.findById(job.data.attestationId)
 
@@ -24,6 +32,7 @@ export const submitAttestation = async (job: any) => {
   const attestationParams = await attestation.findAndValidateAttestParams(
     attestation.negotiationId
   )
+  serverLogger.debug('SA: validation outcome', JSON.stringify(attestationParams))
 
   if (attestationParams.kind === 'validated') {
     serverLogger.debug('SA: Validated attestation params...')
