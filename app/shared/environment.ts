@@ -36,6 +36,7 @@ interface IEnvironmentConfig {
   webhook_key: string
   log_level?: string
   whisperPollInterval?: number
+  skipValidations: boolean
 }
 
 export interface IAttestationTypesToArr {
@@ -108,15 +109,14 @@ interface IWhisperTopics {
 }
 
 // Throw an error if the specified environment variable is not defined
-function envVar(name: string, json = false): any {
+function envVar(name: string, json: boolean = false): any {
   const value = process.env[name]
   if (!value) {
     throw new Error(`Expected environment variable ${name}`)
   }
   return json ? JSON.parse(value) : value
 }
-
-function optionalEnvVar(name: string, json: boolean): any | undefined {
+function optionalEnvVar(name: string, json: boolean): any {
   const value = process.env[name]
   if (!value) {
     return undefined
@@ -174,6 +174,12 @@ export const env: IEnvironmentConfig = {
   log_level: optionalEnvVar('LOG_LEVEL', false),
   whisperPollInterval: (() => {
     var intvl = optionalEnvVar('WHISPER_POLL_INTERVAL', false)
-    return intvl ? parseInt(intvl) : undefined
+    return intvl ? parseInt(intvl, 10) : undefined
+  })(),
+  skipValidations: (() => {
+    const skipValidations = optionalEnvVar('SKIP_VALIDATIONS', false)
+    return skipValidations
+      ? (skipValidations as string).trim().toLowerCase() === 'true'
+      : false
   })(),
 }

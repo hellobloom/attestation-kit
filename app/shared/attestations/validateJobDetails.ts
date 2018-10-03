@@ -15,6 +15,7 @@ import {requiredField} from '@shared/requiredField'
 import {every} from 'lodash'
 
 import {serverLogger} from '@shared/logger'
+import {env} from '@shared/environment'
 
 interface IInvalidParamError {
   kind: 'invalid_param'
@@ -43,6 +44,11 @@ type TReject = (error: string) => void
 const validateSubjectSig = (unvalidatedJobDetails: TUnvalidated<IJobDetails>) => (
   subjectSig: string
 ) => {
+  if (env.skipValidations) {
+    serverLogger.info('Skipping validation of subject signature.')
+    return true
+  }
+
   serverLogger.info('Validating subject sig', subjectSig)
   const agreementDataInput = {
     requestNonce: unvalidatedJobDetails.requestNonce,
