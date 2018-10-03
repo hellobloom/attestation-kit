@@ -9,7 +9,6 @@ import {IAttestationDataJSONB} from '@shared/models/Attestations/Attestation'
 import BigNumber from 'bignumber.js'
 import {requiredField} from '@shared/requiredField'
 import {serverLogger} from '@shared/logger'
-import {env} from '@shared/environment'
 const ethSigUtil = require('eth-sig-util')
 
 interface IInvalidParamError {
@@ -55,13 +54,6 @@ type TReject = (error: string) => void
 export const validateSubjectSig = (input: TUnvalidated<IAttestParams>) => (
   subjectSig: string
 ) => {
-  if (env.skipValidations) {
-    serverLogger.info(
-      '[validateAttestParams.ts] Skipping validation of subject signature.'
-    )
-    return true
-  }
-
   const attestationAgreement = {
     subject: input.subject,
     attester: input.attester,
