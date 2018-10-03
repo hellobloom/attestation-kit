@@ -45,7 +45,9 @@ const validateSubjectSig = (unvalidatedJobDetails: TUnvalidated<IJobDetails>) =>
   subjectSig: string
 ) => {
   if (env.skipValidations) {
-    serverLogger.info('Skipping validation of subject signature.')
+    serverLogger.info(
+      '[validateJobDetails.ts] Skipping validation of subject signature.'
+    )
     return true
   }
 

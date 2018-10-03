@@ -25,6 +25,7 @@ export const submitAttestation = async (job: any) => {
     attestation.negotiationId
   )
 
+  serverLogger.debug('SA: validation outcome', JSON.stringify(attestationParams))
   if (attestationParams.kind === 'validated') {
     serverLogger.debug('SA: Validated attestation params...')
 
