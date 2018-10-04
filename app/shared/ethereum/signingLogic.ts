@@ -1,6 +1,6 @@
 const ethSigUtil = require('eth-sig-util')
 const {soliditySha3} = require('web3-utils')
-import {HashingLogic} from 'attestations-lib'
+import {HashingLogic} from '@bloomprotocol/attestations-lib'
 const uuid = require('uuidv4')
 import {bufferToHex} from 'ethereumjs-util'
 

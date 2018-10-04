@@ -22,7 +22,7 @@ import {
   requesterWallet,
 } from '@shared/attestations/attestationWallets'
 import {ExternalActionTypes} from '@shared/attestations/whisperExternalActionHandler'
-import {HashingLogic} from 'attestations-lib'
+import {HashingLogic} from '@bloomprotocol/attestations-lib'
 
 const subjectPrivKey =
   '0xf90c991bd33e54abe929463e24c0d315abcf03a5ef1e628d587615371af8dff3'
