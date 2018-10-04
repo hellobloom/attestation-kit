@@ -4,7 +4,7 @@ import {toBuffer, bufferToHex} from 'ethereumjs-util'
 import {sequelize, Negotiation, NegotiationMsg} from '@shared/models'
 import {CognitoSMSStatus} from '@shared/attestations/CognitoSMSStatus'
 import {EmailAttestationStatus} from '@shared/attestations/EmailAttestationStatus'
-import {AttestationStatus, HashingLogic} from 'attestations-lib'
+import {AttestationStatus, HashingLogic} from '@bloomprotocol/attestations-lib'
 import {PersistDataTypes} from '@shared/attestations/whisperPersistDataHandler'
 import {
   TValidateJobDetailsOutput,

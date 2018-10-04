@@ -6,7 +6,7 @@ import {
   IJobDetails,
 } from '@shared/attestations/validateJobDetails'
 import {signAttestationRequest} from '@shared/ethereum/signingLogic'
-import {HashingLogic} from 'attestations-lib'
+import {HashingLogic} from '@bloomprotocol/attestations-lib'
 
 beforeEach(() => {
   jest.clearAllMocks()

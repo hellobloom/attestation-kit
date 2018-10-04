@@ -1,7 +1,7 @@
 import {ISendJobDetails} from '@shared/attestations/whisperMessageTypes'
 import {Attestation} from '@shared/models'
 import {toBuffer} from 'ethereumjs-util'
-import {AttestationStatus} from 'attestations-lib'
+import {AttestationStatus} from '@bloomprotocol/attestations-lib'
 import {notifyCollectData, notifyDoAttestation} from '@shared/webhookHandler'
 import {serverLogger} from '@shared/logger'
 

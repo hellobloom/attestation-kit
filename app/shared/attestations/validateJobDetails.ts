@@ -9,7 +9,7 @@ import {
   getAttestationTypeStr,
   TAttestationTypeNames,
   HashingLogic,
-} from 'attestations-lib'
+} from '@bloomprotocol/attestations-lib'
 import {IAttestationDataJSONB} from '@shared/models/Attestations/Attestation'
 import {requiredField} from '@shared/requiredField'
 import {every} from 'lodash'

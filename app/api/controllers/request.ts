@@ -7,7 +7,7 @@ import {
   sendJobDetails,
 } from '@shared/attestations/whisperRequesterActions'
 import {requesterWallet} from '@shared/attestations/attestationWallets'
-import {getAttestationTypeStr} from 'attestations-lib'
+import {getAttestationTypeStr} from '@bloomprotocol/attestations-lib'
 import {toBuffer} from 'ethereumjs-util'
 import {toTopic} from '@shared/attestations/whisper'
 
