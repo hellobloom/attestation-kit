@@ -54,6 +54,7 @@ const validateSubjectSig = (unvalidatedJobDetails: TUnvalidated<IJobDetails>) =>
   serverLogger.info('Validating subject sig', subjectSig)
   const agreementDataInput = {
     requestNonce: unvalidatedJobDetails.requestNonce,
+    // types: unvalidatedJobDetails.data.data.map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]),
     types: unvalidatedJobDetails.types,
     subject: unvalidatedJobDetails.subject,
     subjectSig: unvalidatedJobDetails.subjectSig,
@@ -76,6 +77,7 @@ const validateSubjectSig = (unvalidatedJobDetails: TUnvalidated<IJobDetails>) =>
     })
   )
   serverLogger.info('Agreement data input', agreementDataInput)
+  serverLogger.info('Agreement data input', JSON.stringify(agreementDataInput))
   serverLogger.info('Expected digest', expectedDigest)
   const subjectETHAddress = toBuffer(unvalidatedJobDetails.subject)
   const recoveredETHAddress = U.recoverEthAddressFromDigest(
