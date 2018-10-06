@@ -176,7 +176,7 @@ export default class Attestation extends Sequelize.Model<Attestation> {
         }),
       },
       requestNonce: this.requestNonce,
-      types: this.data.data.map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]).sort(),
+      types: this.data.data.map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]),
       subject: bufferToHex(this.subject),
       subjectSig: bufferToHex(this.subjectSig),
       attester: bufferToHex(this.attester),
@@ -240,7 +240,7 @@ export default class Attestation extends Sequelize.Model<Attestation> {
           }
         }),
       },
-      types: this.data.data.map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]).sort(),
+      types: this.data.data.map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]),
       requestNonce: this.requestNonce,
       subjectSig: bufferToHex(this.subjectSig),
     }

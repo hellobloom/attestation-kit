@@ -167,7 +167,6 @@ export const validateSubjectDataComponent = (
       dataIsValid = U.isValidPhoneNumber(input.data)
       break
     case 'email':
-      console.log(`VSDC email ${input.data}`)
       dataIsValid = U.isValidEmail(input.data)
       break
     case 'facebook':
@@ -256,12 +255,10 @@ export const validateSubjectData = (
 ): boolean => {
   console.log(`validate input: ${JSON.stringify(input)}`)
   console.log(`validate types: ${JSON.stringify(type)}`)
-  console.log('DEBUG VSD 1')
   if (!input || input.data.length !== type.length) return false
   console.log('DEBUG VSD 2')
 
   for (let i in input.data) {
-    console.log(`DEBUG VSD for ${i.toString()}`)
     if (!validateSubjectDataComponent(input.data[i], type[i])) return false
   }
   return true

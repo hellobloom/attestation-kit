@@ -170,7 +170,7 @@ const startAttestation = (
     subjectData: message.subjectData,
     subjectRequestNonce: message.subjectRequestNonce,
     type: hashedTopicToAttestationType[messageTopic],
-    typeIds: message.subjectData.data.map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]).sort(),
+    typeIds: message.subjectData.data.map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]),
     subjectSignature: message.subjectSignature,
     paymentSignature: message.paymentSignature,
     paymentNonce: message.paymentNonce,
@@ -214,16 +214,13 @@ export const handleJobDetails: TMessageHandler = async (
 ) => {
   try {
     let decision: IMessageDecision
-    console.log('DEBUG - HJD 1')
     const _isApprovedRequester = await isApprovedRequester(message)
     const _rewardMatchesBid = await rewardMatchesBid(message)
-    console.log('DEBUG - HJD 2')
     const _validateSubjectData = validateSubjectData(
       message.subjectData,
       message.subjectData.data.map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]),
     )
     serverLogger.info( `validate output: ${_validateSubjectData}`)
-    console.log('DEBUG - HJD 3')
 
     const attestation = await Attestation.findOne({
       where: {
