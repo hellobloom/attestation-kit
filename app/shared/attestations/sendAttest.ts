@@ -47,7 +47,7 @@ export const sendAttestTx = async (
     attestationParams.paymentNonce,
     attestationParams.requesterSig,
     attestationParams.dataHash,
-    attestationParams.types,
+    attestationParams.types.sort(),
     attestationParams.requestNonce,
     attestationParams.subjectSig,
     {
