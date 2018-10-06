@@ -54,6 +54,7 @@ const validateSubjectSig = (unvalidatedJobDetails: TUnvalidated<IJobDetails>) =>
   serverLogger.info('Validating subject sig', subjectSig)
   const agreementDataInput = {
     requestNonce: unvalidatedJobDetails.requestNonce,
+    // types: unvalidatedJobDetails.data.data.map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]),
     types: unvalidatedJobDetails.types,
     subject: unvalidatedJobDetails.subject,
     subjectSig: unvalidatedJobDetails.subjectSig,
@@ -76,6 +77,7 @@ const validateSubjectSig = (unvalidatedJobDetails: TUnvalidated<IJobDetails>) =>
     })
   )
   serverLogger.info('Agreement data input', agreementDataInput)
+  serverLogger.info('Agreement data input', JSON.stringify(agreementDataInput))
   serverLogger.info('Expected digest', expectedDigest)
   const subjectETHAddress = toBuffer(unvalidatedJobDetails.subject)
   const recoveredETHAddress = U.recoverEthAddressFromDigest(
@@ -168,6 +170,7 @@ export const validateSubjectDataComponent = (
       dataIsValid = U.isValidEmail(input.data)
       break
     case 'facebook':
+      console.log(`VSDC facebook ${input.data}`)
       obj = JSON.parse(input.data)
       dataIsValid = every(['id'], (key: any) => typeof obj[key] !== 'undefined')
       break
@@ -228,6 +231,18 @@ export const validateSubjectDataComponent = (
       break
     case 'assets':
       break
+    case 'full-name':
+      console.log(`VSDC full name ${input.data}`)
+      dataIsValid = U.isNotEmptyString(input.data)
+      break
+    case 'birth-date':
+      console.log(`VSDC birth date ${input.data}`)
+      dataIsValid = U.isNotEmptyString(input.data)
+      break
+    case 'gender':
+      console.log(`VSDC gender ${input.data}`)
+      dataIsValid = U.isNotEmptyString(input.data)
+      break
     default:
       break
   }
@@ -238,7 +253,10 @@ export const validateSubjectData = (
   input: IAttestationDataJSONB,
   type: AttestationTypeID[]
 ): boolean => {
+  console.log(`validate input: ${JSON.stringify(input)}`)
+  console.log(`validate types: ${JSON.stringify(type)}`)
   if (!input || input.data.length !== type.length) return false
+  console.log('DEBUG VSD 2')
 
   for (let i in input.data) {
     if (!validateSubjectDataComponent(input.data[i], type[i])) return false
