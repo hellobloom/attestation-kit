@@ -29,7 +29,7 @@ export const sendAttestTx = async (
   gasPrice: string
 ) => {
   serverLogger.info(`Sending attest transaction for ${attestationParams.subject}`)
-  attestationParams.types = attestationParams.types.sort()
+  attestationParams.types = attestationParams.types.sort((a: number, b: number) => a - b)
   serverLogger.debug(
     `[sendAttestTx] attestationParams: ${JSON.stringify(attestationParams)}`
   )
