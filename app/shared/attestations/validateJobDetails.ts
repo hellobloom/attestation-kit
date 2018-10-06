@@ -167,9 +167,11 @@ export const validateSubjectDataComponent = (
       dataIsValid = U.isValidPhoneNumber(input.data)
       break
     case 'email':
+      console.log(`VSDC email ${input.data}`)
       dataIsValid = U.isValidEmail(input.data)
       break
     case 'facebook':
+      console.log(`VSDC facebook ${input.data}`)
       obj = JSON.parse(input.data)
       dataIsValid = every(['id'], (key: any) => typeof obj[key] !== 'undefined')
       break
@@ -230,6 +232,18 @@ export const validateSubjectDataComponent = (
       break
     case 'assets':
       break
+    case 'full-name':
+      console.log(`VSDC full name ${input.data}`)
+      dataIsValid = U.isNotEmptyString(input.data)
+      break
+    case 'birth-date':
+      console.log(`VSDC birth date ${input.data}`)
+      dataIsValid = U.isNotEmptyString(input.data)
+      break
+    case 'gender':
+      console.log(`VSDC gender ${input.data}`)
+      dataIsValid = U.isNotEmptyString(input.data)
+      break
     default:
       break
   }
@@ -240,9 +254,14 @@ export const validateSubjectData = (
   input: IAttestationDataJSONB,
   type: AttestationTypeID[]
 ): boolean => {
+  console.log(`validate input: ${JSON.stringify(input)}`)
+  console.log(`validate types: ${JSON.stringify(type)}`)
+  console.log('DEBUG VSD 1')
   if (!input || input.data.length !== type.length) return false
+  console.log('DEBUG VSD 2')
 
   for (let i in input.data) {
+    console.log(`DEBUG VSD for ${i.toString()}`)
     if (!validateSubjectDataComponent(input.data[i], type[i])) return false
   }
   return true
