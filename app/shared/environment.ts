@@ -37,6 +37,11 @@ interface IEnvironmentConfig {
   log_level?: string
   whisperPollInterval?: number
   skipValidations: boolean
+  txService: {
+    address: string
+    key: string
+    webhookKeySha: string
+  }
 }
 
 export interface IAttestationTypesToArr {
@@ -182,4 +187,9 @@ export const env: IEnvironmentConfig = {
       ? (skipValidations as string).trim().toLowerCase() === 'true'
       : false
   })(),
+  txService: {
+    address: envVar('TX_SERVICE_ADDRESS'),
+    key: envVar('TX_SERVICE_KEY'),
+    webhookKeySha: envVar('TX_SERVICE_KEY_SHA256'),
+  },
 }
