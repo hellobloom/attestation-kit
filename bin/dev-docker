@@ -5,8 +5,7 @@ source './bin/shared/strict-mode.sh'
 trap "exit" INT TERM ERR
 trap "kill 0" EXIT
 
-if ! pgrep -f "geth --shh --syncmode light" > /dev/null
-then
+if ! lsof -Pi :8545 -sTCP:LISTEN -t > /dev/null; then
   geth --shh --syncmode 'light' --cache 1024 --nodiscover --verbosity 3 --port 40404 --rpc --rpcaddr=0.0.0.0 --rpcport 8645 --ws --wsaddr=0.0.0.0 --wsport=8646 --wsorigins=* & 
 fi
 
