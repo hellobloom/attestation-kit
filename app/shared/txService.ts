@@ -14,9 +14,7 @@ export const txRequest = async (action: string, params: any) => {
     },
 
     method: 'POST',
-    body: JSON.stringify(
-      Object.assign({}, params, {webhook_key: 'attestation-kit'})
-    ),
+    body: JSON.stringify(Object.assign({}, params, {webhook_key: 'bloom-web'})),
   })
 
   console.log('Completed tx-service request', response)

@@ -128,7 +128,9 @@ export const newBroadcastSession = async (
       topic: toBuffer(newTopic),
     })
   } catch (e) {
-    throw new Error(`Broadcast filter message addition failed: ${e}`)
+    throw new Error(
+      `Broadcast filter message addition failed for ${newTopic}, ${entity}: ${e}`
+    )
   }
 }
 
