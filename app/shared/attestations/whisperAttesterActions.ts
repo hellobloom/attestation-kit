@@ -40,6 +40,7 @@ import {
 import {hashedTopicToAttestationType} from '@shared/attestations/AttestationUtils'
 import {env} from '@shared/environment'
 import * as Web3 from 'web3'
+import {AttestationTypeID, HashingLogic} from '@bloomprotocol/attestations-lib'
 
 export const listenForSolicitations = async (
   listeningTopic: string,
@@ -169,7 +170,7 @@ const startAttestation = (
     subjectData: message.subjectData,
     subjectRequestNonce: message.subjectRequestNonce,
     type: hashedTopicToAttestationType[messageTopic],
-    typeIds: message.typeIds,
+    typeIds: message.subjectData.data.map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]),
     subjectSignature: message.subjectSignature,
     paymentSignature: message.paymentSignature,
     paymentNonce: message.paymentNonce,
@@ -217,8 +218,9 @@ export const handleJobDetails: TMessageHandler = async (
     const _rewardMatchesBid = await rewardMatchesBid(message)
     const _validateSubjectData = validateSubjectData(
       message.subjectData,
-      message.typeIds
+      message.subjectData.data.map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]),
     )
+    serverLogger.info( `validate output: ${_validateSubjectData}`)
 
     const attestation = await Attestation.findOne({
       where: {
