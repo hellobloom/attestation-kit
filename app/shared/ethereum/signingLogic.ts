@@ -10,6 +10,21 @@ interface ITypedDataParam {
   value: string
 }
 
+interface IFormattedTypedData {
+  types: {
+    EIP712Domain: ITypedDataParam[]
+    [key: string]: ITypedDataParam[]
+  }
+  primaryType: string
+  domain: {
+    name: string
+    version: string
+    chainId: number
+    verifyingContract: string
+  }
+  message: {[key: string]: string}
+}
+
 export const signAttestationRequest = (
   subject: string,
   attester: string,
@@ -68,4 +83,52 @@ export const getFormattedTypedDataReleaseTokensLegacy = (
     {type: 'uint256', name: 'amount', value: amount},
     {type: 'bytes32', name: 'nonce', value: paymentNonce},
   ]
+}
+
+export const getFormattedTypedDataAttestFor = (
+  subject: string,
+  requester: string,
+  reward: string,
+  paymentNonce: string,
+  dataHash: string,
+  typeIds: number[],
+  requestNonce: string
+): IFormattedTypedData => {
+  return {
+    types: {
+      EIP712Domain: [
+        {name: 'name', type: 'string'},
+        {name: 'version', type: 'string'},
+        {name: 'chainId', type: 'uint256'},
+        {name: 'verifyingContract', type: 'address'},
+      ],
+      AttestFor: [
+        {name: 'subject', type: 'address'},
+        {name: 'requester', type: 'address'},
+        {name: 'reward', type: 'uint256'},
+        {name: 'paymentNonce', type: 'bytes32'},
+        {name: 'dataHash', type: 'bytes32'},
+        {name: 'typeHash', type: 'bytes32'},
+        {name: 'requestNonce', type: 'bytes32'},
+      ],
+    },
+    primaryType: 'AttestFor',
+    domain: {
+      name: 'Bloom',
+      version: '1',
+      // Rinkeby
+      chainId: 4,
+      // Dummy contract address for testing
+      verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
+    },
+    message: {
+      subject: subject,
+      requester: requester,
+      reward: reward,
+      paymentNonce: paymentNonce,
+      dataHash: dataHash,
+      typeHash: soliditySha3({type: 'uint256[]', value: typeIds}),
+      requestNonce: requestNonce,
+    },
+  }
 }

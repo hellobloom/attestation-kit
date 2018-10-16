@@ -37,7 +37,7 @@ interface IEnvironmentConfig {
   log_level?: string
   whisperPollInterval?: number
   skipValidations: boolean
-  txService: {
+  txService?: {
     address: string
     key: string
     webhookKeySha: string
@@ -187,9 +187,11 @@ export const env: IEnvironmentConfig = {
       ? (skipValidations as string).trim().toLowerCase() === 'true'
       : false
   })(),
-  txService: {
-    address: envVar('TX_SERVICE_ADDRESS'),
-    key: envVar('TX_SERVICE_KEY'),
-    webhookKeySha: envVar('TX_SERVICE_KEY_SHA256'),
-  },
+  txService: process.env['TX_SERVICE_ADDRESS']
+    ? {
+        address: envVar('TX_SERVICE_ADDRESS'),
+        key: envVar('TX_SERVICE_KEY'),
+        webhookKeySha: envVar('TX_SERVICE_KEY_SHA256'),
+      }
+    : undefined,
 }
