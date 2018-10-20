@@ -44,13 +44,9 @@ export const notifyDoAttestation = async (
 export const notifyAttestationCompleted = async (
   attestation_id: string,
   transaction_hash: string,
-  data_hash: string,
-  result: string
 ) => {
   await webhookRequest('/api/webhooks/attestation_completed', {
     attestation_id,
     transaction_hash,
-    data_hash,
-    result,
   })
 }

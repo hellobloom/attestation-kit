@@ -4,6 +4,8 @@ import {serverLogger} from '@shared/logger'
 import {boss} from '@shared/jobs/boss'
 
 import * as dc from 'deepcopy'
+import { notifyAttestationCompleted } from '@shared/webhookHandler'
+import { bufferToHex } from 'ethereumjs-util'
 
 // list all attestations
 export const show = (req: any, res: any) => {
@@ -40,6 +42,35 @@ export const perform = async (req: any, res: any) => {
       gasPrice: req.body.gas_price,
     })
     //
+    res.json({success: true, attestation})
+  } else {
+    res.status(404).json({success: false, message: 'Not found'})
+  }
+}
+
+export interface ITxAttempt {
+  id: number
+  nonce: number
+  txHash: Buffer
+  tx_id: string
+}
+
+// notify attestation tx was broadcast
+export const notify = async (req: any, res: any) => {
+  const txAttemptInput = req.body.tx_attempt as any
+  serverLogger.info(`Received notification tx was attempted... ${JSON.stringify(txAttemptInput)}`)
+
+  const attestation = await m.Attestation.findOne({where: {txId: txAttemptInput.id}})
+  if (attestation) {
+    await attestation.update({
+      attestTx: bufferToHex(txAttemptInput.txHash),
+      data: null,
+    })
+
+    notifyAttestationCompleted(
+      attestation.id,
+      bufferToHex(txAttemptInput.txHash),
+    )
     res.json({success: true, attestation})
   } else {
     res.status(404).json({success: false, message: 'Not found'})

@@ -49,6 +49,9 @@ app.post('/api/requests/send', reqCtrl.sendjob)
 app.get('/api/attestations', attCtrl.show)
 app.post('/api/attestations', attCtrl.perform)
 
+app.post('/api/webhooks/tx_mined', attCtrl.notify)
+// IP todo tx_mined and tx_failed?
+
 app.listen(13000, () => console.log('App listening on port 13000'))
 
 export default app

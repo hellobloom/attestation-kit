@@ -66,6 +66,12 @@ export default class Attestation extends Sequelize.Model<Attestation> {
 
   @Sequelize.Column({
     allowNull: true,
+    type: Sequelize.DataType.INTEGER,
+  })
+  txId: number
+
+  @Sequelize.Column({
+    allowNull: true,
     type: Sequelize.DataType.STRING,
   })
   type: string
