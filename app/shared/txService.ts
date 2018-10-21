@@ -2,6 +2,7 @@ import fetch from 'node-fetch'
 import {env} from '@shared/environment'
 
 export const txRequest = async (action: string, params: any) => {
+  if (!env.txService) return
   const url = env.txService.address + action
 
   console.log('Initiating request to tx-service', url, params)

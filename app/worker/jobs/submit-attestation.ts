@@ -51,12 +51,15 @@ export const submitAttestation = async (job: any) => {
             args: attestationParams.data,
           },
         })
+        if (!response) {
+          throw new Error(`No response from tx service`)
+        }
         const responseJSON = await response.json()
         if (responseJSON.success) {
           const txId = responseJSON.tx.id
           // Link attestation to tx service id so we can respond to broadcast webhook later
           await attestation.update({
-            txId: txId,
+            tx_id: txId,
           })
         } else {
           throw new Error(`Request to tx service failed: ${JSON.stringify(responseJSON)}`)
@@ -99,8 +102,6 @@ export const submitAttestation = async (job: any) => {
       notifyAttestationCompleted(
         attestation.id,
         attestationLogs.transactionHash,
-        attestationParams.data.dataHash,
-        JSON.stringify(result)
       )
     }
   } else {

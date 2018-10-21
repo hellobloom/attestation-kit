@@ -55,12 +55,12 @@ export interface ITxAttempt {
   tx_id: string
 }
 
-// notify attestation tx was broadcast
+// notify attestation tx was mined
 export const notify = async (req: any, res: any) => {
   const txAttemptInput = req.body.tx_attempt as any
-  serverLogger.info(`Received notification tx was attempted... ${JSON.stringify(txAttemptInput)}`)
+  serverLogger.info(`Received notification tx was mined... ${JSON.stringify(txAttemptInput)}`)
 
-  const attestation = await m.Attestation.findOne({where: {txId: txAttemptInput.id}})
+  const attestation = await m.Attestation.findOne({where: {tx_id: txAttemptInput.id}})
   if (attestation) {
     await attestation.update({
       attestTx: bufferToHex(txAttemptInput.txHash),

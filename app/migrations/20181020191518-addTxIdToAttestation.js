@@ -6,7 +6,7 @@ module.exports = {
     BEGIN TRANSACTION;
 
     ALTER TABLE "attestations"
-      ADD COLUMN txId INT NULL;
+      ADD COLUMN tx_id INT NULL;
 
     COMMIT;
     `)
@@ -17,7 +17,7 @@ module.exports = {
     BEGIN TRANSACTION;
 
     ALTER TABLE "attestations"
-      DROP COLUMN txId;
+      DROP COLUMN tx_id;
 
     COMMIT;
     `)

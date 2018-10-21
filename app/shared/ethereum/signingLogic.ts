@@ -7,6 +7,11 @@ import {bufferToHex} from 'ethereumjs-util'
 interface ITypedDataParam {
   type: string
   name: string
+}
+
+interface ITypedDataParamLegacy {
+  type: string
+  name: string
   value: string
 }
 
@@ -75,7 +80,7 @@ export const getFormattedTypedDataReleaseTokensLegacy = (
   receiver: string,
   amount: string,
   paymentNonce: string
-): ITypedDataParam[] => {
+): ITypedDataParamLegacy[] => {
   return [
     {type: 'string', name: 'action', value: 'pay'},
     {type: 'address', name: 'sender', value: sender},

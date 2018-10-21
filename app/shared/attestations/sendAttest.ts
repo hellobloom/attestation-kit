@@ -5,7 +5,8 @@ import {serverLogger} from '@shared/logger'
 import {IAttestParams} from '@shared/attestations/validateAttestParams'
 import * as account from '@shared/ethereum/account'
 import BigNumber from 'bignumber.js'
-import {sendTx} from '@shared/txService'
+import { privateEngine } from '@shared/ethereum/customWeb3Provider'
+import * as Wallet from 'ethereumjs-wallet'
 
 const attestationLogic = loadAttestationLogic(
   env.attestationContracts.logicAddress

@@ -68,7 +68,7 @@ export default class Attestation extends Sequelize.Model<Attestation> {
     allowNull: true,
     type: Sequelize.DataType.INTEGER,
   })
-  txId: number
+  tx_id: number
 
   @Sequelize.Column({
     allowNull: true,
