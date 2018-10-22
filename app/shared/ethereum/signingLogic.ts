@@ -3,6 +3,7 @@ const {soliditySha3} = require('web3-utils')
 import {HashingLogic} from '@bloomprotocol/attestations-lib'
 const uuid = require('uuidv4')
 import {bufferToHex} from 'ethereumjs-util'
+import { IAttestParams } from '@shared/attestations/validateAttestParams';
 
 interface ITypedDataParam {
   type: string
@@ -48,6 +49,22 @@ export const signAttestationRequest = (
       typeHash: HashingLogic.hashAttestationTypes(typeIds),
       nonce: requestNonce,
     }),
+  })
+
+export const signAttestForDelegation = (
+  attestParams: IAttestParams,
+  privKey: Buffer
+) =>
+  ethSigUtil.signTypedDataLegacy(privKey, {
+    data: getFormattedTypedDataAttestForLegacy(
+      attestParams.subject,
+      attestParams.requester,
+      attestParams.reward.toString(10),
+      attestParams.paymentNonce,
+      attestParams.dataHash,
+      attestParams.typeIds,
+      attestParams.requestNonce,
+    ),
   })
 
 export const signPaymentAuthorization = (
@@ -136,4 +153,29 @@ export const getFormattedTypedDataAttestFor = (
       requestNonce: requestNonce,
     },
   }
+}
+
+export const getFormattedTypedDataAttestForLegacy = (
+  subject: string,
+  requester: string,
+  reward: string,
+  paymentNonce: string,
+  dataHash: string,
+  typeIds: number[],
+  requestNonce: string
+): ITypedDataParamLegacy[] => {
+  return [
+    {type: 'string', name: 'action', value: 'attest'},
+    {type: 'address', name: 'subject', value: subject},
+    {type: 'address', name: 'requester', value: requester},
+    {type: 'uint256', name: 'reward', value: reward},
+    {type: 'bytes32', name: 'paymentNonce', value: paymentNonce},
+    {type: 'bytes32', name: 'dataHash', value: dataHash},
+      {
+        type: 'bytes32',
+        name: 'typeHash',
+        value: HashingLogic.hashAttestationTypes(typeIds),
+      },
+    {type: 'bytes32', name: 'requestNonce', value: requestNonce},
+  ]
 }

@@ -3,10 +3,11 @@ import * as newrelic from 'newrelic'
 import {Attestation} from '@shared/models'
 import {sendAttestTx} from '@shared/attestations/sendAttest'
 import {IAttestationResult} from '@shared/models/Attestations/Attestation'
-import {notifyAttestationCompleted} from '@shared/webhookHandler'
 import {serverLogger} from '@shared/logger'
 import {env} from '@shared/environment'
 import { sendTx } from '@shared/txService'
+import { signAttestForDelegation } from '@shared/ethereum/signingLogic'
+import { IAttestForParams } from '@shared/attestations/validateAttestParams'
 
 export const submitAttestation = async (job: any) => {
   serverLogger.info('Submitting attestation...')
@@ -42,19 +43,34 @@ export const submitAttestation = async (job: any) => {
       serverLogger.info(
         '[submit-attestation.ts] Submitting delegated attestation via tx-service attestFor.'
       )
+      const delegationSig = signAttestForDelegation(attestationParams.data, attesterWallet.getPrivateKey())
+      const attestForParams: IAttestForParams = {
+        subject: attestationParams.data.subject,
+        attester: attestationParams.data.attester,
+        requester: attestationParams.data.requester,
+        reward: attestationParams.data.reward,
+        paymentNonce: attestationParams.data.paymentNonce,
+        requesterSig: attestationParams.data.requesterSig,
+        dataHash: attestationParams.data.dataHash,
+        typeIds: attestationParams.data.typeIds,
+        requestNonce: attestationParams.data.requestNonce,
+        subjectSig: attestationParams.data.subjectSig,
+        delegationSig: delegationSig,
+      }
       try {
         const response = await sendTx({
           tx: {
             network: job.data.network || 'rinkeby',
             contract_name: 'AttestationLogic',
             method: 'attestFor',
-            args: attestationParams.data,
+            args: attestForParams,
           },
         })
         if (!response) {
           throw new Error(`No response from tx service`)
         }
         const responseJSON = await response.json()
+        console.log(`response from tx service ${JSON.stringify(responseJSON)}`)
         if (responseJSON.success) {
           const txId = responseJSON.tx.id
           // Link attestation to tx service id so we can respond to broadcast webhook later
@@ -99,10 +115,6 @@ export const submitAttestation = async (job: any) => {
         data: null,
       })
 
-      notifyAttestationCompleted(
-        attestation.id,
-        attestationLogs.transactionHash,
-      )
     }
   } else {
     newrelic.recordCustomEvent('ContractError', {

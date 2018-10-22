@@ -44,9 +44,13 @@ export interface IAttestParams {
   paymentNonce: string
   requesterSig: string
   dataHash: string
-  types: AttestationTypeID[]
+  typeIds: AttestationTypeID[]
   requestNonce: string
   subjectSig: string
+}
+
+export interface IAttestForParams extends IAttestParams {
+  delegationSig: string
 }
 
 type TReject = (error: string) => void
@@ -59,7 +63,7 @@ export const validateSubjectSig = (input: TUnvalidated<IAttestParams>) => (
     attester: input.attester,
     requester: input.requester,
     dataHash: input.dataHash,
-    typeHash: HashingLogic.hashAttestationTypes(input.types),
+    typeHash: HashingLogic.hashAttestationTypes(input.typeIds),
     nonce: input.requestNonce,
   }
   const recoveredETHAddress: string = ethSigUtil.recoverTypedSignatureLegacy({
@@ -103,7 +107,7 @@ const validateParamsType = (
     ['subjectSig', validateRequesterSig(data)],
     ['requesterSig', U.isValidSignatureString],
     ['dataHash', U.isNotEmptyString],
-    ['types', value => value instanceof Array],
+    ['typeIds', value => value instanceof Array],
     ['requestNonce', U.isNotEmptyString],
   ]
 
@@ -143,7 +147,7 @@ const generateAttestParams = (
     paymentNonce: data.paymentNonce,
     requesterSig: data.requesterSig,
     dataHash: bufferToHex(HashingLogic.getMerkleTree(data.data.data).getRoot()), // IP TODO data.data.data is bad
-    types: data.types,
+    typeIds: data.types,
     requestNonce: data.requestNonce,
     subjectSig: data.subjectSig,
   }

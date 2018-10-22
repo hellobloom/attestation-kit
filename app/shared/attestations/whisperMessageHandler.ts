@@ -296,6 +296,8 @@ const actOnMessages = (messageDecisions: IMessageDecision[], entity: string) => 
         Entity: entity,
       })
       serverLogger.warn('Encountered an error while acting on whisper messages', {
+        item,
+        entity,
         error,
       })
     }
