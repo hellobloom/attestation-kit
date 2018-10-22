@@ -5,9 +5,9 @@ import {sendAttestTx} from '@shared/attestations/sendAttest'
 import {IAttestationResult} from '@shared/models/Attestations/Attestation'
 import {serverLogger} from '@shared/logger'
 import {env} from '@shared/environment'
-import { sendTx } from '@shared/txService'
-import { signAttestForDelegation } from '@shared/ethereum/signingLogic'
-import { IAttestForParams } from '@shared/attestations/validateAttestParams'
+import {sendTx} from '@shared/txService'
+import {signAttestForDelegation} from '@shared/ethereum/signingLogic'
+import {IAttestForParams} from '@shared/attestations/validateAttestParams'
 
 export const submitAttestation = async (job: any) => {
   serverLogger.info('Submitting attestation...')
@@ -43,7 +43,10 @@ export const submitAttestation = async (job: any) => {
       serverLogger.info(
         '[submit-attestation.ts] Submitting delegated attestation via tx-service attestFor.'
       )
-      const delegationSig = signAttestForDelegation(attestationParams.data, attesterWallet.getPrivateKey())
+      const delegationSig = signAttestForDelegation(
+        attestationParams.data,
+        attesterWallet.getPrivateKey()
+      )
       const attestForParams: IAttestForParams = {
         subject: attestationParams.data.subject,
         attester: attestationParams.data.attester,
@@ -52,7 +55,9 @@ export const submitAttestation = async (job: any) => {
         paymentNonce: attestationParams.data.paymentNonce,
         requesterSig: attestationParams.data.requesterSig,
         dataHash: attestationParams.data.dataHash,
-        typeIds: attestationParams.data.typeIds,
+        typeIds: attestationParams.data.typeIds.sort(
+          (a: number, b: number) => a - b
+        ),
         requestNonce: attestationParams.data.requestNonce,
         subjectSig: attestationParams.data.subjectSig,
         delegationSig: delegationSig,
@@ -78,14 +83,16 @@ export const submitAttestation = async (job: any) => {
             tx_id: txId,
           })
         } else {
-          throw new Error(`Request to tx service failed: ${JSON.stringify(responseJSON)}`)
+          throw new Error(
+            `Request to tx service failed: ${JSON.stringify(responseJSON)}`
+          )
         }
-    } catch (err) {
-      newrelic.recordCustomEvent('ContractError', {
-        Action: 'VoteForFailed',
-        error: JSON.stringify(err),
-      })
-    }
+      } catch (err) {
+        newrelic.recordCustomEvent('ContractError', {
+          Action: 'VoteForFailed',
+          error: JSON.stringify(err),
+        })
+      }
     } else {
       serverLogger.info(
         '[submit-attestation.ts] Submitting attestation directly using attest.'
@@ -114,7 +121,6 @@ export const submitAttestation = async (job: any) => {
         result: result,
         data: null,
       })
-
     }
   } else {
     newrelic.recordCustomEvent('ContractError', {

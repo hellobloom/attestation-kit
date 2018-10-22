@@ -4,7 +4,11 @@ import {toBuffer, bufferToHex} from 'ethereumjs-util'
 import {sequelize, Negotiation, NegotiationMsg} from '@shared/models'
 import {CognitoSMSStatus} from '@shared/attestations/CognitoSMSStatus'
 import {EmailAttestationStatus} from '@shared/attestations/EmailAttestationStatus'
-import {AttestationStatus, HashingLogic, AttestationTypeID} from '@bloomprotocol/attestations-lib'
+import {
+  AttestationStatus,
+  HashingLogic,
+  AttestationTypeID,
+} from '@bloomprotocol/attestations-lib'
 import {PersistDataTypes} from '@shared/attestations/whisperPersistDataHandler'
 import {
   TValidateJobDetailsOutput,
@@ -182,7 +186,9 @@ export default class Attestation extends Sequelize.Model<Attestation> {
         }),
       },
       requestNonce: this.requestNonce,
-      types: this.data.data.map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]),
+      types: this.data.data.map(
+        (a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]
+      ),
       subject: bufferToHex(this.subject),
       subjectSig: bufferToHex(this.subjectSig),
       attester: bufferToHex(this.attester),
@@ -246,7 +252,9 @@ export default class Attestation extends Sequelize.Model<Attestation> {
           }
         }),
       },
-      types: this.data.data.map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]),
+      types: this.data.data
+        .map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type])
+        .sort((a: number, b: number) => a - b),
       requestNonce: this.requestNonce,
       subjectSig: bufferToHex(this.subjectSig),
     }
