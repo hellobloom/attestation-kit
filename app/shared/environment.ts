@@ -137,47 +137,34 @@ const envVar = (
     switch (type) {
       case !type || 'string':
         return value
-        break
       case 'json':
         return JSON.parse(value)
-        break
       case 'int':
         return parseInt(value, opts && opts.baseToParseInto)
-        break
       case 'float':
         return parseFloat(value)
-        break
       case 'bool':
         return (['true', 't', 'yes', 'y'] as any).includes(value.toLowerCase)
-        break
       case 'buffer':
         return toBuffer(value)
-        break
       case 'bn':
         return new bn(value)
-        break
     }
   } else {
     if (!value && typeof defaultVal !== 'undefined') return defaultVal
     switch (type) {
       case !type || 'string':
         return value
-        break
       case 'json':
         return value && JSON.parse(value)
-        break
       case 'int':
         return value && parseInt(value)
-        break
       case 'bool':
         return !!value
-        break
       case 'buffer':
         return value && toBuffer(value)
-        break
       case 'bn':
         return value && new bn(value)
-        break
     }
   }
 }
