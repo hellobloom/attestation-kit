@@ -1,18 +1,26 @@
-import {toNumber} from 'lodash'
 import * as dotenv from 'dotenv'
+import {BigNumber as bn} from 'bignumber.js'
+import {toBuffer} from 'ethereumjs-util'
 
 dotenv.config()
 
 interface IEnvironmentConfig {
   apiKey: string
-  dbUrl: string
-  rinkebyAccountRegistryAddress: string
   appPort: number
-  nodeEnv: string
+  approved_attesters?: IAttestationTypesToArr
+  approved_requesters?: IAttestationTypesToArr
+  attester_rewards?: IAttestationTypesToStr
   bltAddress: string
-  web3Provider: string
+  dbUrl: string
+  nodeEnv: string
+  rinkebyAccountRegistryAddress: string
   rinkebyWeb3Provider: string
   sentryDSN: string
+  skipValidations: boolean
+  web3Provider: string
+  webhook_host: string
+  webhook_key: string
+  whisperPollInterval?: number
   attestationContracts: {
     repoAddress: string
     logicAddress: string
@@ -28,14 +36,11 @@ interface IEnvironmentConfig {
     provider: string
     password: string
     topics: IWhisperTopics
+    ping: {
+      enabled: boolean
+      interval: number
+    }
   }
-  approved_attesters?: IAttestationTypesToArr
-  approved_requesters?: IAttestationTypesToArr
-  attester_rewards?: IAttestationTypesToStr
-  webhook_host: string
-  webhook_key: string
-  whisperPollInterval?: number
-  skipValidations: boolean
   logs: {
     whisperSql: boolean
     level?: string
@@ -112,33 +117,73 @@ interface IWhisperTopics {
   utility: string
 }
 
+type TEnvType = 'string' | 'json' | 'int' | 'float' | 'bool' | 'buffer' | 'bn'
+
 // Throw an error if the specified environment variable is not defined
-function envVar(name: string, json: boolean = false): any {
+const envVar = (
+  name: string,
+  type?: TEnvType,
+  required?: boolean,
+  defaultVal?: any,
+  opts?: {
+    baseToParseInto?: number
+  }
+): any => {
   const value = process.env[name]
-  if (!value) {
-    throw new Error(`Expected environment variable ${name}`)
+  if (required) {
+    if (!value) {
+      throw new Error(`Expected environment variable ${name}`)
+    }
+    switch (type) {
+      case !type || 'string':
+        return value
+        break
+      case 'json':
+        return JSON.parse(value)
+        break
+      case 'int':
+        return parseInt(value, opts && opts.baseToParseInto)
+        break
+      case 'float':
+        return parseFloat(value)
+        break
+      case 'bool':
+        return (['true', 't', 'yes', 'y'] as any).includes(value.toLowerCase)
+        break
+      case 'buffer':
+        return toBuffer(value)
+        break
+      case 'bn':
+        return new bn(value)
+        break
+    }
+  } else {
+    if (!value && typeof defaultVal !== 'undefined') return defaultVal
+    switch (type) {
+      case !type || 'string':
+        return value
+        break
+      case 'json':
+        return value && JSON.parse(value)
+        break
+      case 'int':
+        return value && parseInt(value)
+        break
+      case 'bool':
+        return !!value
+        break
+      case 'buffer':
+        return value && toBuffer(value)
+        break
+      case 'bn':
+        return value && new bn(value)
+        break
+    }
   }
-  return json ? JSON.parse(value) : value
-}
-function optionalEnvVar(name: string, json: boolean): any {
-  const value = process.env[name]
-  if (!value) {
-    return undefined
-  }
-  return json ? JSON.parse(value) : value
-}
-
-function getPort(): number {
-  const port = process.env.PORT
-  if (!port) {
-    return 5000
-  }
-
-  return toNumber(port)
 }
 
 // Topics shouldn't be number but string
-const topics = envVar('WHISPER_TOPICS', true)
+const topics = envVar('WHISPER_TOPICS', 'json')
 
 Object.keys(topics).forEach(k => {
   topics[k] = topics[k].toString()
@@ -146,47 +191,46 @@ Object.keys(topics).forEach(k => {
 
 export const env: IEnvironmentConfig = {
   apiKey: envVar('API_KEY_SHA256'),
-  dbUrl: envVar('BLOOM_WHISPER_PG_URL'),
-  rinkebyAccountRegistryAddress: envVar('RINKEBY_ACCOUNT_REGISTRY_ADDRESS'),
-  appPort: getPort(),
-  nodeEnv: envVar('NODE_ENV'),
+  appPort: envVar('PORT', 'int', false, 3000),
+  approved_attesters: envVar('APPROVED_ATTESTERS', 'json', false),
+  approved_requesters: envVar('APPROVED_REQUESTERS', 'json', false),
+  attester_rewards: envVar('ATTESTER_MIN_REWARDS', 'json'),
   bltAddress: envVar('BLT_ADDRESS'),
-  web3Provider: envVar('WEB3_PROVIDER'),
+  dbUrl: envVar('BLOOM_WHISPER_PG_URL'),
+  nodeEnv: envVar('NODE_ENV'),
+  rinkebyAccountRegistryAddress: envVar('RINKEBY_ACCOUNT_REGISTRY_ADDRESS'),
   rinkebyWeb3Provider: envVar('RINKEBY_WEB3_PROVIDER'),
   sentryDSN: envVar('SENTRY_DSN'),
-  tokenEscrowMarketplace: {
-    address: envVar('TOKEN_ESCROW_MARKETPLACE_ADDRESS'),
-  },
+  web3Provider: envVar('WEB3_PROVIDER'),
+  webhook_host: envVar('WEBHOOK_HOST'),
+  webhook_key: envVar('WEBHOOK_KEY'),
   attestationContracts: {
     repoAddress: envVar('ATTESTATION_REPO_ADDRESS'),
     logicAddress: envVar('ATTESTATION_LOGIC_ADDRESS'),
+  },
+  logs: {
+    whisperSql: envVar('QUIET_POLLING', 'bool', false),
+    level: envVar('LOG_LEVEL', 'string', false),
   },
   owner: {
     ethAddress: envVar('PRIMARY_ETH_ADDRESS'),
     ethPrivKey: envVar('PRIMARY_ETH_PRIVKEY'),
   },
+  skipValidations: envVar('SKIP_VALIDATIONS', 'bool', false),
+  tokenEscrowMarketplace: {
+    address: envVar('TOKEN_ESCROW_MARKETPLACE_ADDRESS'),
+  },
   whisper: {
     provider: envVar('WHISPER_PROVIDER'),
     password: envVar('WHISPER_PASSWORD'),
     topics: topics,
+    ping: {
+      enabled: envVar('WHISPER_PING_ENABLED', 'bool', false),
+      interval: envVar('WHISPER_PING_INTERVAL', 'int', false, 15000),
+    },
   },
-  approved_attesters: optionalEnvVar('APPROVED_ATTESTERS', true),
-  approved_requesters: optionalEnvVar('APPROVED_REQUESTERS', true),
-  attester_rewards: envVar('ATTESTER_MIN_REWARDS', true),
-  webhook_host: envVar('WEBHOOK_HOST'),
-  webhook_key: envVar('WEBHOOK_KEY'),
   whisperPollInterval: (() => {
-    var intvl = optionalEnvVar('WHISPER_POLL_INTERVAL', false)
+    var intvl = envVar('WHISPER_POLL_INTERVAL', 'string', false)
     return intvl ? parseInt(intvl, 10) : undefined
   })(),
-  skipValidations: (() => {
-    const skipValidations = optionalEnvVar('SKIP_VALIDATIONS', false)
-    return skipValidations
-      ? (skipValidations as string).trim().toLowerCase() === 'true'
-      : false
-  })(),
-  logs: {
-    whisperSql: !!optionalEnvVar('QUIET_POLLING', false),
-    level: optionalEnvVar('LOG_LEVEL', false),
-  },
 }
