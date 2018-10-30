@@ -28,10 +28,7 @@ import {
   IStartAttestationStore,
   IStoreJobDetails,
 } from '@shared/whisper/persistDataHandler'
-import {
-  rewardMatchesBid,
-  isApprovedRequester,
-} from '@shared/whisper/validateMsg'
+import {rewardMatchesBid, isApprovedRequester} from '@shared/whisper/validateMsg'
 import {validateSubjectData} from '@shared/attestations/validateJobDetails'
 import {
   IPerformAttestation,
@@ -49,7 +46,7 @@ export const listenForSolicitations = async (
 ) => {
   const filter = await WhisperFilters.findOne({
     where: {topic: toBuffer(listeningTopic), entity: attester},
-    logging: !env.logs.whisperSql,
+    logging: !env.logs.whisper.sql,
   })
   if (filter === null) {
     // This can't use a delayed job or tons will fill up the queue if redis is bogged down

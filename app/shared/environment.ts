@@ -39,10 +39,14 @@ interface IEnvironmentConfig {
     ping: {
       enabled: boolean
       interval: number
+      password: string
     }
   }
   logs: {
-    whisperSql: boolean
+    whisper: {
+      pings: boolean
+      sql: boolean
+    }
     level?: string
   }
 }
@@ -196,7 +200,10 @@ export const env: IEnvironmentConfig = {
     logicAddress: envVar('ATTESTATION_LOGIC_ADDRESS'),
   },
   logs: {
-    whisperSql: envVar('QUIET_POLLING', 'bool', false),
+    whisper: {
+      sql: envVar('LOG_WHISPER_SQL', 'bool', false),
+      pings: envVar('LOG_WHISPER_PINGS', 'bool', false),
+    },
     level: envVar('LOG_LEVEL', 'string', false),
   },
   owner: {
@@ -212,8 +219,13 @@ export const env: IEnvironmentConfig = {
     password: envVar('WHISPER_PASSWORD'),
     topics: topics,
     ping: {
-      enabled: envVar('WHISPER_PING_ENABLED', 'bool', false),
-      interval: envVar('WHISPER_PING_INTERVAL', 'int', false, 15000),
+      enabled: envVar('WHISPER_PING_ENABLED', 'bool', false), // Defaults to false if not specified
+      interval: envVar('WHISPER_PING_INTERVAL', 'int', false, 15000), // Defaults to 15000 if not specified
+      password: envVar(
+        'WHISPER_PING_PASSWORD',
+        'string',
+        envVar('WHISPER_PING_ENABLED', 'bool', false) // Whether or not it's required dependent on whether or not whisper ping is enabled
+      ),
     },
   },
   whisperPollInterval: (() => {

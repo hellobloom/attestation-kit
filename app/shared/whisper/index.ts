@@ -17,7 +17,7 @@ export const resetShh = () => {
 export const fetchAllMessages = async (entity: string) => {
   const filters = await WhisperFilters.findAll({
     where: {entity: entity},
-    logging: !env.logs.whisperSql,
+    logging: !env.logs.whisper.sql,
   })
   let allMessages: Shh.Message[] = []
   for (let filter of filters) {
@@ -125,11 +125,12 @@ export const newBroadcastSession = async (
       topics: [newTopic],
       symKeyID: symkeyId,
     })
-    await WhisperFilters.create({
+    const wf = await WhisperFilters.create({
       entity: entity,
       filterId: broadcastMessageFilterID,
       topic: toBuffer(newTopic),
     })
+    return wf
   } catch (e) {
     throw new Error(`Broadcast filter message addition failed: ${e}`)
   }

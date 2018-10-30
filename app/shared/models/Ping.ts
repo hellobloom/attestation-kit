@@ -6,9 +6,11 @@ export default class Ping extends S.Model<Ping> {
     allowNull: false,
     primaryKey: true,
     unique: true,
+    type: S.DataType.UUID,
   })
-  @S.CreatedAt
-  created: Date
+  id: string
+
+  @S.CreatedAt created: Date
 
   @S.UpdatedAt updated: Date
 

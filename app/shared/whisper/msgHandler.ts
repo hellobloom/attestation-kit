@@ -18,10 +18,7 @@ import * as Web3 from 'web3'
 import * as Wallet from 'ethereumjs-wallet'
 import {env} from '@shared/environment'
 import {fetchAllMessages} from '@shared/whisper'
-import {
-  handleSolicitation,
-  handleJobDetails,
-} from '@shared/whisper/attesterActions'
+import {handleSolicitation, handleJobDetails} from '@shared/whisper/attesterActions'
 import {handleAttestationBid} from '@shared/whisper/requesterActions'
 import {
   MessageSubscriber,
@@ -40,7 +37,11 @@ import {
 import {confirmRequesterFunds} from '@shared/whisper/validateMsg'
 
 export enum Entities {
+  // Non-attestation entities
+  ping = 'Ping',
   requester = 'Requester',
+
+  // Actual attestation types
   phoneAttester = 'PhoneAttester',
   emailAttester = 'EmailAttester',
   sanctionAttester = 'SanctionAttester',
@@ -65,7 +66,11 @@ export enum Entities {
 }
 
 export const AttestationTypeToEntity = {
+  // Non-attestation entities
+  ping: Entities.ping,
   requester: Entities.requester,
+
+  // Actual attestation types
   phone: Entities.phoneAttester,
   email: Entities.emailAttester,
   'sanction-screen': Entities.sanctionAttester,

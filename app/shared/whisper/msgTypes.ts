@@ -1,6 +1,8 @@
 import {IAttestationDataJSONB} from '@shared/models/Attestations/Attestation'
 
 export enum EMsgTypes {
+  ping = 'ping',
+  pong = 'pong',
   solicitation = 'solicitation',
   attestationBid = 'attestationBid',
   awaitSubjectData = 'awaitSubjectData',
@@ -11,6 +13,8 @@ export enum EMsgTypes {
 }
 
 export type TBloomMessage =
+  | IPing
+  | IPong
   | ISolicitation
   | IAttestationBid
   | ISendJobDetails
@@ -18,11 +22,22 @@ export type TBloomMessage =
   | IPaymentAuthorization
   | IAttestationSubmitted
 
-export interface IBloomWhisperMessage {
+export interface IBloomBasicWhisperMessage {
   messageType: string
-  replyTo: string
   session: string
+}
+
+export interface IBloomWhisperMessage extends IBloomBasicWhisperMessage {
+  replyTo: string
   negotiationSession: string
+}
+
+export interface IPing extends IBloomBasicWhisperMessage {
+  messageType: EMsgTypes.ping
+}
+
+export interface IPong extends IBloomBasicWhisperMessage {
+  messageType: EMsgTypes.pong
 }
 
 export interface IBloomWhisperResponse extends IBloomWhisperMessage {

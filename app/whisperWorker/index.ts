@@ -3,7 +3,7 @@ import * as Web3 from 'web3'
 import * as Raven from 'raven'
 // import BigNumber from 'bignumber.js'
 import {env} from '@shared/environment'
-import {resetShh} from '@shared/whisper'
+import {resetShh, newBroadcastSession} from '@shared/whisper'
 import {
   attesterWallet,
   requesterWallet,
@@ -11,12 +11,12 @@ import {
 
 import {serverLogger} from '@shared/logger'
 
-import {
-  handleMessages,
-  AttestationTypeToEntity,
-} from '@shared/whisper/msgHandler'
+import {handleMessages, AttestationTypeToEntity} from '@shared/whisper/msgHandler'
 
 import {listenForSolicitations} from '@shared/whisper/attesterActions'
+import {sendPings, sendPongs} from '@shared/whisper/ping'
+
+import {WhisperFilters} from '@shared/models'
 
 Raven.config(env.sentryDSN, {environment: env.nodeEnv}).install()
 
@@ -25,8 +25,28 @@ const toTopic = (ascii: string) => web3.sha3(ascii).slice(0, 10)
 
 const password = env.whisper.password
 
+if (env.whisper.ping.enabled) {
+  var pingFilterPromise = WhisperFilters.findOne({where: {entity: 'ping'}}).then(
+    (existing: WhisperFilters) => {
+      return (
+        existing ||
+        newBroadcastSession(
+          toTopic(env.whisper.topics.ping),
+          env.whisper.ping.password,
+          AttestationTypeToEntity.ping
+        )
+      )
+    }
+  )
+}
+
 const main = async () => {
   try {
+    if (env.whisper.ping.enabled) {
+      await sendPings(await pingFilterPromise, web3)
+      await sendPongs(await pingFilterPromise, web3)
+    }
+
     if (env.attester_rewards) {
       Object.keys(env.attester_rewards).forEach(async (topic_name: string) => {
         let hashed_topic = toTopic(env.whisper.topics[topic_name])
