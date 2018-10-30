@@ -3,7 +3,7 @@ import * as Shh from 'web3-shh'
 import {env} from '@shared/environment'
 import {WhisperFilters} from '@shared/models'
 import {toBuffer} from 'ethereumjs-util'
-import {IBloomWhisperMessage} from '@shared/attestations/whisperMessageTypes'
+import {IBloomWhisperMessage} from '@shared/whisper/msgTypes'
 import {serverLogger} from '@shared/logger'
 
 export const web3 = new Web3(new Web3.providers.HttpProvider(env.web3Provider))

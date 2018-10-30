@@ -5,38 +5,38 @@ import * as Wallet from 'ethereumjs-wallet'
 import BigNumber from 'bignumber.js'
 import {
   IMessageDecision,
-  TMessageHandler,
+  TMsgHandler,
   // Entities,
-} from '@shared/attestations/whisperMessageHandler'
+} from '@shared/whisper/msgHandler'
 import {WhisperFilters, Attestation} from '@shared/models'
 import {toBuffer} from 'ethereumjs-util'
-import {newBroadcastSession, toTopic} from '@shared/attestations/whisper'
+import {newBroadcastSession, toTopic} from '@shared/whisper'
 import {
-  MessageTypes,
+  EMsgTypes,
   ISolicitation,
   IAttestationBid,
   ISendJobDetails,
-} from '@shared/attestations/whisperMessageTypes'
+} from '@shared/whisper/msgTypes'
 import {
   MessageSubscribers,
   IDirectMessageSubscriber,
-} from '@shared/attestations/whisperSubscriptionHandler'
+} from '@shared/whisper/subscriptionHandler'
 import {signSessionID, recoverSessionIDSig} from '@shared/ethereum/signingLogic'
 import {
   IAttestationBidStore,
   PersistDataTypes,
   IStartAttestationStore,
   IStoreJobDetails,
-} from '@shared/attestations/whisperPersistDataHandler'
+} from '@shared/whisper/persistDataHandler'
 import {
   rewardMatchesBid,
   isApprovedRequester,
-} from '@shared/attestations/whisperValidateMessage'
+} from '@shared/whisper/validateMsg'
 import {validateSubjectData} from '@shared/attestations/validateJobDetails'
 import {
   IPerformAttestation,
   ExternalActionTypes,
-} from '@shared/attestations/whisperExternalActionHandler'
+} from '@shared/whisper/externalActionHandler'
 import {hashedTopicToAttestationType} from '@shared/attestations/AttestationUtils'
 import {env} from '@shared/environment'
 import * as Web3 from 'web3'
@@ -81,7 +81,7 @@ const rejectAttestationJob = (
   return decision
 }
 
-export const handleSolicitation: TMessageHandler = async (
+export const handleSolicitation: TMsgHandler = async (
   message: ISolicitation,
   messageTopic: string,
   attesterWallet: Wallet.Wallet
@@ -116,7 +116,7 @@ export const handleSolicitation: TMessageHandler = async (
     reSession: message.session,
     reSessionSigned: signSessionID(message.session, attesterWallet.getPrivateKey()),
     negotiationSession: message.session,
-    messageType: MessageTypes.attestationBid,
+    messageType: EMsgTypes.attestationBid,
     rewardBid: message.rewardAsk,
   }
 
@@ -210,7 +210,7 @@ const startAttestation = (
   return decision
 }
 
-export const handleJobDetails: TMessageHandler = async (
+export const handleJobDetails: TMsgHandler = async (
   message: ISendJobDetails,
   messageTopic: string,
   attesterWallet: Wallet.Wallet

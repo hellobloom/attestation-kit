@@ -5,7 +5,7 @@ import {sequelize, Negotiation, NegotiationMsg} from '@shared/models'
 import {CognitoSMSStatus} from '@shared/attestations/CognitoSMSStatus'
 import {EmailAttestationStatus} from '@shared/attestations/EmailAttestationStatus'
 import {AttestationStatus, HashingLogic, AttestationTypeID} from '@bloomprotocol/attestations-lib'
-import {PersistDataTypes} from '@shared/attestations/whisperPersistDataHandler'
+import {PersistDataTypes} from '@shared/whisper/persistDataHandler'
 import {
   TValidateJobDetailsOutput,
   validateJobDetails,

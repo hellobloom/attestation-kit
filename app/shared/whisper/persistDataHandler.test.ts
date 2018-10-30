@@ -3,9 +3,9 @@ import {
   storeSolicitation,
   ISolicitationStore,
   PersistDataTypes,
-} from '@shared/attestations/whisperPersistDataHandler'
+} from '@shared/whisper/persistDataHandler'
 import BigNumber from 'bignumber.js'
-import {toTopic} from '@shared/attestations/whisper'
+import {toTopic} from '@shared/whisper'
 import {env} from '@shared/environment'
 
 const solicitationUuid = uuid()

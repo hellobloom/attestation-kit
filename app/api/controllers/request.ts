@@ -5,7 +5,7 @@ import BigNumber from 'bignumber.js'
 import {
   initiateSolicitation,
   sendJobDetails,
-} from '@shared/attestations/whisperRequesterActions'
+} from '@shared/attestations/whisperrequesterActions'
 import {requesterWallet} from '@shared/attestations/attestationWallets'
 import {getAttestationTypeStr} from '@bloomprotocol/attestations-lib'
 import {toBuffer} from 'ethereumjs-util'

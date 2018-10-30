@@ -3,7 +3,7 @@ import * as Web3 from 'web3'
 import * as Raven from 'raven'
 // import BigNumber from 'bignumber.js'
 import {env} from '@shared/environment'
-import {resetShh} from '@shared/attestations/whisper'
+import {resetShh} from '@shared/whisper'
 import {
   attesterWallet,
   requesterWallet,
@@ -14,9 +14,9 @@ import {serverLogger} from '@shared/logger'
 import {
   handleMessages,
   AttestationTypeToEntity,
-} from '@shared/attestations/whisperMessageHandler'
+} from '@shared/whisper/msgHandler'
 
-import {listenForSolicitations} from '@shared/attestations/whisperAttesterActions'
+import {listenForSolicitations} from '@shared/whisper/attesterActions'
 
 Raven.config(env.sentryDSN, {environment: env.nodeEnv}).install()
 
