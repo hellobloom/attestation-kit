@@ -49,6 +49,7 @@ export const listenForSolicitations = async (
 ) => {
   const filter = await WhisperFilters.findOne({
     where: {topic: toBuffer(listeningTopic), entity: attester},
+    logging: !env.logs.whisperSql,
   })
   if (filter === null) {
     // This can't use a delayed job or tons will fill up the queue if redis is bogged down
@@ -170,7 +171,9 @@ const startAttestation = (
     subjectData: message.subjectData,
     subjectRequestNonce: message.subjectRequestNonce,
     type: hashedTopicToAttestationType[messageTopic],
-    typeIds: message.subjectData.data.map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]),
+    typeIds: message.subjectData.data.map(
+      (a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]
+    ),
     subjectSignature: message.subjectSignature,
     paymentSignature: message.paymentSignature,
     paymentNonce: message.paymentNonce,
@@ -218,9 +221,11 @@ export const handleJobDetails: TMessageHandler = async (
     const _rewardMatchesBid = await rewardMatchesBid(message)
     const _validateSubjectData = validateSubjectData(
       message.subjectData,
-      message.subjectData.data.map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]),
+      message.subjectData.data.map(
+        (a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]
+      )
     )
-    serverLogger.info( `validate output: ${_validateSubjectData}`)
+    serverLogger.info(`validate output: ${_validateSubjectData}`)
 
     const attestation = await Attestation.findOne({
       where: {

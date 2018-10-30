@@ -34,9 +34,12 @@ interface IEnvironmentConfig {
   attester_rewards?: IAttestationTypesToStr
   webhook_host: string
   webhook_key: string
-  log_level?: string
   whisperPollInterval?: number
   skipValidations: boolean
+  logs: {
+    whisperSql: boolean
+    level?: string
+  }
 }
 
 export interface IAttestationTypesToArr {
@@ -87,6 +90,7 @@ export interface IAttestationTypesToStr {
 }
 
 interface IWhisperTopics {
+  ping: string
   phone: string
   email: string
   'sanction-screen': string
@@ -171,7 +175,6 @@ export const env: IEnvironmentConfig = {
   attester_rewards: envVar('ATTESTER_MIN_REWARDS', true),
   webhook_host: envVar('WEBHOOK_HOST'),
   webhook_key: envVar('WEBHOOK_KEY'),
-  log_level: optionalEnvVar('LOG_LEVEL', false),
   whisperPollInterval: (() => {
     var intvl = optionalEnvVar('WHISPER_POLL_INTERVAL', false)
     return intvl ? parseInt(intvl, 10) : undefined
@@ -182,4 +185,8 @@ export const env: IEnvironmentConfig = {
       ? (skipValidations as string).trim().toLowerCase() === 'true'
       : false
   })(),
+  logs: {
+    whisperSql: !!optionalEnvVar('QUIET_POLLING', false),
+    level: optionalEnvVar('LOG_LEVEL', false),
+  },
 }

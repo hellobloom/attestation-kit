@@ -3,7 +3,7 @@ import {env} from '@shared/environment'
 
 const consoleLogger = new winston.Logger({
   timestamp: () => Date.now(),
-  transports: [new winston.transports.Console({level: env.log_level || 'info'})],
+  transports: [new winston.transports.Console({level: env.logs.level || 'info'})],
 })
 
 export {
