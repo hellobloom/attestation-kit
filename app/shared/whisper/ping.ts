@@ -63,7 +63,13 @@ interface IPingTable {
 
 // Incoming
 export const handlePongMessages = async (wf: WhisperFilters, web3: Web3) => {
-  let wPings = await shh.getFilterMessages(wf.filterId)
+  var wPings
+  try {
+    wPings = await shh.getFilterMessages(wf.filterId)
+  } catch (err) {
+    alertWhisperError()
+    return
+  }
   let pings = await Ping.findAll({
     where: {
       answered: false,
@@ -81,6 +87,7 @@ export const handlePongMessages = async (wf: WhisperFilters, web3: Web3) => {
       await maybeReplyToPing(body, wf, web3)
     }
   })
+
   const answeredPingsCount = parseInt(
     ((await Ping.findAll({
       where: {
@@ -99,6 +106,18 @@ export const handlePongMessages = async (wf: WhisperFilters, web3: Web3) => {
   }
 }
 
+const alertWhisperError = () => {
+  const alertMessage = `Connection to Whisper failed`
+  newrelic.recordCustomEvent('', {
+    Action: 'WhisperConnectionFailed',
+    AppID: env.appId,
+  })
+  Raven.captureException(new Error(alertMessage), {
+    tags: {logger: 'whisper', appId: env.appId},
+  })
+  serverLogger.error(alertMessage)
+}
+
 const alertNoPongs = () => {
   const alertMessage = `No whisper pongs in last ${env.whisper.ping.alertInterval}`
   newrelic.recordCustomEvent('', {
@@ -107,7 +126,7 @@ const alertNoPongs = () => {
     Interval: env.whisper.ping.alertInterval,
   })
   Raven.captureException(new Error(alertMessage), {
-    tags: {logger: 'whisper'},
+    tags: {logger: 'whisper', appId: env.appId},
   })
   serverLogger.error(alertMessage)
 }
