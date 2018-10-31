@@ -126,8 +126,8 @@ type TEnvType = 'string' | 'json' | 'int' | 'float' | 'bool' | 'buffer' | 'bn'
 // Throw an error if the specified environment variable is not defined
 const envVar = (
   name: string,
-  type?: TEnvType,
-  required?: boolean,
+  type: TEnvType = 'string',
+  required: boolean = true,
   defaultVal?: any,
   opts?: {
     baseToParseInto?: number
@@ -139,7 +139,7 @@ const envVar = (
       throw new Error(`Expected environment variable ${name}`)
     }
     switch (type) {
-      case !type || 'string':
+      case 'string':
         return value
       case 'json':
         return JSON.parse(value)
@@ -157,7 +157,7 @@ const envVar = (
   } else {
     if (!value && typeof defaultVal !== 'undefined') return defaultVal
     switch (type) {
-      case !type || 'string':
+      case 'string':
         return value
       case 'json':
         return value && JSON.parse(value)
@@ -174,9 +174,8 @@ const envVar = (
 }
 
 // Topics shouldn't be number but string
-const topics = envVar('WHISPER_TOPICS', 'json')
-
-Object.keys(topics).forEach(k => {
+const topics: any = envVar('WHISPER_TOPICS', 'json')
+;(Object as any).keys(topics).forEach((k: string) => {
   topics[k] = topics[k].toString()
 })
 
