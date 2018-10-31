@@ -1,6 +1,6 @@
 import * as newrelic from 'newrelic'
 
-import {endSession} from '@shared/attestations/whisper'
+import {endSession} from '@shared/whisper'
 
 export const whisperEndSession = async (job: any) => {
   try {

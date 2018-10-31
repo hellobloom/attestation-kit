@@ -1,5 +1,5 @@
 import * as newrelic from 'newrelic'
-import {resetShh, newBroadcastSession} from '@shared/attestations/whisper'
+import {resetShh, newBroadcastSession} from '@shared/whisper'
 
 export const whisperNewBroadcastSession = async (job: any) => {
   try {

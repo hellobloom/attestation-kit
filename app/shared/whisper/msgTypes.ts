@@ -1,6 +1,8 @@
 import {IAttestationDataJSONB} from '@shared/models/Attestations/Attestation'
 
-export enum MessageTypes {
+export enum EMsgTypes {
+  ping = 'ping',
+  pong = 'pong',
   solicitation = 'solicitation',
   attestationBid = 'attestationBid',
   awaitSubjectData = 'awaitSubjectData',
@@ -11,6 +13,8 @@ export enum MessageTypes {
 }
 
 export type TBloomMessage =
+  | IPing
+  | IPong
   | ISolicitation
   | IAttestationBid
   | ISendJobDetails
@@ -18,12 +22,25 @@ export type TBloomMessage =
   | IPaymentAuthorization
   | IAttestationSubmitted
 
-export interface IBloomWhisperMessage {
+export interface IBloomBasicWhisperMessage {
   messageType: string
-  replyTo: string
   session: string
+}
+
+export interface IBloomWhisperMessage extends IBloomBasicWhisperMessage {
+  replyTo: string
   negotiationSession: string
 }
+
+export interface IPing extends IBloomBasicWhisperMessage {
+  messageType: EMsgTypes.ping
+}
+
+export interface IPong extends IBloomBasicWhisperMessage {
+  messageType: EMsgTypes.pong
+}
+
+export type IPingPong = IPing | IPong
 
 export interface IBloomWhisperResponse extends IBloomWhisperMessage {
   reSession: string // Unique ID for message this reply is regarding
@@ -32,26 +49,26 @@ export interface IBloomWhisperResponse extends IBloomWhisperMessage {
 
 // Message #1. Asking "who can attest this kind of thing?"
 export interface ISolicitation extends IBloomWhisperMessage {
-  messageType: MessageTypes.solicitation
+  messageType: EMsgTypes.solicitation
   sessionSigned: string // signed sessionId of this message
   rewardAsk: string // BigNumber as string
 }
 
 // Message #2. Responding with a bid.
 export interface IAttestationBid extends IBloomWhisperResponse {
-  messageType: MessageTypes.attestationBid
+  messageType: EMsgTypes.attestationBid
   rewardBid: string
 }
 
 // Message #3, accepting the bid and revealing subject information
 export interface ISubmitSubjectData extends IBloomWhisperResponse {
-  messageType: MessageTypes.sendJobDetails
+  messageType: EMsgTypes.sendJobDetails
   reward: string
 }
 
 // Message #3, accepting the bid and revealing subject information
 export interface ISendJobDetails extends IBloomWhisperResponse {
-  messageType: MessageTypes.sendJobDetails
+  messageType: EMsgTypes.sendJobDetails
   reward: string
   subjectData: IAttestationDataJSONB
   subjectRequestNonce: string
@@ -64,13 +81,13 @@ export interface ISendJobDetails extends IBloomWhisperResponse {
 
 // Message #4, notify requester the job has been completed and request payment
 export interface IRequestPayment extends IBloomWhisperResponse {
-  messageType: MessageTypes.requestPayment
+  messageType: EMsgTypes.requestPayment
   reward: string
 }
 
 // Message #5, send payment authorization to attester
 export interface IPaymentAuthorization extends IBloomWhisperResponse {
-  messageType: MessageTypes.paymentAuthorization
+  messageType: EMsgTypes.paymentAuthorization
   reward: string
   paymentNonce: string
   paymentSig: string
@@ -78,7 +95,7 @@ export interface IPaymentAuthorization extends IBloomWhisperResponse {
 
 // Message #6, Notify attestation is complete
 export interface IAttestationSubmitted extends IBloomWhisperResponse {
-  messageType: MessageTypes.attestationSubmitted
+  messageType: EMsgTypes.attestationSubmitted
   txHash: string
   attestationId: number
   subjectAddress: string

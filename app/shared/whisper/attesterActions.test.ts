@@ -4,24 +4,24 @@ import BigNumber from 'bignumber.js'
 import {
   handleSolicitation,
   handleJobDetails,
-} from '@shared/attestations/whisperAttesterActions'
+} from '@shared/whisper/attesterActions'
 import {
   ISolicitation,
   ISendJobDetails,
-  MessageTypes,
-} from '@shared/attestations/whisperMessageTypes'
+  EMsgTypes,
+} from '@shared/whisper/msgTypes'
 import {NegotiationMsg} from '@shared/models'
-import {MessageSubscribers} from '@shared/attestations/whisperSubscriptionHandler'
+import {MessageSubscribers} from '@shared/whisper/subscriptionHandler'
 import {toBuffer, bufferToHex} from 'ethereumjs-util'
 import * as Wallet from 'ethereumjs-wallet'
 import {signSessionID, signPaymentAuthorization} from '@shared/ethereum/signingLogic'
-import {PersistDataTypes} from '@shared/attestations/whisperPersistDataHandler'
+import {PersistDataTypes} from '@shared/whisper/persistDataHandler'
 import {signAttestationRequest} from '@shared/ethereum/signingLogic'
 import {
   attesterWallet,
   requesterWallet,
 } from '@shared/attestations/attestationWallets'
-import {ExternalActionTypes} from '@shared/attestations/whisperExternalActionHandler'
+import {ExternalActionTypes} from '@shared/whisper/externalActionHandler'
 import {HashingLogic} from '@bloomprotocol/attestations-lib'
 
 const subjectPrivKey =
@@ -41,7 +41,7 @@ const zeroReward = new BigNumber(0).toString(10)
 const solicitationReplyTo = 'testPublicKey'
 
 const solicitationMessage: ISolicitation = {
-  messageType: MessageTypes.solicitation,
+  messageType: EMsgTypes.solicitation,
   replyTo: solicitationReplyTo,
   session: solicitationSessionId,
   negotiationSession: solicitationSessionId,
@@ -70,7 +70,7 @@ describe('Handling Solicitation', () => {
     )
     expect(decision).toHaveProperty(
       'respondWith.messageType',
-      MessageTypes.attestationBid
+      EMsgTypes.attestationBid
     )
     expect(decision).toHaveProperty(
       'persist.messageType',
@@ -130,7 +130,7 @@ const paymentSig = signPaymentAuthorization(
 )
 
 const validJobDetails: ISendJobDetails = {
-  messageType: MessageTypes.sendJobDetails,
+  messageType: EMsgTypes.sendJobDetails,
   replyTo: 'testReplyTo',
   session: uuid(),
   reSession: newSessionId,
@@ -147,7 +147,7 @@ const validJobDetails: ISendJobDetails = {
 }
 
 const invalidJobDetails: ISendJobDetails = {
-  messageType: MessageTypes.sendJobDetails,
+  messageType: EMsgTypes.sendJobDetails,
   replyTo: 'testReplyTo',
   session: uuid(),
   reSession: newSessionId,

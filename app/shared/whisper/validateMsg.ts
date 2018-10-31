@@ -8,9 +8,9 @@ import {
   IAttestationBid,
   ISolicitation,
   ISendJobDetails,
-} from '@shared/attestations/whisperMessageTypes'
+} from '@shared/whisper/msgTypes'
 import {checkEscrowBalance} from '@shared/attestations/attestationMarketplace'
-import {PersistDataTypes} from '@shared/attestations/whisperPersistDataHandler'
+import {PersistDataTypes} from '@shared/whisper/persistDataHandler'
 import {allowEntity} from '@shared/attestations/AttestationUtils'
 
 export const isApprovedAttester = async (

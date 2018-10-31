@@ -1,6 +1,6 @@
 import * as newrelic from 'newrelic'
 
-import {resetShh, directMessage} from '@shared/attestations/whisper'
+import {resetShh, directMessage} from '@shared/whisper'
 
 export const whisperDirectMessage = async (job: any) => {
   if (job.data.message === null) {

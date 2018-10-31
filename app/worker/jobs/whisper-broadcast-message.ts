@@ -1,7 +1,7 @@
 import * as newrelic from 'newrelic'
 import {serverLogger} from '@shared/logger'
 
-import {resetShh, broadcastMessage} from '@shared/attestations/whisper'
+import {resetShh, broadcastMessage} from '@shared/whisper'
 
 export const whisperBroadcastMessage = async (job: any) => {
   if (job.data.message === null) {

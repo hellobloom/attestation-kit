@@ -1,4 +1,4 @@
-import {ISendJobDetails} from '@shared/attestations/whisperMessageTypes'
+import {ISendJobDetails} from '@shared/whisper/msgTypes'
 import {Attestation} from '@shared/models'
 import {toBuffer} from 'ethereumjs-util'
 import {AttestationStatus} from '@bloomprotocol/attestations-lib'

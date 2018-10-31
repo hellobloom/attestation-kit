@@ -2,14 +2,11 @@ import * as m from '@shared/models'
 import * as dc from 'deepcopy'
 import {env} from '@shared/environment'
 import BigNumber from 'bignumber.js'
-import {
-  initiateSolicitation,
-  sendJobDetails,
-} from '@shared/attestations/whisperRequesterActions'
+import {initiateSolicitation, sendJobDetails} from '@shared/whisper/requesterActions'
 import {requesterWallet} from '@shared/attestations/attestationWallets'
 import {getAttestationTypeStr} from '@bloomprotocol/attestations-lib'
 import {toBuffer} from 'ethereumjs-util'
-import {toTopic} from '@shared/attestations/whisper'
+import {toTopic} from '@shared/whisper'
 
 // list all requests
 export const show = (req: any, res: any) => {
