@@ -14,7 +14,7 @@ import {serverLogger} from '@shared/logger'
 import {handleMessages, AttestationTypeToEntity} from '@shared/whisper/msgHandler'
 
 import {listenForSolicitations} from '@shared/whisper/attesterActions'
-import {sendPings, sendPongs} from '@shared/whisper/ping'
+import {sendPings, handlePongMessages} from '@shared/whisper/ping'
 
 import {WhisperFilters} from '@shared/models'
 
@@ -44,7 +44,7 @@ const main = async () => {
   try {
     if (env.whisper.ping.enabled) {
       await sendPings(await pingFilterPromise, web3)
-      await sendPongs(await pingFilterPromise, web3)
+      await handlePongMessages(await pingFilterPromise, web3)
     }
 
     if (env.attester_rewards) {

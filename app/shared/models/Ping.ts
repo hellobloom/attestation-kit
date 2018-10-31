@@ -14,6 +14,6 @@ export default class Ping extends S.Model<Ping> {
 
   @S.UpdatedAt updated: Date
 
-  @S.Column({type: S.DataType.BLOB})
-  responder: Buffer
+  @S.Column({type: S.DataType.BOOLEAN, allowNull: false, defaultValue: false})
+  answered: boolean
 }

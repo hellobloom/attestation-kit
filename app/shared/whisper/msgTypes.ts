@@ -40,6 +40,8 @@ export interface IPong extends IBloomBasicWhisperMessage {
   messageType: EMsgTypes.pong
 }
 
+export type IPingPong = IPing | IPong
+
 export interface IBloomWhisperResponse extends IBloomWhisperMessage {
   reSession: string // Unique ID for message this reply is regarding
   reSessionSigned: string // Signed UUID of incoming message

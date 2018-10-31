@@ -6,6 +6,7 @@ dotenv.config()
 
 interface IEnvironmentConfig {
   apiKey: string
+  appId: string
   appPort: number
   approved_attesters?: IAttestationTypesToArr
   approved_requesters?: IAttestationTypesToArr
@@ -39,6 +40,7 @@ interface IEnvironmentConfig {
     ping: {
       enabled: boolean
       interval: number
+      alertInterval: string
       password: string
     }
   }
@@ -181,6 +183,7 @@ const topics: any = envVar('WHISPER_TOPICS', 'json')
 
 export const env: IEnvironmentConfig = {
   apiKey: envVar('API_KEY_SHA256'),
+  appId: envVar('APP_ID', 'string', true),
   appPort: envVar('PORT', 'int', false, 3000),
   approved_attesters: envVar('APPROVED_ATTESTERS', 'json', false),
   approved_requesters: envVar('APPROVED_REQUESTERS', 'json', false),
@@ -219,7 +222,13 @@ export const env: IEnvironmentConfig = {
     topics: topics,
     ping: {
       enabled: envVar('WHISPER_PING_ENABLED', 'bool', false), // Defaults to false if not specified
-      interval: envVar('WHISPER_PING_INTERVAL', 'int', false, 15000), // Defaults to 15000 if not specified
+      interval: envVar('WHISPER_PING_INTERVAL', 'string', false, '1 minute'), // PostgreSQL interval - Defaults to 1 min if not specified
+      alertInterval: envVar(
+        'WHISPER_PING_ALERT_INTERVAL',
+        'string',
+        false,
+        '5 minutes'
+      ), // PostgreSQL interval - Defaults to 1 min if not specified
       password: envVar(
         'WHISPER_PING_PASSWORD',
         'string',
