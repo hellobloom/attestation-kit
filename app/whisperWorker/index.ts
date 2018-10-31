@@ -43,8 +43,16 @@ if (env.whisper.ping.enabled) {
 const main = async () => {
   try {
     if (env.whisper.ping.enabled) {
-      await sendPings(await pingFilterPromise, web3)
-      await handlePongMessages(await pingFilterPromise, web3)
+      try {
+        await sendPings(await pingFilterPromise, web3)
+      } catch (err) {
+        console.log('Unhandled error sending whisper pings', err)
+      }
+      try {
+        await handlePongMessages(await pingFilterPromise, web3)
+      } catch (err) {
+        console.log('Unhandled error handling whisper pongs', err)
+      }
     }
 
     if (env.attester_rewards) {
