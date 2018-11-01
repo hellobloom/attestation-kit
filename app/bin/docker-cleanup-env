@@ -21,7 +21,7 @@ if [ -f /app/.env ]; then
 
   sed -i '/WHISPER_PASSWORD/d' /app/.env
 
-  sed -i '/BLOOM_WHISPER_PG_URL/d' /app/.env
+  sed -i '/PG_URL/d' /app/.env
 
   sed -i '/WHISPER_TOPICS/d' /app/.env
   sed -i '/ATTESTER_MIN_REWARDS/d' /app/.env
