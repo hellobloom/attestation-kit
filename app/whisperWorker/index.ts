@@ -75,7 +75,7 @@ const main = async () => {
     resetShh()
   }
   // setTimeout(main, 500) // twice per second
-  setTimeout(main, env.whisperPollInterval || 5000) // once per five seconds
+  setTimeout(main, env.whisperPollInterval) // once per five seconds
 }
 
 main()

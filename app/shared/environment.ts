@@ -183,13 +183,13 @@ const topics: any = envVar('WHISPER_TOPICS', 'json')
 
 export const env: IEnvironmentConfig = {
   apiKey: envVar('API_KEY_SHA256'),
-  appId: envVar('APP_ID', 'string', true),
+  appId: envVar('APP_ID', 'string', true), // Mark with something meaningful to indicate which environment, e.g., attestation-kit_dev_bob
   appPort: envVar('PORT', 'int', false, 3000),
   approved_attesters: envVar('APPROVED_ATTESTERS', 'json', false),
   approved_requesters: envVar('APPROVED_REQUESTERS', 'json', false),
   attester_rewards: envVar('ATTESTER_MIN_REWARDS', 'json'),
   bltAddress: envVar('BLT_ADDRESS'),
-  dbUrl: envVar('BLOOM_WHISPER_PG_URL'),
+  dbUrl: envVar('PG_URL'),
   nodeEnv: envVar('NODE_ENV'),
   rinkebyAccountRegistryAddress: envVar('RINKEBY_ACCOUNT_REGISTRY_ADDRESS'),
   rinkebyWeb3Provider: envVar('RINKEBY_WEB3_PROVIDER'),
@@ -236,8 +236,5 @@ export const env: IEnvironmentConfig = {
       ),
     },
   },
-  whisperPollInterval: (() => {
-    var intvl = envVar('WHISPER_POLL_INTERVAL', 'string', false)
-    return intvl ? parseInt(intvl, 10) : undefined
-  })(),
+  whisperPollInterval: envVar('WHISPER_POLL_INTERVAL', 'int', false, 5000),
 }
