@@ -125,6 +125,9 @@ interface IWhisperTopics {
 
 type TEnvType = 'string' | 'json' | 'int' | 'float' | 'bool' | 'buffer' | 'bn'
 
+const testBool = (value: string) =>
+  (['true', 't', 'yes', 'y'] as any).includes(value.toLowerCase())
+
 // Throw an error if the specified environment variable is not defined
 const envVar = (
   name: string,
@@ -150,7 +153,7 @@ const envVar = (
       case 'float':
         return parseFloat(value)
       case 'bool':
-        return (['true', 't', 'yes', 'y'] as any).includes(value.toLowerCase)
+        return testBool(value)
       case 'buffer':
         return toBuffer(value)
       case 'bn':
@@ -166,7 +169,7 @@ const envVar = (
       case 'int':
         return value && parseInt(value)
       case 'bool':
-        return !!value
+        return value ? testBool(value) : false
       case 'buffer':
         return value && toBuffer(value)
       case 'bn':
