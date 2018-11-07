@@ -5,6 +5,11 @@ import {boss} from '@shared/jobs/boss'
 
 import * as dc from 'deepcopy'
 
+import * as express from 'express'
+import {AttestationTypeNames, HashingLogic} from '@bloomprotocol/attestations-lib-v2'
+import {env} from '@shared/environment'
+import {toBuffer} from 'ethereumjs-util'
+
 // list all attestations
 export const show = (req: any, res: any) => {
   const where = req.body.where ? dc(req.body.where) : {}
@@ -44,4 +49,60 @@ export const perform = async (req: any, res: any) => {
   } else {
     res.status(404).json({success: false, message: 'Not found'})
   }
+}
+
+export const receiveSubjectData: express.RequestHandler = async (req, res) => {
+  if (!Array.isArray(req.body.dataNodes) || !req.body.dataNodes.length) {
+    return res.status(400).json({
+      success: false,
+      message: 'Request body must contain a non-empty dataNodes array.',
+    })
+  }
+  if (
+    !(req.body.dataNodes as Array<any>).every(dataNode => {
+      return (
+        typeof dataNode !== 'undefined' &&
+        typeof dataNode.data !== 'undefined' &&
+        typeof dataNode.data.data === 'string' &&
+        typeof dataNode.data.nonce === 'string' &&
+        typeof dataNode.data.version === 'string' &&
+        typeof dataNode.type !== 'undefined' &&
+        AttestationTypeNames.indexOf(dataNode.type.type) > -1 &&
+        typeof dataNode.type.nonce === 'string' &&
+        typeof dataNode.aux === 'string'
+      )
+    })
+  ) {
+    return res.status(400).json({
+      success: false,
+      message:
+        'Each data node in the dataNodes field must contain a properly structured IAttestation.',
+    })
+  }
+
+  const dataNodes: HashingLogic.IAttestation[] = req.body.dataNodes
+
+  // EH TODO
+  // Validate dataNodes...
+
+  const attesterPrivateKey = toBuffer(env.owner.ethPrivKey)
+  const merkleTreeComponents = HashingLogic.getSignedMerkleTreeComponents(
+    dataNodes,
+    attesterPrivateKey
+  )
+  serverLogger.info(
+    `[receiveSubjectData] merkleTreeComponents: ${JSON.stringify(
+      merkleTreeComponents
+    )}`
+  )
+
+  // EH TODO
+  // Should this be a job we queue up
+  // OR even just returned as the response?
+  // await webhookRequest(
+  //   `/api/v2/webhooks/${req.params.pendingAttestationId}/merkle-tree-components`,
+  //   {merkleTreeComponents}
+  // )
+
+  return res.status(200).json({merkleTreeComponents})
 }

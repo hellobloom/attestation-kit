@@ -49,6 +49,8 @@ app.post('/api/requests/send', reqCtrl.sendjob)
 app.get('/api/attestations', attCtrl.show)
 app.post('/api/attestations', attCtrl.perform)
 
+app.post('/api/v2/submit-data', attCtrl.receiveSubjectData)
+
 app.listen(13000, () => console.log('App listening on port 13000'))
 
 export default app
