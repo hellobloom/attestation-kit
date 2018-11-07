@@ -83,7 +83,8 @@ export const receiveSubjectData: express.RequestHandler = async (req, res) => {
   const dataNodes: HashingLogic.IAttestation[] = req.body.dataNodes
 
   // EH TODO
-  // Validate dataNodes...
+  // Validate dataNodes, next line is tslint issue to prevent merge without addressing comment
+  const x = 0
 
   const attesterPrivateKey = toBuffer(env.owner.ethPrivKey)
   const merkleTreeComponents = HashingLogic.getSignedMerkleTreeComponents(
@@ -95,14 +96,6 @@ export const receiveSubjectData: express.RequestHandler = async (req, res) => {
       merkleTreeComponents
     )}`
   )
-
-  // EH TODO
-  // Should this be a job we queue up
-  // OR even just returned as the response?
-  // await webhookRequest(
-  //   `/api/v2/webhooks/${req.params.pendingAttestationId}/merkle-tree-components`,
-  //   {merkleTreeComponents}
-  // )
 
   return res.status(200).json({merkleTreeComponents})
 }
