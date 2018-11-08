@@ -25,7 +25,7 @@ export const sendPings = async (wf: WhisperFilters, web3: Web3) => {
       },
     },
   })
-  console.log('Existing ping?', existing ? existing.get({plain: true}) : false)
+  console.log('Existing ping?', existing ? existing.id : false)
   if (existing) return
   sendPing(wf, web3)
 }

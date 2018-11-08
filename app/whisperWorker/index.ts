@@ -46,7 +46,7 @@ const main = async () => {
       try {
         const wf = await pingFilterPromise
         if (wf) {
-          console.log('Working with WhisperFilter', wf.get({plain: true}))
+          console.log('Working with WhisperFilter', wf.filterId)
           try {
             await sendPings(wf, web3)
           } catch (err) {
