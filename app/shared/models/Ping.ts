@@ -7,6 +7,7 @@ export default class Ping extends S.Model<Ping> {
     primaryKey: true,
     unique: true,
     type: S.DataType.UUID,
+    defaultValue: S.DataType.UUIDV4,
   })
   id: string
 

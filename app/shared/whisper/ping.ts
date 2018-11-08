@@ -40,6 +40,7 @@ export const sendPing = async (wf: WhisperFilters, web3: Web3) => {
     const ping = await Ping.create()
 
     console.log('Ping enqueued', ping.id)
+
     const outcome = await shh.post({
       ttl: 10,
       topic: bufferToHex(wf.topic),
