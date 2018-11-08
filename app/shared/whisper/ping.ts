@@ -102,6 +102,7 @@ export const handlePongMessages = async (wf: WhisperFilters, web3: Web3) => {
             `CURRENT_TIMESTAMP - INTERVAL '${env.whisper.ping.alertInterval}'`
           ),
         },
+        answered: true,
       },
       attributes: [[S.fn('COUNT', S.col('*')), 'count']],
     })) as any)[0].dataValues.count
