@@ -19,7 +19,7 @@ export const sendPings = async (wf: WhisperFilters, web3: Web3) => {
     where: {
       created: {
         [Op.gte]: S.literal(
-          `CURRENT_TIMESTAMP - INTERVAL '${env.whisper.ping.interval}`
+          `CURRENT_TIMESTAMP - INTERVAL '${env.whisper.ping.interval}'`
         ),
       },
     },
