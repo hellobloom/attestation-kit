@@ -17,7 +17,7 @@ export const resetShh = () => {
 export const fetchAllMessages = async (entity: string) => {
   const filters = await WhisperFilters.findAll({
     where: {entity: entity},
-    logging: !env.logs.whisper.sql,
+    logging: env.logs.whisper.sql,
   })
   let allMessages: Shh.Message[] = []
   for (let filter of filters) {
