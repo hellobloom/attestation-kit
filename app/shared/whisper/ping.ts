@@ -80,6 +80,7 @@ export const handlePongMessages = async (wf: WhisperFilters, web3: Web3) => {
     pingTable[ping.id] = ping
   })
   wPings.map(async (wPing: Shh.Message) => {
+    console.log('Processing wPing', wPing)
     let body: IPingPong = JSON.parse(web3.toAscii(wPing.payload))
     if (body.messageType === EMsgTypes.pong) {
       await handlePong(body, wf, pingTable)
@@ -136,7 +137,9 @@ export const handlePong = (
   wf: WhisperFilters,
   pingTable: IPingTable
 ) => {
+  console.log('Handling pong', body)
   let correspondingPing = pingTable[body.session]
+  console.log('Handling pong', body, correspondingPing)
   if (correspondingPing) {
     correspondingPing.update({
       answered: true,
@@ -149,6 +152,7 @@ export const maybeReplyToPing = async (
   wf: WhisperFilters,
   web3: Web3
 ) => {
+  console.log('Maybe replying to ping', body)
   // Don't reply to your own messages
   let ping = await Ping.findOne({where: {id: body.session}})
   if (ping) return
