@@ -4,7 +4,11 @@ import {toBuffer, bufferToHex} from 'ethereumjs-util'
 import {sequelize, Negotiation, NegotiationMsg} from '@shared/models'
 import {CognitoSMSStatus} from '@shared/attestations/CognitoSMSStatus'
 import {EmailAttestationStatus} from '@shared/attestations/EmailAttestationStatus'
-import {AttestationStatus, HashingLogic, AttestationTypeID} from '@bloomprotocol/attestations-lib'
+import {
+  AttestationStatus,
+  HashingLogic,
+  AttestationTypeID,
+} from '@bloomprotocol/attestations-lib'
 import {PersistDataTypes} from '@shared/whisper/persistDataHandler'
 import {
   TValidateJobDetailsOutput,
@@ -16,6 +20,7 @@ import {
   TValidateAttestParamsOutput,
   IUnvalidatedAttestParams,
 } from '@shared/attestations/validateAttestParams'
+import {TVersion} from '@shared/version'
 
 export interface IEmailAttestationJSONB {
   data: Array<HashingLogic.IAttestationData>
@@ -145,6 +150,9 @@ export default class Attestation extends Sequelize.Model<Attestation> {
     this.setDataValue('attestTx', toBuffer(value))
   }
 
+  @Sequelize.Column({type: Sequelize.DataType.STRING})
+  version: TVersion
+
   /**
    * Given (negotiationId), returns an Attestation model
    * @param negotiationId Foreign key referencing Negotiations
@@ -176,7 +184,9 @@ export default class Attestation extends Sequelize.Model<Attestation> {
         }),
       },
       requestNonce: this.requestNonce,
-      types: this.data.data.map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]),
+      types: this.data.data.map(
+        (a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]
+      ),
       subject: bufferToHex(this.subject),
       subjectSig: bufferToHex(this.subjectSig),
       attester: bufferToHex(this.attester),
@@ -240,7 +250,9 @@ export default class Attestation extends Sequelize.Model<Attestation> {
           }
         }),
       },
-      types: this.data.data.map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]),
+      types: this.data.data.map(
+        (a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]
+      ),
       requestNonce: this.requestNonce,
       subjectSig: bufferToHex(this.subjectSig),
     }

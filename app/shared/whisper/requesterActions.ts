@@ -4,10 +4,7 @@ import BigNumber from 'bignumber.js'
 import * as Wallet from 'ethereumjs-wallet'
 import {toBuffer} from 'ethereumjs-util'
 
-import {
-  IMessageDecision,
-  TMsgHandler,
-} from '@shared/whisper/msgHandler'
+import {IMessageDecision, TMsgHandler} from '@shared/whisper/msgHandler'
 import {
   EMsgTypes,
   ISolicitation,
@@ -35,22 +32,21 @@ import {
 } from '@shared/whisper/persistDataHandler'
 import {actOnMessage, Entities} from '@shared/whisper/msgHandler'
 import {serverLogger} from '@shared/logger'
-import {
-  bidMatchesAsk,
-  isApprovedAttester,
-} from '@shared/whisper/validateMsg'
+import {bidMatchesAsk, isApprovedAttester} from '@shared/whisper/validateMsg'
 import {
   ICollectSubjectData,
   ExternalActionTypes,
 } from '@shared/whisper/externalActionHandler'
 import {NegotiationMsg, Attestation} from '@shared/models'
+import {TVersion} from '@shared/version'
 
 export const initiateSolicitation = async (
   attestationId: string,
   reward: BigNumber,
   topic: string,
   symKeyPassword: string,
-  requesterWallet: Wallet.Wallet
+  requesterWallet: Wallet.Wallet,
+  version: TVersion
 ) => {
   serverLogger.debug('Initiating solicitation...')
   const newSession = uuid()
@@ -93,6 +89,7 @@ export const initiateSolicitation = async (
     respondWith: solicitation,
     persist: persistData,
     externalAction: null,
+    version,
   }
   newrelic.recordCustomEvent('WhisperEvent', {
     Action: 'Solicitation',
@@ -104,7 +101,8 @@ export const initiateSolicitation = async (
 
 export const rejectAttestationBid = (
   message: IAttestationBid,
-  messageTopic: string
+  messageTopic: string,
+  version: TVersion
 ) => {
   const messageDecision: IMessageDecision = {
     unsubscribeFrom: messageTopic,
@@ -113,6 +111,7 @@ export const rejectAttestationBid = (
     respondWith: null,
     persist: null,
     externalAction: null,
+    version,
   }
 
   newrelic.recordCustomEvent('WhisperEvent', {
@@ -125,7 +124,8 @@ export const rejectAttestationBid = (
 export const waitForSubjectData = (
   message: IAttestationBid,
   messageTopic: string,
-  requesterWallet: Wallet.Wallet
+  requesterWallet: Wallet.Wallet,
+  version: TVersion
 ) => {
   const persistData: IAwaitSubjectDataStore = {
     messageType: PersistDataTypes.storeAwaitSubjectData,
@@ -150,6 +150,7 @@ export const waitForSubjectData = (
     respondWith: null,
     persist: persistData,
     externalAction: collectSubjectData,
+    version,
   }
 
   newrelic.recordCustomEvent('WhisperEvent', {
@@ -162,13 +163,14 @@ export const waitForSubjectData = (
 export const handleAttestationBid: TMsgHandler = async (
   message: IAttestationBid,
   messageTopic: string,
-  requesterWallet: Wallet.Wallet
+  requesterWallet: Wallet.Wallet,
+  version: TVersion
 ) => {
   let decision: IMessageDecision
   const approvedAttester = await isApprovedAttester(message)
   const bidMatch = await bidMatchesAsk(message)
   if (approvedAttester && bidMatch) {
-    decision = waitForSubjectData(message, messageTopic, requesterWallet)
+    decision = waitForSubjectData(message, messageTopic, requesterWallet, version)
   } else {
     serverLogger.info(
       'Bid params failed validation.  Attester approved: ',
@@ -176,7 +178,7 @@ export const handleAttestationBid: TMsgHandler = async (
       '; Bid match: ',
       bidMatch
     )
-    decision = await rejectAttestationBid(message, messageTopic)
+    decision = await rejectAttestationBid(message, messageTopic, version)
   }
   return decision
 }
@@ -289,6 +291,7 @@ export const sendJobDetails = async (
       respondWith: messageResponse,
       persist: persistData,
       externalAction: null,
+      version: 'v1', // TODO PARAMETERIZE
     }
     newrelic.recordCustomEvent('WhisperEvent', {
       Action: 'SendJobDetails',

@@ -43,7 +43,8 @@ app.get('/', (req, res) => {
 })
 
 app.get('/api/requests', reqCtrl.show)
-app.post('/api/requests', reqCtrl.create)
+app.post('/api/requests', reqCtrl.create('v1'))
+app.post('/api/v2/requests', reqCtrl.create('v2'))
 app.post('/api/requests/send', reqCtrl.sendjob)
 
 app.get('/api/attestations', attCtrl.show)

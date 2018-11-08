@@ -61,6 +61,7 @@ const main = async () => {
         let entity: string = AttestationTypeToEntity[topic_name]
         await listenForSolicitations(hashed_topic, password, entity)
         await handleMessages(entity as string, attesterWallet)
+        await handleMessages(entity as string, attesterWallet, 'v2')
       })
     }
 

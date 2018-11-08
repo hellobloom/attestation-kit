@@ -35,6 +35,7 @@ import {
   performAttestation,
 } from '@shared/whisper/externalActionHandler'
 import {confirmRequesterFunds} from '@shared/whisper/validateMsg'
+import {TVersion} from '@shared/version'
 
 export enum Entities {
   // Non-attestation entities
@@ -103,11 +104,13 @@ export interface IMessageDecision {
   respondWith: TBloomMessage | null
   persist: TPersistData | null
   externalAction: TExternalAction | null
+  version: TVersion
 }
 
 const handleUnknownMessageType: TMsgHandler = async (
   message: IBloomWhisperMessage,
-  messageTopic: string
+  messageTopic: string,
+  version: TVersion
 ) => {
   const decision: IMessageDecision = {
     unsubscribeFrom: null,
@@ -116,6 +119,7 @@ const handleUnknownMessageType: TMsgHandler = async (
     respondWith: null,
     persist: null,
     externalAction: null,
+    version,
   }
   newrelic.recordCustomEvent('WhisperEvent', {
     Action: 'EncounteredUnknownMessageType',
@@ -128,7 +132,8 @@ const handleMessage = async (
   body: TBloomMessage,
   messageTopic: string,
   entity: string,
-  wallet: Wallet.Wallet
+  wallet: Wallet.Wallet,
+  version: TVersion
 ) => {
   serverLogger.debug('Handling message', body)
   let messageDecision: IMessageDecision | false
@@ -140,9 +145,18 @@ const handleMessage = async (
         serverLogger.debug('Handling solicitation message')
         let confirmed = await confirmRequesterFunds(body)
         if (confirmed) {
-          messageDecision = await handleSolicitation(body, messageTopic, wallet)
+          messageDecision = await handleSolicitation(
+            body,
+            messageTopic,
+            wallet,
+            version
+          )
         } else {
-          messageDecision = await handleUnknownMessageType(body, messageTopic)
+          messageDecision = await handleUnknownMessageType(
+            body,
+            messageTopic,
+            version
+          )
         }
         if (!messageDecision) {
           return false
@@ -150,19 +164,24 @@ const handleMessage = async (
         break
       case EMsgTypes.attestationBid:
         serverLogger.debug('Handling attestation message')
-        messageDecision = await handleAttestationBid(body, messageTopic, wallet)
+        messageDecision = await handleAttestationBid(
+          body,
+          messageTopic,
+          wallet,
+          version
+        )
         break
       case EMsgTypes.sendJobDetails:
         serverLogger.debug('Handling sendJobDetails message')
-        messageDecision = await handleJobDetails(body, messageTopic, wallet)
+        messageDecision = await handleJobDetails(body, messageTopic, wallet, version)
         break
       default:
         serverLogger.debug('Handling unknown message')
-        messageDecision = await handleUnknownMessageType(body, messageTopic)
+        messageDecision = await handleUnknownMessageType(body, messageTopic, version)
     }
   } else {
     serverLogger.debug('Handling unknown message (no type specified)')
-    messageDecision = await handleUnknownMessageType(body, messageTopic)
+    messageDecision = await handleUnknownMessageType(body, messageTopic, version)
   }
   serverLogger.debug('Message decision', messageDecision)
   return messageDecision
@@ -301,7 +320,11 @@ const actOnMessages = (messageDecisions: IMessageDecision[], entity: string) => 
   })
 }
 
-export const handleMessages = async (entity: string, wallet: Wallet.Wallet) => {
+export const handleMessages = async (
+  entity: string,
+  wallet: Wallet.Wallet,
+  version: TVersion = 'v1'
+) => {
   // Make sure attester is listening for solicitations
   let newMessages: Shh.Message[] = await fetchAllMessages(entity)
   let messageDecisions: IMessageDecision[] = []
@@ -315,7 +338,13 @@ export const handleMessages = async (entity: string, wallet: Wallet.Wallet) => {
       const body: TBloomMessage = JSON.parse(web3.toAscii(message.payload))
       serverLogger.info('Decoded Whisper message...', body)
       const messageTopic: string = message.topic
-      const messageDecision = await handleMessage(body, messageTopic, entity, wallet)
+      const messageDecision = await handleMessage(
+        body,
+        messageTopic,
+        entity,
+        wallet,
+        version
+      )
       serverLogger.info('Received message decision', messageDecision)
       if (messageDecision) {
         messageDecisions.push(messageDecision)

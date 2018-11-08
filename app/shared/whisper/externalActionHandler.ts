@@ -50,6 +50,7 @@ export const collectSubjectData = async (input: ICollectSubjectData) => {
       attester: input.attester,
       requester: input.requester,
       negotiationId: attestation.negotiationId,
+      version: attestation.version,
     })
     serverLogger.debug('Finished notifying to collect subject data')
   } else {

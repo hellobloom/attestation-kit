@@ -28,7 +28,11 @@ export const webhookRequest = async (action: string, params: any) => {
 }
 
 export const notifyCollectData = async (attestation: any) => {
-  await webhookRequest('/api/webhooks/prepare_attestation_sig', {attestation})
+  // EH TODO Decide if the endpoint name `prepare_attestation_sig` is still proper...
+  await webhookRequest(
+    `/api/${attestation.version}/webhooks/prepare_attestation_sig`,
+    {attestation}
+  )
 }
 
 export const notifyDoAttestation = async (

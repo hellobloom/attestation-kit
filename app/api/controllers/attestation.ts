@@ -83,8 +83,7 @@ export const receiveSubjectData: express.RequestHandler = async (req, res) => {
   const dataNodes: HashingLogic.IAttestation[] = req.body.dataNodes
 
   // EH TODO
-  // Validate dataNodes, next line is tslint issue to prevent merge without addressing comment
-  const x = 0
+  // Validate dataNodes
 
   const attesterPrivateKey = toBuffer(env.owner.ethPrivKey)
   const merkleTreeComponents = HashingLogic.getSignedMerkleTreeComponents(
