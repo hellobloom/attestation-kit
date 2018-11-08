@@ -15,7 +15,8 @@ import {EMsgTypes, IPing, IPong, IPingPong} from '@shared/whisper/msgTypes'
 
 // Outgoing
 export const sendPings = async (wf: WhisperFilters, web3: Web3) => {
-  const existing = Ping.findOne({
+  console.log('Maybe sending a ping')
+  const existing = await Ping.findOne({
     where: {
       created: {
         [Op.gte]: S.literal(
@@ -24,6 +25,7 @@ export const sendPings = async (wf: WhisperFilters, web3: Web3) => {
       },
     },
   })
+  console.log('Existing ping?', existing ? existing.get({plain: true}) : false)
   if (existing) return
   sendPing(wf, web3)
 }
@@ -32,10 +34,12 @@ const symkeyId = shh.generateSymKeyFromPassword(env.whisper.ping.password)
 
 export const sendPing = async (wf: WhisperFilters, web3: Web3) => {
   try {
+    console.log('Sending ping')
     // Generate symkey from password
 
     const ping = await Ping.create()
 
+    console.log('Ping enqueued', ping.id)
     const outcome = await shh.post({
       ttl: 10,
       topic: bufferToHex(wf.topic),
