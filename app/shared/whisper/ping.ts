@@ -152,14 +152,14 @@ export const handlePong = (
 ) => {
   if (env.logs.whisper.pings) serverLogger.info('Handling pong', body)
   let correspondingPing = pingTable[body.session]
-  if (env.logs.whisper.pings)
-    serverLogger.info(
-      'Handling pong',
-      body,
-      '; updating corresponding ping:',
-      correspondingPing.id
-    )
   if (correspondingPing) {
+    if (env.logs.whisper.pings)
+      serverLogger.info(
+        'Handling pong',
+        body,
+        '; updating corresponding ping:',
+        correspondingPing.id
+      )
     correspondingPing.update(
       {
         answered: true,
