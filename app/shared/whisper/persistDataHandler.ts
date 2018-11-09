@@ -3,6 +3,7 @@ import {Negotiation, NegotiationMsg, Attestation} from '@shared/models'
 import {toBuffer} from 'ethereumjs-util'
 import {IAttestationDataJSONB} from '@shared/models/Attestations/Attestation'
 import {serverLogger} from '@shared/logger'
+import {TVersion} from '@shared/version'
 
 export enum PersistDataTypes {
   storeSolicitation = 'storeSolicitation',
@@ -112,7 +113,10 @@ export const storeSolicitation = async (persistData: ISolicitationStore) => {
   }
 }
 
-export const storeAttestationBid = async (persistData: IAttestationBidStore) => {
+export const storeAttestationBid = async (
+  persistData: IAttestationBidStore,
+  version: TVersion
+) => {
   serverLogger.debug('Storing attestation bid...')
   await NegotiationMsg.create({
     futureTopic: toBuffer(persistData.topic),
@@ -126,6 +130,7 @@ export const storeAttestationBid = async (persistData: IAttestationBidStore) => 
     role: 'attester',
     type: persistData.type,
     negotiationId: persistData.negotiationSession,
+    version,
   })
   serverLogger.debug('Created attestation...', attestation.id)
   const existingNegotiation = await Negotiation.findById(

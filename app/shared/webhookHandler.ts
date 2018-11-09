@@ -1,6 +1,7 @@
 import {env} from '@shared/environment'
 import fetch from 'node-fetch'
 import {serverLogger} from '@shared/logger'
+import {TVersion} from './version'
 
 // import {primaryWallet} from '@shared/attestations/attestationWallets'
 
@@ -39,6 +40,13 @@ export const notifyDoAttestation = async (
   job_details: any,
   attestationId: string
 ) => {
+  serverLogger.info(
+    '[WE ARE IN notifyDoAttestation]',
+    JSON.stringify({
+      job_details: JSON.stringify(job_details),
+      id: attestationId,
+    })
+  )
   await webhookRequest('/api/webhooks/perform_attestation', {
     job_details: JSON.stringify(job_details),
     id: attestationId,
@@ -49,12 +57,14 @@ export const notifyAttestationCompleted = async (
   attestation_id: string,
   transaction_hash: string,
   data_hash: string,
-  result: string
+  result: string,
+  version: TVersion
 ) => {
-  await webhookRequest('/api/webhooks/attestation_completed', {
+  await webhookRequest(`/api/${version}/webhooks/attestation_completed`, {
     attestation_id,
     transaction_hash,
     data_hash,
     result,
+    version,
   })
 }

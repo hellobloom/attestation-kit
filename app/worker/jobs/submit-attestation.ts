@@ -1,4 +1,3 @@
-import {attesterWallet} from '@shared/attestations/attestationWallets'
 import * as newrelic from 'newrelic'
 import {Attestation} from '@shared/models'
 import {sendAttestTx} from '@shared/attestations/sendAttest'
@@ -6,6 +5,7 @@ import {IAttestationResult} from '@shared/models/Attestations/Attestation'
 import {notifyAttestationCompleted} from '@shared/webhookHandler'
 import {serverLogger} from '@shared/logger'
 import {env} from '@shared/environment'
+import {TVersion} from '@shared/version'
 
 export const submitAttestation = async (job: any) => {
   serverLogger.info('Submitting attestation...')
@@ -18,8 +18,7 @@ export const submitAttestation = async (job: any) => {
   }
 
   const attestation = await Attestation.findById(job.data.attestationId)
-
-  if (attestation == null) {
+  if (!attestation) {
     throw new Error(
       `Could not find attestation with negotiation id: ${job.data.negotiationId}`
     )
@@ -28,9 +27,9 @@ export const submitAttestation = async (job: any) => {
 
   // For now also get the attestation entry
   // IP TODO poll for contract logs to update this
-
+  const version: TVersion = job.data.version || 'v1'
   const attestationParams = await attestation.findAndValidateAttestParams(
-    attestation.negotiationId
+    job.data.version || 'v1'
   )
   serverLogger.debug('SA: validation outcome', JSON.stringify(attestationParams))
 
@@ -39,8 +38,8 @@ export const submitAttestation = async (job: any) => {
 
     const attestationLogs = await sendAttestTx(
       attestationParams.data,
-      attesterWallet,
-      job.data.gasPrice
+      job.data.gasPrice,
+      version
     )
 
     serverLogger.debug('Sent attest tx...', attestationLogs.transactionHash)
@@ -66,7 +65,8 @@ export const submitAttestation = async (job: any) => {
       attestation.id,
       attestationLogs.transactionHash,
       attestationParams.data.dataHash,
-      JSON.stringify(result)
+      JSON.stringify(result),
+      version
     )
   } else {
     newrelic.recordCustomEvent('ContractError', {

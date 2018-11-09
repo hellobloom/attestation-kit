@@ -30,8 +30,7 @@ export interface IEmailAttestationJSONB {
 
 export interface IPhoneAttestationJSONB {
   data: Array<HashingLogic.IAttestationData>
-  verificationCode?: string
-  verificationStatus?: CognitoSMSStatus
+  verificatiotatus?: CognitoSMSStatus
   cognitoProfile?: string
 }
 
@@ -263,9 +262,9 @@ export default class Attestation extends Sequelize.Model<Attestation> {
    * @param negotiationId Foreign key referencing Negotiations
    */
   async findAndValidateAttestParams(
-    negotiationId: string
+    version: TVersion
   ): Promise<TValidateAttestParamsOutput> {
     const attestParams = await this.attestParamsView()
-    return validateAttestParams(attestParams)
+    return validateAttestParams(attestParams, version)
   }
 }

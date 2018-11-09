@@ -9,6 +9,7 @@ import {IAttestationDataJSONB} from '@shared/models/Attestations/Attestation'
 import BigNumber from 'bignumber.js'
 import {requiredField} from '@shared/requiredField'
 import {serverLogger} from '@shared/logger'
+import {TVersion} from '@shared/version'
 const ethSigUtil = require('eth-sig-util')
 
 interface IInvalidParamError {
@@ -150,8 +151,10 @@ const generateAttestParams = (
 }
 
 export const validateAttestParams = async (
-  input: TUnvalidated<IUnvalidatedAttestParams>
+  input: TUnvalidated<IUnvalidatedAttestParams>,
+  version: TVersion
 ): Promise<IInvalidParamError | {kind: 'validated'; data: IAttestParams}> => {
+  // EH TODO USE version
   try {
     serverLogger.debug('Validating attestation params...')
     const attestParams = generateAttestParams(input)

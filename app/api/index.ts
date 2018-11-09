@@ -44,13 +44,16 @@ app.get('/', (req, res) => {
 
 app.get('/api/requests', reqCtrl.show)
 app.post('/api/requests', reqCtrl.create('v1'))
+app.post('/api/v1/requests', reqCtrl.create('v1'))
 app.post('/api/v2/requests', reqCtrl.create('v2'))
 app.post('/api/requests/send', reqCtrl.sendjob)
 
-app.get('/api/attestations', attCtrl.show)
-app.post('/api/attestations', attCtrl.perform)
-
 app.post('/api/v2/submit-data', attCtrl.receiveSubjectData)
+
+app.get('/api/attestations', attCtrl.show)
+app.post('/api/attestations', attCtrl.perform('v1'))
+app.post('/api/v1/attestations', attCtrl.perform('v1'))
+app.post('/api/v2/attestations', attCtrl.perform('v2'))
 
 app.listen(13000, () => console.log('App listening on port 13000'))
 

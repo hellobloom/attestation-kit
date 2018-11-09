@@ -199,7 +199,7 @@ export const actOnMessage = async (
         break
       case PersistDataTypes.storeAttestationBid:
         serverLogger.debug('Acting on message, storeAttestationBid')
-        await storeAttestationBid(messageDecision.persist)
+        await storeAttestationBid(messageDecision.persist, messageDecision.version)
         break
       case PersistDataTypes.storeAwaitSubjectData:
         serverLogger.debug('Acting on message, storeAwaitSubjectData')

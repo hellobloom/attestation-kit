@@ -9,6 +9,7 @@ import * as express from 'express'
 import {AttestationTypeNames, HashingLogic} from '@bloomprotocol/attestations-lib-v2'
 import {env} from '@shared/environment'
 import {toBuffer} from 'ethereumjs-util'
+import {TVersion} from '@shared/version'
 
 // list all attestations
 export const show = (req: any, res: any) => {
@@ -28,7 +29,8 @@ export const show = (req: any, res: any) => {
 }
 
 // perform attestation on an existing request
-export const perform = async (req: any, res: any) => {
+export const perform = (version: TVersion) => async (req: any, res: any) => {
+  serverLogger.info(`[/api/controller/attestation.ts] perform ${version}`)
   const attestation = await m.Attestation.findById(req.body.attestation_id)
   if (attestation) {
     serverLogger.info('Received request to perform attestation...')
@@ -43,6 +45,7 @@ export const perform = async (req: any, res: any) => {
       negotiationId: req.body.negotiation_id || attestation.negotiationId,
       attestationId: attestation.id,
       gasPrice: req.body.gas_price,
+      version,
     })
     //
     res.json({success: true, attestation})
