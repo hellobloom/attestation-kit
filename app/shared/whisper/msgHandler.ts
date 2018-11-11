@@ -139,6 +139,7 @@ const handleMessage = async (
         // confirmRequesterFunds performs a blockchain state read
         serverLogger.debug('Handling solicitation message')
         let confirmed = await confirmRequesterFunds(body)
+        serverLogger.info('Requester funds?', confirmed)
         if (confirmed) {
           messageDecision = await handleSolicitation(body, messageTopic, wallet)
         } else {

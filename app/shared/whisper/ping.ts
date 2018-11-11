@@ -91,7 +91,7 @@ export const handlePongMessages = async (wf: WhisperFilters, web3: Web3) => {
   })
   wPings.map(async (wPing: Shh.Message) => {
     if (env.logs.whisper.pings)
-      serverLogger.info('Processing wPing', JSON.stringify(wPing))
+      serverLogger.info('Processing message on ping channel', JSON.stringify(wPing))
     let body: IPingPong = JSON.parse(web3.toAscii(wPing.payload))
     if (body.messageType === EMsgTypes.pong) {
       await handlePong(body, wf, pingTable)
