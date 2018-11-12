@@ -39,7 +39,7 @@ import {TAttestationDataJSONB} from '@shared/models/Attestation'
 import {env} from '@shared/environment'
 import axios from 'axios'
 import * as Web3 from 'web3'
-import {AttestationTypeID, HashingLogic} from '@bloomprotocol/attestations-lib'
+// import {AttestationTypeID, HashingLogic} from '@bloomprotocol/attestations-lib'
 
 export const listenForSolicitations = async (
   listeningTopic: string,
@@ -170,9 +170,10 @@ const startAttestation = (
     subjectData: message.subjectData,
     subjectRequestNonce: message.subjectRequestNonce,
     type: hashedTopicToAttestationType[messageTopic],
-    typeIds: message.subjectData.data.map(
+    typeIds: message.typeIds,
+    /* typeIds: message.subjectData.data.map(
       (a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]
-    ),
+    ), */
     subjectSignature: message.subjectSignature,
     paymentSignature: message.paymentSignature,
     paymentNonce: message.paymentNonce,
@@ -249,10 +250,10 @@ export const handleJobDetails: TMsgHandler = async (
     const _rewardMatchesBid = await rewardMatchesBid(message)
     const _validateSubjectData = validateSubjectData(
       message.subjectData as TAttestationDataJSONB,
-      // message.typeIds,
-      message.subjectData.data.map(
+      message.typeIds
+      /* message.subjectData.data.map(
         (a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]
-      )
+      ) */
     )
     serverLogger.info(`validate output: ${_validateSubjectData}`)
 
