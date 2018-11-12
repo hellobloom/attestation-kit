@@ -8,9 +8,9 @@ import {
   IAttestationBid,
   ISolicitation,
   ISendJobDetails,
-} from '@shared/attestations/whisperMessageTypes'
+} from '@shared/whisper/msgTypes'
 import {checkEscrowBalance} from '@shared/attestations/attestationMarketplace'
-import {PersistDataTypes} from '@shared/attestations/whisperPersistDataHandler'
+import {PersistDataTypes} from '@shared/whisper/persistDataHandler'
 import {allowEntity} from '@shared/attestations/AttestationUtils'
 
 export const isApprovedAttester = async (
@@ -85,7 +85,9 @@ export const confirmRequesterFunds = async (
   serverLogger.debug('Confirming requester funds...')
   const requesterAddress = recoverSessionIDSig(data.session, data.sessionSigned)
   const balance = await checkEscrowBalance(requesterAddress)
-  serverLogger.debug('Confirmed requester funds')
+  serverLogger.debug(
+    `Got requester balance for ${requesterAddress}: ${balance.toString()}`
+  )
   if (balance.comparedTo(new BigNumber(data.rewardAsk)) === 1) {
     return true
   } else {

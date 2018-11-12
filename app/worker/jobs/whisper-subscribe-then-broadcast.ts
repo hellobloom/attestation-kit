@@ -1,7 +1,7 @@
 import * as newrelic from 'newrelic'
 import {boss} from '@shared/jobs/boss'
 
-import {resetShh, newDirectMessageSession} from '@shared/attestations/whisper'
+import {resetShh, newDirectMessageSession} from '@shared/whisper'
 
 export const whisperSubscribeThenBroadcast = async (job: any) => {
   if (job.data.message === null) {

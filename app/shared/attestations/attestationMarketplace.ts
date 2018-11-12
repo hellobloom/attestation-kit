@@ -25,8 +25,9 @@ const accountRegistry = AccountRegistry.withProvider(
 )
 
 export const checkEscrowBalance = async (address: string): Promise<BigNumber> => {
-  serverLogger.debug('Checking escrow balance...')
+  serverLogger.debug(`Checking escrow balance for address ${address}...`)
   const userId = await accountRegistry.accountIdForAddress.call(address)
+  serverLogger.debug(`Checking escrow balance for id ${userId.toString(10)}...`)
   const balance = await marketplace.tokenEscrow.call(userId)
   serverLogger.debug('Checked escrow balance')
   return balance

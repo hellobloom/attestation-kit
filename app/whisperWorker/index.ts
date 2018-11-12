@@ -3,7 +3,7 @@ import * as Web3 from 'web3'
 import * as Raven from 'raven'
 // import BigNumber from 'bignumber.js'
 import {env} from '@shared/environment'
-import {resetShh} from '@shared/attestations/whisper'
+import {resetShh, newBroadcastSession} from '@shared/whisper'
 import {
   attesterWallet,
   requesterWallet,
@@ -11,12 +11,12 @@ import {
 
 import {serverLogger} from '@shared/logger'
 
-import {
-  handleMessages,
-  AttestationTypeToEntity,
-} from '@shared/attestations/whisperMessageHandler'
+import {handleMessages, AttestationTypeToEntity} from '@shared/whisper/msgHandler'
 
-import {listenForSolicitations} from '@shared/attestations/whisperAttesterActions'
+import {listenForSolicitations} from '@shared/whisper/attesterActions'
+import {sendPings, handlePongMessages} from '@shared/whisper/ping'
+
+import {WhisperFilters} from '@shared/models'
 
 Raven.config(env.sentryDSN, {environment: env.nodeEnv}).install()
 
@@ -25,8 +25,46 @@ const toTopic = (ascii: string) => web3.sha3(ascii).slice(0, 10)
 
 const password = env.whisper.password
 
+if (env.whisper.ping.enabled) {
+  var pingFilterPromise = WhisperFilters.findOne({where: {entity: 'ping'}}).then(
+    (existing: WhisperFilters) => {
+      return (
+        existing ||
+        newBroadcastSession(
+          toTopic(env.whisper.topics.ping),
+          env.whisper.ping.password,
+          AttestationTypeToEntity.ping
+        )
+      )
+    }
+  )
+}
+
 const main = async () => {
   try {
+    if (env.whisper.ping.enabled) {
+      try {
+        const wf = await pingFilterPromise
+        if (wf) {
+          console.log('Working with WhisperFilter', wf.filterId)
+          try {
+            await sendPings(wf, web3)
+          } catch (err) {
+            console.log('Unhandled error sending whisper pings', err)
+          }
+          try {
+            await handlePongMessages(wf, web3)
+          } catch (err) {
+            console.log('Unhandled error handling whisper pongs', err)
+          }
+        } else {
+          console.log('pingFilterPromise returned nothing')
+        }
+      } catch (err) {
+        console.log('Unhandled error handling ping (general)', err)
+      }
+    }
+
     if (env.attester_rewards) {
       Object.keys(env.attester_rewards).forEach(async (topic_name: string) => {
         let hashed_topic = toTopic(env.whisper.topics[topic_name])
@@ -47,7 +85,7 @@ const main = async () => {
     resetShh()
   }
   // setTimeout(main, 500) // twice per second
-  setTimeout(main, env.whisperPollInterval || 5000) // once per five seconds
+  setTimeout(main, env.whisperPollInterval) // once per five seconds
 }
 
 main()

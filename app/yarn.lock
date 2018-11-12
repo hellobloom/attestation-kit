@@ -10,6 +10,19 @@
     esutils "^2.0.2"
     js-tokens "^3.0.0"
 
+"@bloomprotocol/attestations-lib@^0.4.3":
+  version "0.4.3"
+  resolved "https://registry.yarnpkg.com/@bloomprotocol/attestations-lib/-/attestations-lib-0.4.3.tgz#c5c6691c8e3c29f081c5b2ad48ed435baa95df93"
+  dependencies:
+    "@types/lodash" "^4.14.116"
+    js-sha3 "^0.8.0"
+    lodash "^4.17.10"
+    merkletreejs "^0.0.11"
+    ts-node "^7.0.1"
+    tsconfig-paths "^3.5.0"
+    uuidv4 "^1.0.1"
+    web3-utils "^1.0.0-beta.36"
+
 "@newrelic/koa@^1.0.0":
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/@newrelic/koa/-/koa-1.0.5.tgz#76ca506c956b6f6599d866a7a725b573fde2fe1a"
@@ -849,7 +862,8 @@ aws4@^1.2.1, aws4@^1.6.0:
 
 axios@^0.18.0:
   version "0.18.0"
-  resolved "http://registry.npmjs.org/axios/-/axios-0.18.0.tgz#32d53e4851efdc0a11993b6cd000789d70c05102"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-0.18.0.tgz#32d53e4851efdc0a11993b6cd000789d70c05102"
+  integrity sha1-MtU+SFHv3AoRmTts0AB4nXDAUQI=
   dependencies:
     follow-redirects "^1.3.0"
     is-buffer "^1.1.5"
@@ -1476,6 +1490,10 @@ block-stream@*:
 bluebird@^3.0.5, bluebird@^3.4.1, bluebird@^3.4.6, bluebird@^3.5.1:
   version "3.5.1"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.1.tgz#d9551f9de98f1fcda1e683d17ee91a0602ee2eb9"
+
+bluebird@^3.5.2:
+  version "3.5.2"
+  resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.2.tgz#1be0908e054a751754549c270489c1505d4ab15a"
 
 bn.js@4.11.6:
   version "4.11.6"
@@ -5897,6 +5915,15 @@ merkle-patricia-tree@^2.1.2:
 merkletreejs@^0.0.10:
   version "0.0.10"
   resolved "https://registry.yarnpkg.com/merkletreejs/-/merkletreejs-0.0.10.tgz#c282e714d9db10b1ac2ac478b1dfae242e76e795"
+  integrity sha512-sxcnWhzm+dXAB4NWIx6olRE7euMV1eCL6L9Hyhe8cyz601n7l3jq8/uxAfcR6nBofFYy6k55Fe9etcUs7NznWg==
+  dependencies:
+    buffer-reverse "^1.0.1"
+    crypto-js "^3.1.9-1"
+    is-buffer "^2.0.3"
+
+merkletreejs@^0.0.11:
+  version "0.0.11"
+  resolved "https://registry.yarnpkg.com/merkletreejs/-/merkletreejs-0.0.11.tgz#c477b262f307151c23852d08ca0e225079aab026"
   dependencies:
     buffer-reverse "^1.0.1"
     crypto-js "^3.1.9-1"
@@ -6829,10 +6856,11 @@ performance-now@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-2.1.0.tgz#6309f4e0e5fa913ec1c69307ae364b4b377c9e7b"
 
-pg-boss@^2.5.1:
-  version "2.5.1"
-  resolved "https://registry.yarnpkg.com/pg-boss/-/pg-boss-2.5.1.tgz#c8228a47c417052d194ca3c5164c549867631e2f"
+pg-boss@^3.1.2:
+  version "3.1.2"
+  resolved "https://registry.yarnpkg.com/pg-boss/-/pg-boss-3.1.2.tgz#efbe343b0bf01808f3d1d0a158c4bcc969d2776a"
   dependencies:
+    bluebird "^3.5.2"
     pg "^7.4.1"
     uuid "^3.2.1"
 

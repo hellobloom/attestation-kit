@@ -7,6 +7,7 @@ import WhisperFilters from '@shared/models/WhisperFilters'
 import Attestation from '@shared/models/Attestation'
 import AttestationData from '@shared/models/AttestationData'
 import GasPrice from '@shared/models/GasPrice'
+import Ping from '@shared/models/Ping'
 
 const environmentConfig = config[env.nodeEnv]
 let sequelize: Sequelize
@@ -32,6 +33,7 @@ sequelize.addModels([
   Attestation,
   AttestationData,
   GasPrice,
+  Ping,
 ])
 
 // Models should be imported from this file. Importing from the model file itself seems
@@ -45,4 +47,5 @@ export {
   Attestation,
   AttestationData,
   GasPrice,
+  Ping,
 }

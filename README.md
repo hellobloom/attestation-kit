@@ -1,16 +1,22 @@
-# Installation & Deployment
+![Attestation Kit](logo.png)
 
-## Create new host machine
+# Attestation Kit
+
+Easily access Bloom's network of data verifiers to onboard users to your application/service. Or spin up a data verification service and get paid to verify information. Build up a reputation as a reliable attester and earn BLT.
+
+## Installation & Deployment
+
+### Create new host machine
 
 We'll be using Ubuntu 18.04 LTS for the purpose of this guide. On Google Cloud, an example configuration might be 20GB of hard disk space, 1 vCPU, and 6 GB of RAM.
 
-## System configuration
+### System configuration
 
 SSH into your instance. Use `apt-get update; apt-get install git docker.io` to install basic prerequisites. The install script for docker.io should automatically create a "docker" system group - use `usermod -aG docker myuser` to add `myuser` (or whichever user you want to run docker as) to the `docker` group.
 
 Visit https://docs.docker.com/compose/install/ to follow current instructions to install docker-compose.
 
-## Download code
+### Download code
 
 Clone the https://github.com/hellobloom/attestation-kit repository to your chosen location on your server:
 
@@ -18,11 +24,11 @@ Clone the https://github.com/hellobloom/attestation-kit repository to your chose
 git clone https://github.com/hellobloom/attestation-kit /srv/attestation-kit
 ```
 
-## Configuration
+### Configuration
 
 See [Bloom Docker](https://bloom.co/docs/attestation-kit/env) docs for most up-to-date info on editing the .env file.
 
-## Networking
+### Networking
 
 If you'd like your docker instance to run on the public internet, it's a good idea to run something like nginx or Apache httpd in front of the docker image, and limit public access to your application to ports 80 and 443 (and probably port 22 for SSH access), doing an HTTPS redirect on requests to port 80 in order to ensure data sent to and from your application is always encrypted. We recommend LetsEncrypt/certbot for free certificates that deploy very easily with miscellaneous server configurations. Example configuration for nginx and Ubuntu 18.04:
 
@@ -43,7 +49,7 @@ host    bloom-whisper             all             172.18.0.0/16           trust
 
 Please read the official PostgreSQL documentation for each of these files for more information.
 
-## Controlling your instance
+### Controlling your instance
 
 To spin up your docker-compose instance. Navigate to the application directory (e.g. /srv/bloom-whisper), and then...
 
@@ -79,7 +85,7 @@ docker-compose -f docker-compose.dev.yml up -d
 
 To spin down your instance, run `docker-compose down`, or `docker-compose -f docker-compose.nodb.yml`, or `docker-compose -f docker-compose.dev.yml` accordingly.
 
-## Accessing your instance
+### Accessing your instance
 
 `docker exec -it CONTAINER_NAME /bin/bash`
 

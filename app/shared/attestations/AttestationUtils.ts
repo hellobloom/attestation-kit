@@ -1,10 +1,10 @@
-import {AttestationTypeID, AttestationTypeIDs} from 'attestations-lib'
+import {AttestationTypeID, AttestationTypeIDs} from '@bloomprotocol/attestations-lib'
 import {EmailAttestationStatus} from '@shared/attestations/EmailAttestationStatus'
 import {CognitoSMSStatus} from '@shared/attestations/CognitoSMSStatus'
 import {GenericAttestationStatus} from '@shared/AttestationStatus'
 import {invert} from 'lodash'
 import {env} from '@shared/environment'
-import {toTopic} from '@shared/attestations/whisper'
+import {toTopic} from '@shared/whisper'
 import {includes} from 'lodash'
 
 export function getTypedPendingStatus(

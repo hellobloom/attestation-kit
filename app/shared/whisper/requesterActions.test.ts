@@ -1,20 +1,20 @@
 import * as newrelic from 'newrelic'
 const uuid = require('uuidv4')
 import BigNumber from 'bignumber.js'
-import {handleAttestationBid} from '@shared/attestations/whisperRequesterActions'
+import {handleAttestationBid} from '@shared/whisper/requesterActions'
 import {
   IAttestationBid,
-  MessageTypes,
-} from '@shared/attestations/whisperMessageTypes'
+  EMsgTypes,
+} from '@shared/whisper/msgTypes'
 import {Negotiation, WhisperFilters} from '@shared/models'
 import {signSessionID} from '@shared/ethereum/signingLogic'
 import {env} from '@shared/environment'
 import {toBuffer} from 'ethereumjs-util'
-// import {MessageSubscribers} from '@shared/attestations/whisperSubscriptionHandler'
-import {toTopic} from '@shared/attestations/whisper'
-import {Entities} from '@shared/attestations/whisperMessageHandler'
-import {PersistDataTypes} from '@shared/attestations/whisperPersistDataHandler'
-import {ExternalActionTypes} from '@shared/attestations/whisperExternalActionHandler'
+// import {MessageSubscribers} from '@shared/whisper/subscriptionHandler'
+import {toTopic} from '@shared/whisper'
+import {Entities} from '@shared/whisper/msgHandler'
+import {PersistDataTypes} from '@shared/whisper/persistDataHandler'
+import {ExternalActionTypes} from '@shared/whisper/externalActionHandler'
 import * as Wallet from 'ethereumjs-wallet'
 
 const zeroReward = new BigNumber(0).toString(10)
@@ -24,7 +24,7 @@ const reSessionSigned = signSessionID(reSessionId, toBuffer(env.owner.ethPrivKey
 const negotiationSession = uuid()
 
 const attestationBid: IAttestationBid = {
-  messageType: MessageTypes.attestationBid,
+  messageType: EMsgTypes.attestationBid,
   replyTo: 'testReplyTo',
   session: uuid(),
   reSession: reSessionId,
@@ -33,7 +33,7 @@ const attestationBid: IAttestationBid = {
   rewardBid: zeroReward,
 }
 const invalidAttestationBid: IAttestationBid = {
-  messageType: MessageTypes.attestationBid,
+  messageType: EMsgTypes.attestationBid,
   replyTo: 'testReplyTo',
   session: uuid(),
   reSession: uuid(),
@@ -214,7 +214,7 @@ describe('Handling bid', () => {
 //   toBuffer(env.cognito.ethPrivKey)
 // )
 // const attestationRequest: IAttestationRequest = {
-//   messageType: MessageTypes.attestationRequest,
+//   messageType: EMsgTypes.attestationRequest,
 //   replyTo: 'testReplyTo',
 //   session: uuid(),
 //   reSession: reSessionId,
@@ -229,7 +229,7 @@ describe('Handling bid', () => {
 // }
 
 // const invalidAttestationRequest: IAttestationRequest = {
-//   messageType: MessageTypes.attestationRequest,
+//   messageType: EMsgTypes.attestationRequest,
 //   replyTo: 'testReplyTo',
 //   session: uuid(),
 //   reSession: reSessionId,
@@ -257,7 +257,7 @@ describe('Handling bid', () => {
 //     expect(decision).toHaveProperty('respondWith', null)
 //     expect(decision).toHaveProperty(
 //       'persist.messageType',
-//       MessageTypes.attestationRequestComplete
+//       EMsgTypes.attestationRequestComplete
 //     )
 
 //     expect(newrelic.recordCustomEvent).toHaveBeenCalledTimes(1)

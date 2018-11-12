@@ -1,19 +1,28 @@
-import {toNumber} from 'lodash'
 import * as dotenv from 'dotenv'
+import {BigNumber as bn} from 'bignumber.js'
+import {toBuffer} from 'ethereumjs-util'
 
 dotenv.config()
 
 interface IEnvironmentConfig {
   hostname: string
   apiKey: string
-  dbUrl: string
-  rinkebyAccountRegistryAddress: string
+  appId: string
   appPort: number
-  nodeEnv: string
+  approved_attesters?: IAttestationTypesToArr
+  approved_requesters?: IAttestationTypesToArr
+  attester_rewards?: IAttestationTypesToStr
   bltAddress: string
-  web3Provider: string
+  dbUrl: string
+  nodeEnv: string
+  rinkebyAccountRegistryAddress: string
   rinkebyWeb3Provider: string
   sentryDSN: string
+  skipValidations: boolean
+  web3Provider: string
+  webhook_host: string
+  webhook_key: string
+  whisperPollInterval?: number
   attestationContracts: {
     repoAddress: string
     logicAddress: string
@@ -29,14 +38,20 @@ interface IEnvironmentConfig {
     provider: string
     password: string
     topics: IWhisperTopics
+    ping: {
+      enabled: boolean
+      interval: number
+      alertInterval: string
+      password: string
+    }
   }
-  approved_attesters?: IAttestationTypesToArr
-  approved_requesters?: IAttestationTypesToArr
-  attester_rewards?: IAttestationTypesToStr
-  webhook_host: string
-  webhook_key: string
-  log_level?: string
-  whisperPollInterval?: number
+  logs: {
+    whisper: {
+      pings: boolean
+      sql: boolean
+    }
+    level?: string
+  }
 }
 
 export interface IAttestationTypesToArr {
@@ -87,6 +102,7 @@ export interface IAttestationTypesToStr {
 }
 
 interface IWhisperTopics {
+  ping: string
   phone: string
   email: string
   'sanction-screen': string
@@ -108,74 +124,122 @@ interface IWhisperTopics {
   utility: string
 }
 
+type TEnvType = 'string' | 'json' | 'int' | 'float' | 'bool' | 'buffer' | 'bn'
+
+const testBool = (value: string) =>
+  (['true', 't', 'yes', 'y'] as any).includes(value.toLowerCase())
+
 // Throw an error if the specified environment variable is not defined
-function envVar(name: string, json = false): any {
+const envVar = (
+  name: string,
+  type: TEnvType = 'string',
+  required: boolean = true,
+  defaultVal?: any,
+  opts?: {
+    baseToParseInto?: number
+  }
+): any => {
   const value = process.env[name]
-  if (!value) {
-    throw new Error(`Expected environment variable ${name}`)
+  if (required) {
+    if (!value) {
+      throw new Error(`Expected environment variable ${name}`)
+    }
+    switch (type) {
+      case 'string':
+        return value
+      case 'json':
+        return JSON.parse(value)
+      case 'int':
+        return parseInt(value, opts && opts.baseToParseInto)
+      case 'float':
+        return parseFloat(value)
+      case 'bool':
+        return testBool(value)
+      case 'buffer':
+        return toBuffer(value)
+      case 'bn':
+        return new bn(value)
+    }
+  } else {
+    if (!value && typeof defaultVal !== 'undefined') return defaultVal
+    switch (type) {
+      case 'string':
+        return value
+      case 'json':
+        return value && JSON.parse(value)
+      case 'int':
+        return value && parseInt(value)
+      case 'bool':
+        return value ? testBool(value) : false
+      case 'buffer':
+        return value && toBuffer(value)
+      case 'bn':
+        return value && new bn(value)
+    }
   }
-  return json ? JSON.parse(value) : value
-}
-
-function optionalEnvVar(name: string, json: boolean): any | undefined {
-  const value = process.env[name]
-  if (!value) {
-    return undefined
-  }
-  return json ? JSON.parse(value) : value
-}
-
-function getPort(): number {
-  const port = process.env.PORT
-  if (!port) {
-    return 5000
-  }
-
-  return toNumber(port)
 }
 
 // Topics shouldn't be number but string
-const topics = envVar('WHISPER_TOPICS', true)
-
-Object.keys(topics).forEach(k => {
+const topics: any = envVar('WHISPER_TOPICS', 'json')
+;(Object as any).keys(topics).forEach((k: string) => {
   topics[k] = topics[k].toString()
 })
 
 export const env: IEnvironmentConfig = {
   hostname: envVar('HOSTNAME'),
   apiKey: envVar('API_KEY_SHA256'),
-  dbUrl: envVar('BLOOM_WHISPER_PG_URL'),
-  rinkebyAccountRegistryAddress: envVar('RINKEBY_ACCOUNT_REGISTRY_ADDRESS'),
-  appPort: getPort(),
-  nodeEnv: envVar('NODE_ENV'),
+  appId: envVar('APP_ID', 'string', true), // Mark with something meaningful to indicate which environment, e.g., attestation-kit_dev_bob
+  appPort: envVar('PORT', 'int', false, 3000),
+  approved_attesters: envVar('APPROVED_ATTESTERS', 'json', false),
+  approved_requesters: envVar('APPROVED_REQUESTERS', 'json', false),
+  attester_rewards: envVar('ATTESTER_MIN_REWARDS', 'json'),
   bltAddress: envVar('BLT_ADDRESS'),
-  web3Provider: envVar('WEB3_PROVIDER'),
+  dbUrl: envVar('PG_URL'),
+  nodeEnv: envVar('NODE_ENV'),
+  rinkebyAccountRegistryAddress: envVar('RINKEBY_ACCOUNT_REGISTRY_ADDRESS'),
   rinkebyWeb3Provider: envVar('RINKEBY_WEB3_PROVIDER'),
   sentryDSN: envVar('SENTRY_DSN'),
-  tokenEscrowMarketplace: {
-    address: envVar('TOKEN_ESCROW_MARKETPLACE_ADDRESS'),
-  },
+  web3Provider: envVar('WEB3_PROVIDER'),
+  webhook_host: envVar('WEBHOOK_HOST'),
+  webhook_key: envVar('WEBHOOK_KEY'),
   attestationContracts: {
     repoAddress: envVar('ATTESTATION_REPO_ADDRESS'),
     logicAddress: envVar('ATTESTATION_LOGIC_ADDRESS'),
+  },
+  logs: {
+    whisper: {
+      sql: envVar('LOG_WHISPER_SQL', 'bool', false),
+      pings: envVar('LOG_WHISPER_PINGS', 'bool', false),
+    },
+    level: envVar('LOG_LEVEL', 'string', false),
   },
   owner: {
     ethAddress: envVar('PRIMARY_ETH_ADDRESS'),
     ethPrivKey: envVar('PRIMARY_ETH_PRIVKEY'),
   },
+  skipValidations: envVar('SKIP_VALIDATIONS', 'bool', false),
+  tokenEscrowMarketplace: {
+    address: envVar('TOKEN_ESCROW_MARKETPLACE_ADDRESS'),
+  },
   whisper: {
     provider: envVar('WHISPER_PROVIDER'),
     password: envVar('WHISPER_PASSWORD'),
     topics: topics,
+    ping: {
+      enabled: envVar('WHISPER_PING_ENABLED', 'bool', false), // Defaults to false if not specified
+      interval: envVar('WHISPER_PING_INTERVAL', 'string', false, '1 minute'), // PostgreSQL interval - Defaults to 1 min if not specified
+      alertInterval: envVar(
+        'WHISPER_PING_ALERT_INTERVAL',
+        'string',
+        false,
+        '5 minutes'
+      ), // PostgreSQL interval - Defaults to 1 min if not specified
+      password: envVar(
+        'WHISPER_PING_PASSWORD',
+        'string',
+        envVar('WHISPER_PING_ENABLED', 'bool', false) // Whether or not it's required dependent on whether or not whisper ping is enabled
+      ),
+    },
   },
-  approved_attesters: optionalEnvVar('APPROVED_ATTESTERS', true),
-  approved_requesters: optionalEnvVar('APPROVED_REQUESTERS', true),
-  attester_rewards: envVar('ATTESTER_MIN_REWARDS', true),
-  webhook_host: envVar('WEBHOOK_HOST'),
-  webhook_key: envVar('WEBHOOK_KEY'),
-  log_level: optionalEnvVar('LOG_LEVEL', false),
-  whisperPollInterval: (() => {
-    var intvl = optionalEnvVar('WHISPER_POLL_INTERVAL', false)
-    return intvl ? parseInt(intvl) : undefined
-  })(),
+  whisperPollInterval: envVar('WHISPER_POLL_INTERVAL', 'int', false, 5000),
 }

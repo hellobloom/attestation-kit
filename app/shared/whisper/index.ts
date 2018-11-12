@@ -3,7 +3,7 @@ import * as Shh from 'web3-shh'
 import {env} from '@shared/environment'
 import {WhisperFilters} from '@shared/models'
 import {toBuffer} from 'ethereumjs-util'
-import {IBloomWhisperMessage} from '@shared/attestations/whisperMessageTypes'
+import {IBloomWhisperMessage} from '@shared/whisper/msgTypes'
 import {serverLogger} from '@shared/logger'
 
 export const web3 = new Web3(new Web3.providers.HttpProvider(env.web3Provider))
@@ -15,7 +15,10 @@ export const resetShh = () => {
 }
 
 export const fetchAllMessages = async (entity: string) => {
-  const filters = await WhisperFilters.findAll({where: {entity: entity}})
+  const filters = await WhisperFilters.findAll({
+    where: {entity: entity},
+    logging: env.logs.whisper.sql,
+  })
   let allMessages: Shh.Message[] = []
   for (let filter of filters) {
     try {
@@ -122,11 +125,12 @@ export const newBroadcastSession = async (
       topics: [newTopic],
       symKeyID: symkeyId,
     })
-    await WhisperFilters.create({
+    const wf = await WhisperFilters.create({
       entity: entity,
       filterId: broadcastMessageFilterID,
       topic: toBuffer(newTopic),
     })
+    return wf
   } catch (e) {
     throw new Error(`Broadcast filter message addition failed: ${e}`)
   }

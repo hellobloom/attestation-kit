@@ -1,7 +1,6 @@
 const ethSigUtil = require('eth-sig-util')
 const {soliditySha3} = require('web3-utils')
-import {AttestationTypeID} from 'attestations-lib'
-import {IAttestationData} from '@shared/models/Attestation'
+import {HashingLogic} from '@bloomprotocol/attestations-lib'
 const uuid = require('uuidv4')
 import {bufferToHex} from 'ethereumjs-util'
 
@@ -21,14 +20,14 @@ export const signAttestationRequest = (
   privKey: Buffer
 ) =>
   ethSigUtil.signTypedDataLegacy(privKey, {
-    data: getFormattedTypedDataAttestationRequestLegacy(
+    data: HashingLogic.getAttestationAgreement({
       subject,
       attester,
       requester,
       dataHash,
-      typeIds,
-      requestNonce
-    ),
+      typeHash: HashingLogic.hashAttestationTypes(typeIds),
+      nonce: requestNonce,
+    }),
   })
 
 export const signPaymentAuthorization = (
@@ -53,48 +52,8 @@ export const recoverSessionIDSig = (session: string, signature: string) =>
     sig: signature,
   })
 
-const serializeData = (data: object) => JSON.stringify(data)
-
-const hashAttestationData = (input: IAttestationData) => {
-  return soliditySha3({type: 'string', value: serializeData(input)})
-}
-
-const hashCombinedAttestationData = (input: object) => {
-  return soliditySha3({type: 'string', value: serializeData(input)})
-}
-
-export const hashCompleteAttestationData = (input: IAttestationData[]) => {
-  return hashCombinedAttestationData(input.map(data => hashAttestationData(data)))
-}
-
-export const hashTypeIds = (input: AttestationTypeID[]) => {
-  return soliditySha3({type: 'uint256[]', value: input})
-}
-
 export const generateSigNonce = () =>
   bufferToHex(soliditySha3({type: 'string', value: uuid()}))
-
-export const getFormattedTypedDataAttestationRequestLegacy = (
-  subject: string,
-  attester: string,
-  requester: string,
-  dataHash: string,
-  typeIds: number[],
-  requestNonce: string
-): ITypedDataParam[] => {
-  return [
-    {type: 'address', name: 'subject', value: subject},
-    {type: 'address', name: 'attester', value: attester},
-    {type: 'address', name: 'requester', value: requester},
-    {type: 'bytes32', name: 'dataHash', value: dataHash},
-    {
-      type: 'bytes32',
-      name: 'typeHash',
-      value: soliditySha3({type: 'uint256[]', value: typeIds}),
-    },
-    {type: 'bytes32', name: 'nonce', value: requestNonce},
-  ]
-}
 
 export const getFormattedTypedDataReleaseTokensLegacy = (
   sender: string,

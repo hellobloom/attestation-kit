@@ -1,4 +1,4 @@
-import {isValidAddress, toBuffer} from 'ethereumjs-util'
+import {isValidAddress, toBuffer, bufferToHex} from 'ethereumjs-util'
 import {uniq} from 'lodash'
 const ethSigUtil = require('eth-sig-util')
 
@@ -8,13 +8,9 @@ import {
   AttestationTypeID,
   getAttestationTypeStr,
   TAttestationTypeNames,
-} from 'attestations-lib'
+  HashingLogic,
+} from '@bloomprotocol/attestations-lib'
 import {
-  hashCompleteAttestationData,
-  hashTypeIds,
-} from '@shared/ethereum/signingLogic'
-import {
-  IAttestationData,
   TMaybeAttestationDataJSONB,
   TAttestationDataJSONB,
 } from '@shared/models/Attestation'
@@ -22,6 +18,7 @@ import {requiredField} from '@shared/requiredField'
 import {every} from 'lodash'
 
 import {serverLogger} from '@shared/logger'
+import {env} from '@shared/environment'
 
 interface IInvalidParamError {
   kind: 'invalid_param'
@@ -57,29 +54,20 @@ export interface IJobDetails {
 
 type TReject = (error: string) => void
 
-const agreementData = (input: TUnvalidated<IJobDetails>) => [
-  {type: 'address', name: 'subject', value: input.subject},
-  {type: 'address', name: 'attester', value: input.attester},
-  {type: 'address', name: 'requester', value: input.requester},
-  {
-    type: 'bytes32',
-    name: 'dataHash',
-    value: hashCompleteAttestationData(input.data.data),
-  },
-  {
-    type: 'bytes32',
-    name: 'typeHash',
-    value: hashTypeIds(input.types),
-  },
-  {type: 'bytes32', name: 'nonce', value: input.requestNonce},
-]
-
 const validateSubjectSig = (unvalidatedJobDetails: TUnvalidated<IJobDetails>) => (
   subjectSig: string
 ) => {
+  if (env.skipValidations) {
+    serverLogger.info(
+      '[validateJobDetails.ts] Skipping validation of subject signature.'
+    )
+    return true
+  }
+
   serverLogger.info('Validating subject sig', subjectSig)
   const agreementDataInput = {
     requestNonce: unvalidatedJobDetails.requestNonce,
+    // types: unvalidatedJobDetails.data.data.map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]),
     types: unvalidatedJobDetails.types,
     subject: unvalidatedJobDetails.subject,
     subjectSig: unvalidatedJobDetails.subjectSig,
@@ -89,10 +77,20 @@ const validateSubjectSig = (unvalidatedJobDetails: TUnvalidated<IJobDetails>) =>
       data: unvalidatedJobDetails.data.data,
     },
   }
+  const merkleTree = HashingLogic.getMerkleTree(agreementDataInput.data.data)
+  const merkleTreeRootHash = bufferToHex(merkleTree.getRoot())
   const expectedDigest = ethSigUtil.typedSignatureHash(
-    agreementData(agreementDataInput)
+    HashingLogic.getAttestationAgreement({
+      subject: agreementDataInput.subject,
+      attester: agreementDataInput.attester,
+      requester: agreementDataInput.requester,
+      dataHash: merkleTreeRootHash,
+      typeHash: HashingLogic.hashAttestationTypes(agreementDataInput.types),
+      nonce: agreementDataInput.requestNonce,
+    })
   )
   serverLogger.info('Agreement data input', agreementDataInput)
+  serverLogger.info('Agreement data input', JSON.stringify(agreementDataInput))
   serverLogger.info('Expected digest', expectedDigest)
   const subjectETHAddress = toBuffer(unvalidatedJobDetails.subject)
   const recoveredETHAddress = U.recoverEthAddressFromDigest(
@@ -170,7 +168,7 @@ export const validateJobDetails = async (
 }
 
 export const validateSubjectDataComponent = (
-  input: IAttestationData,
+  input: HashingLogic.IAttestationData,
   type: AttestationTypeID
 ): boolean => {
   let dataIsValid: boolean = false
@@ -185,6 +183,7 @@ export const validateSubjectDataComponent = (
       dataIsValid = U.isValidEmail(input.data)
       break
     case 'facebook':
+      console.log(`VSDC facebook ${input.data}`)
       obj = JSON.parse(input.data)
       dataIsValid = every(['id'], (key: any) => typeof obj[key] !== 'undefined')
       break
@@ -245,6 +244,18 @@ export const validateSubjectDataComponent = (
       break
     case 'assets':
       break
+    case 'full-name':
+      console.log(`VSDC full name ${input.data}`)
+      dataIsValid = U.isNotEmptyString(input.data)
+      break
+    case 'birth-date':
+      console.log(`VSDC birth date ${input.data}`)
+      dataIsValid = U.isNotEmptyString(input.data)
+      break
+    case 'gender':
+      console.log(`VSDC gender ${input.data}`)
+      dataIsValid = U.isNotEmptyString(input.data)
+      break
     default:
       break
   }
@@ -255,7 +266,10 @@ export const validateSubjectData = (
   input: TAttestationDataJSONB,
   type: AttestationTypeID[]
 ): boolean => {
+  console.log(`validate input: ${JSON.stringify(input)}`)
+  console.log(`validate types: ${JSON.stringify(type)}`)
   if (!input || input.data.length !== type.length) return false
+  console.log('DEBUG VSD 2')
 
   for (let i in input.data) {
     if (!validateSubjectDataComponent(input.data[i], type[i])) return false

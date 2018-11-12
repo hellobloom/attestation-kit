@@ -7,28 +7,25 @@ import {
   storeSendJobDetails,
   storeStartAttestation,
   PersistDataTypes,
-} from '@shared/attestations/whisperPersistDataHandler'
+} from '@shared/whisper/persistDataHandler'
 import {
   TBloomMessage,
-  MessageTypes,
+  EMsgTypes,
   IBloomWhisperMessage,
-} from '@shared/attestations/whisperMessageTypes'
+} from '@shared/whisper/msgTypes'
 import * as Shh from 'web3-shh'
 import * as Web3 from 'web3'
 import * as Wallet from 'ethereumjs-wallet'
 import {env} from '@shared/environment'
-import {fetchAllMessages} from '@shared/attestations/whisper'
-import {
-  handleSolicitation,
-  handleJobDetails,
-} from '@shared/attestations/whisperAttesterActions'
-import {handleAttestationBid} from '@shared/attestations/whisperRequesterActions'
+import {fetchAllMessages} from '@shared/whisper'
+import {handleSolicitation, handleJobDetails} from '@shared/whisper/attesterActions'
+import {handleAttestationBid} from '@shared/whisper/requesterActions'
 import {
   MessageSubscriber,
   unsubscribeFromTopic,
   MessageSubscribers,
   subscribeToBroadcast,
-} from '@shared/attestations/whisperSubscriptionHandler'
+} from '@shared/whisper/subscriptionHandler'
 import {serverLogger} from '@shared/logger'
 import {boss} from '@shared/jobs/boss'
 import {
@@ -36,11 +33,15 @@ import {
   ExternalActionTypes,
   collectSubjectData,
   performAttestation,
-} from '@shared/attestations/whisperExternalActionHandler'
-import {confirmRequesterFunds} from '@shared/attestations/whisperValidateMessage'
+} from '@shared/whisper/externalActionHandler'
+import {confirmRequesterFunds} from '@shared/whisper/validateMsg'
 
 export enum Entities {
+  // Non-attestation entities
+  ping = 'Ping',
   requester = 'Requester',
+
+  // Actual attestation types
   phoneAttester = 'PhoneAttester',
   emailAttester = 'EmailAttester',
   sanctionAttester = 'SanctionAttester',
@@ -65,7 +66,11 @@ export enum Entities {
 }
 
 export const AttestationTypeToEntity = {
+  // Non-attestation entities
+  ping: Entities.ping,
   requester: Entities.requester,
+
+  // Actual attestation types
   phone: Entities.phoneAttester,
   email: Entities.emailAttester,
   'sanction-screen': Entities.sanctionAttester,
@@ -89,7 +94,7 @@ export const AttestationTypeToEntity = {
   assets: Entities.assetsAttester,
 }
 
-export type TMessageHandler = (...args: any[]) => Promise<IMessageDecision | false>
+export type TMsgHandler = (...args: any[]) => Promise<IMessageDecision | false>
 
 export interface IMessageDecision {
   unsubscribeFrom: string | null // Topic recovered from message
@@ -100,7 +105,7 @@ export interface IMessageDecision {
   externalAction: TExternalAction | null
 }
 
-const handleUnknownMessageType: TMessageHandler = async (
+const handleUnknownMessageType: TMsgHandler = async (
   message: IBloomWhisperMessage,
   messageTopic: string
 ) => {
@@ -129,11 +134,12 @@ const handleMessage = async (
   let messageDecision: IMessageDecision | false
   if (body.hasOwnProperty('messageType')) {
     switch (body.messageType) {
-      case MessageTypes.solicitation:
+      case EMsgTypes.solicitation:
         // this check is here to make handleSolicitation testable
         // confirmRequesterFunds performs a blockchain state read
         serverLogger.debug('Handling solicitation message')
         let confirmed = await confirmRequesterFunds(body)
+        serverLogger.info('Requester funds?', confirmed)
         if (confirmed) {
           messageDecision = await handleSolicitation(body, messageTopic, wallet)
         } else {
@@ -143,11 +149,11 @@ const handleMessage = async (
           return false
         }
         break
-      case MessageTypes.attestationBid:
+      case EMsgTypes.attestationBid:
         serverLogger.debug('Handling attestation message')
         messageDecision = await handleAttestationBid(body, messageTopic, wallet)
         break
-      case MessageTypes.sendJobDetails:
+      case EMsgTypes.sendJobDetails:
         serverLogger.debug('Handling sendJobDetails message')
         messageDecision = await handleJobDetails(body, messageTopic, wallet)
         break

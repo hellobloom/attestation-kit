@@ -3,15 +3,15 @@ require('babel-register')
 
 module.exports = {
   development: {
-    use_env_variable: 'BLOOM_WHISPER_PG_URL',
+    use_env_variable: 'PG_URL',
     dialect: 'postgres',
   },
   test: {
-    use_env_variable: 'BLOOM_WHISPER_PG_URL',
+    use_env_variable: 'PG_URL',
     dialect: 'postgres',
   },
   production: {
-    use_env_variable: 'BLOOM_WHISPER_PG_URL',
+    use_env_variable: 'PG_URL',
     dialect: 'postgres',
   },
 }

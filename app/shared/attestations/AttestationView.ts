@@ -1,4 +1,4 @@
-import {AttestationStatus} from 'attestations-lib'
+import {AttestationStatus} from '@bloomprotocol/attestations-lib'
 import {CognitoSMSStatus} from '@shared/attestations/CognitoSMSStatus'
 import {EmailAttestationStatus} from '@shared/attestations/EmailAttestationStatus'
 

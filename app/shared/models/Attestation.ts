@@ -4,8 +4,8 @@ import {toBuffer, bufferToHex} from 'ethereumjs-util'
 import {sequelize, Negotiation, NegotiationMsg} from '@shared/models'
 import {CognitoSMSStatus} from '@shared/attestations/CognitoSMSStatus'
 import {EmailAttestationStatus} from '@shared/attestations/EmailAttestationStatus'
-import {AttestationStatus} from 'attestations-lib'
-import {PersistDataTypes} from '@shared/attestations/whisperPersistDataHandler'
+import {AttestationStatus, HashingLogic, AttestationTypeID} from '@bloomprotocol/attestations-lib'
+import {PersistDataTypes} from '@shared/whisper/persistDataHandler'
 import {
   TValidateJobDetailsOutput,
   validateJobDetails,
@@ -17,20 +17,14 @@ import {
   IUnvalidatedAttestParams,
 } from '@shared/attestations/validateAttestParams'
 
-export interface IAttestationData {
-  type: string
-  data: string
-  nonce: string
-}
-
 export interface IEmailAttestationJSONB {
-  data: Array<IAttestationData>
+  data: Array<HashingLogic.IAttestationData>
   verificationCode?: string
   verificationStatus?: EmailAttestationStatus
 }
 
 export interface IPhoneAttestationJSONB {
-  data: Array<IAttestationData>
+  data: Array<HashingLogic.IAttestationData>
   verificationCode?: string
   verificationStatus?: CognitoSMSStatus
   cognitoProfile?: string
@@ -189,16 +183,18 @@ export default class Attestation extends Sequelize.Model<Attestation> {
       // Making sure the data prop only contains what the validate job details cares about
       data: {
         // Making sure the order of properties matches client side
-        data: this.data.data.map((d: IAttestationData) => {
+        data: this.data.data.map((d: HashingLogic.IAttestationData) => {
           return {
             type: d.type,
+            provider: d.provider,
             data: d.data,
             nonce: d.nonce,
+            version: d.version,
           }
         }),
       },
       requestNonce: this.requestNonce,
-      types: this.types,
+      types: this.data.data.map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]),
       subject: bufferToHex(this.subject),
       subjectSig: bufferToHex(this.subjectSig),
       attester: bufferToHex(this.attester),
@@ -252,15 +248,17 @@ export default class Attestation extends Sequelize.Model<Attestation> {
       requesterSig: bufferToHex(this.paymentSig),
       data: {
         // Making sure the order of properties matches client side
-        data: this.data.data.map((d: IAttestationData) => {
+        data: this.data.data.map((d: HashingLogic.IAttestationData) => {
           return {
             type: d.type,
+            provider: d.provider,
             data: d.data,
             nonce: d.nonce,
+            version: d.version,
           }
         }),
       },
-      types: this.types,
+      types: this.data.data.map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]),
       requestNonce: this.requestNonce,
       subjectSig: bufferToHex(this.subjectSig),
     }

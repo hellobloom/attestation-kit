@@ -10,43 +10,43 @@ import {env} from '@shared/environment'
 
 import {
   IMessageDecision,
-  TMessageHandler,
-} from '@shared/attestations/whisperMessageHandler'
+  TMsgHandler,
+} from '@shared/whisper/msgHandler'
 import {
-  MessageTypes,
+  EMsgTypes,
   ISolicitation,
   IAttestationBid,
   ISendJobDetails,
   ISubmitSubjectData,
-} from '@shared/attestations/whisperMessageTypes'
+} from '@shared/whisper/msgTypes'
 import {
   MessageSubscribers,
   IDirectMessageSubscriber,
   IBroadcastSubscriber,
-} from '@shared/attestations/whisperSubscriptionHandler'
+} from '@shared/whisper/subscriptionHandler'
 import {
   recoverSessionIDSig,
   signSessionID,
   signPaymentAuthorization,
   generateSigNonce,
 } from '@shared/ethereum/signingLogic'
-import {toTopic} from '@shared/attestations/whisper'
+import {toTopic} from '@shared/whisper'
 import {
   ISolicitationStore,
   IAwaitSubjectDataStore,
   PersistDataTypes,
   ISendJobDetailsStore,
-} from '@shared/attestations/whisperPersistDataHandler'
-import {actOnMessage, Entities} from '@shared/attestations/whisperMessageHandler'
+} from '@shared/whisper/persistDataHandler'
+import {actOnMessage, Entities} from '@shared/whisper/msgHandler'
 import {serverLogger} from '@shared/logger'
 import {
   bidMatchesAsk,
   isApprovedAttester,
-} from '@shared/attestations/whisperValidateMessage'
+} from '@shared/whisper/validateMsg'
 import {
   ICollectSubjectData,
   ExternalActionTypes,
-} from '@shared/attestations/whisperExternalActionHandler'
+} from '@shared/whisper/externalActionHandler'
 import {NegotiationMsg, Attestation} from '@shared/models'
 
 export const initiateSolicitation = async (
@@ -66,7 +66,7 @@ export const initiateSolicitation = async (
   }
 
   const solicitation: ISolicitation = {
-    messageType: MessageTypes.solicitation,
+    messageType: EMsgTypes.solicitation,
     replyTo: 'new',
     session: newSession,
     negotiationSession: newSession,
@@ -163,7 +163,7 @@ export const waitForSubjectData = (
   return messageDecision
 }
 
-export const handleAttestationBid: TMessageHandler = async (
+export const handleAttestationBid: TMsgHandler = async (
   message: IAttestationBid,
   messageTopic: string,
   requesterWallet: Wallet.Wallet
@@ -216,7 +216,7 @@ export const sendJobDetails = async (
   }
 
   const message: ISubmitSubjectData = {
-    messageType: MessageTypes.sendJobDetails,
+    messageType: EMsgTypes.sendJobDetails,
     replyTo: negotiationMsg.replyTo,
     session: negotiationMsg.uuid,
     negotiationSession: negotiationMsg.negotiationId,
@@ -267,7 +267,7 @@ export const sendJobDetails = async (
     }
 
     const messageResponse: ISendJobDetails = {
-      messageType: MessageTypes.sendJobDetails,
+      messageType: EMsgTypes.sendJobDetails,
       replyTo: 'new',
       session: newSession,
       reSession: message.session,
