@@ -51,13 +51,12 @@ export const notifyAttestationCompleted = async (
   transaction_hash: string,
   data_hash: string,
   result: string,
-  version: TVersion
+  version: TVersion = 'v1'
 ) => {
   await webhookRequest(`/api/${version}/webhooks/attestation_completed`, {
     attestation_id,
     transaction_hash,
     data_hash,
     result,
-    version,
   })
 }

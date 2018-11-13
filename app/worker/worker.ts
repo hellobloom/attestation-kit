@@ -7,6 +7,7 @@ import {serverLogger} from '@shared/logger'
 Raven.config(env.sentryDSN, {environment: env.nodeEnv}).install()
 
 import {submitAttestation} from '@worker/jobs/submit-attestation'
+import {submitAttestationV2} from '@worker/jobs/submit-attestation-v2'
 import {whisperBroadcastMessage} from '@worker/jobs/whisper-broadcast-message'
 import {whisperDirectMessage} from '@worker/jobs/whisper-direct-message'
 import {whisperEndSession} from '@worker/jobs/whisper-end-session'
@@ -21,6 +22,7 @@ function ready(boss: any) {
 
   const jobs = {
     'submit-attestation': submitAttestation,
+    'submit-attestation-v2': submitAttestationV2,
     'whisper-broadcast-message': whisperBroadcastMessage,
     'whisper-direct-message': whisperDirectMessage,
     'whisper-end-session': whisperEndSession,

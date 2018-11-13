@@ -9,7 +9,6 @@ import * as express from 'express'
 import {AttestationTypeNames, HashingLogic} from '@bloomprotocol/attestations-lib-v2'
 import {env} from '@shared/environment'
 import {toBuffer} from 'ethereumjs-util'
-import {TVersion} from '@shared/version'
 import {
   validateDateNodes,
   validateSignedAgreement,
@@ -33,8 +32,7 @@ export const show = (req: any, res: any) => {
 }
 
 // perform attestation on an existing request
-export const perform = (version: TVersion) => async (req: any, res: any) => {
-  serverLogger.info(`[/api/controller/attestation.ts] perform ${version}`)
+export const perform = async (req: any, res: any) => {
   const attestation = await m.Attestation.findById(req.body.attestation_id)
   if (attestation) {
     serverLogger.info('Received request to perform attestation...')
@@ -49,7 +47,6 @@ export const perform = (version: TVersion) => async (req: any, res: any) => {
       negotiationId: req.body.negotiation_id || attestation.negotiationId,
       attestationId: attestation.id,
       gasPrice: req.body.gas_price,
-      version,
     })
     //
     res.json({success: true, attestation})
@@ -118,12 +115,14 @@ export const receiveSignedAgreement: express.RequestHandler = async (req, res) =
     typeof req.body.attester !== 'string' ||
     typeof req.body.dataHash !== 'string' ||
     typeof req.body.nonce !== 'string' ||
-    typeof req.body.signature !== 'string'
+    typeof req.body.signature !== 'string' ||
+    typeof req.body.gasPrice !== 'string'
   ) {
     return res.status(400).json({
       success: false,
       message:
-        'Request body must contain the fields of a structured attestation agreement plus a signature.',
+        'Request body must contain the fields of an attestation agreement,' +
+        ' an attestationId, a signature, and a gasPrice.',
     })
   }
 
@@ -136,9 +135,9 @@ export const receiveSignedAgreement: express.RequestHandler = async (req, res) =
     })
   }
 
-  // TODO Queue up job that will call sendAttestTx and hit a
-  // webhook on bloom-web to store the attestTx for the given
-  // PendingAttestation.id via notifyAttestationCompleted
+  // Call attestation logic `attest` and webhook bloom-web with tx and more
+  const bossInstance = await boss
+  bossInstance.publish('submit-attestation-v2', req.body)
 
   return res.status(200).json({success: true})
 }

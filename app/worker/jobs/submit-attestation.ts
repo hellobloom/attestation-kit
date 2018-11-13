@@ -5,7 +5,6 @@ import {IAttestationResult} from '@shared/models/Attestations/Attestation'
 import {notifyAttestationCompleted} from '@shared/webhookHandler'
 import {serverLogger} from '@shared/logger'
 import {env} from '@shared/environment'
-import {TVersion} from '@shared/version'
 
 export const submitAttestation = async (job: any) => {
   serverLogger.info('Submitting attestation...')
@@ -27,10 +26,7 @@ export const submitAttestation = async (job: any) => {
 
   // For now also get the attestation entry
   // IP TODO poll for contract logs to update this
-  const version: TVersion = job.data.version || 'v1'
-  const attestationParams = await attestation.findAndValidateAttestParams(
-    job.data.version || 'v1'
-  )
+  const attestationParams = await attestation.findAndValidateAttestParams()
   serverLogger.debug('SA: validation outcome', JSON.stringify(attestationParams))
 
   if (attestationParams.kind === 'validated') {
@@ -38,8 +34,7 @@ export const submitAttestation = async (job: any) => {
 
     const attestationLogs = await sendAttestTx(
       attestationParams.data,
-      job.data.gasPrice,
-      version
+      job.data.gasPrice
     )
 
     serverLogger.debug('Sent attest tx...', attestationLogs.transactionHash)
@@ -65,8 +60,7 @@ export const submitAttestation = async (job: any) => {
       attestation.id,
       attestationLogs.transactionHash,
       attestationParams.data.dataHash,
-      JSON.stringify(result),
-      version
+      JSON.stringify(result)
     )
   } else {
     newrelic.recordCustomEvent('ContractError', {

@@ -5,7 +5,11 @@ import {serverLogger} from '@shared/logger'
 
 const ethSigUtil = require('eth-sig-util')
 
-type TSignedAgreement = HashingLogic.IAgreementParameters & {signature: string}
+export type TSignedAgreementRequestPayload = HashingLogic.IAgreementParameters & {
+  attestationId: string
+  signature: string
+  gasPrice: string
+}
 
 // EH TODO VALIDATE DATA NODES
 export const validateDateNodes = (
@@ -13,7 +17,7 @@ export const validateDateNodes = (
 ): string[] => []
 
 export const validateSignedAgreement = (
-  signedAgreement: TSignedAgreement
+  signedAgreement: TSignedAgreementRequestPayload
 ): boolean => {
   serverLogger.info(`[validateSignedAgreement] ${JSON.stringify(signedAgreement)}`)
   const expectedDigest = ethSigUtil.typedSignatureHash(

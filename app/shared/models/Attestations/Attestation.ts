@@ -261,10 +261,8 @@ export default class Attestation extends Sequelize.Model<Attestation> {
    * Given (negotiationId), returns an Attestation model
    * @param negotiationId Foreign key referencing Negotiations
    */
-  async findAndValidateAttestParams(
-    version: TVersion
-  ): Promise<TValidateAttestParamsOutput> {
+  async findAndValidateAttestParams(): Promise<TValidateAttestParamsOutput> {
     const attestParams = await this.attestParamsView()
-    return validateAttestParams(attestParams, version)
+    return validateAttestParams(attestParams)
   }
 }

@@ -6,7 +6,7 @@ import {IAttestParams} from '@shared/attestations/validateAttestParams'
 import * as account from '@shared/ethereum/account'
 import BigNumber from 'bignumber.js'
 import {privateEngine} from '@shared/ethereum/customWeb3Provider'
-import {TVersion} from '@shared/version'
+import {TSignedAgreementRequestPayload} from './validations'
 
 const attestationLogic = loadAttestationLogic(
   env.attestationContracts.logicAddress
@@ -25,8 +25,7 @@ interface IAttestEventArgs {
 
 export const sendAttestTx = async (
   attestationParams: IAttestParams,
-  gasPrice: string,
-  version: TVersion
+  gasPrice: string
 ) => {
   serverLogger.info(`Sending attest transaction for ${attestationParams.subject}`)
   attestationParams.types = attestationParams.types.sort(
@@ -53,6 +52,43 @@ export const sendAttestTx = async (
     attestationParams.types,
     attestationParams.requestNonce,
     attestationParams.subjectSig,
+    {
+      from: account.address,
+      gasPrice: new BigNumber(gasPrice).toNumber(),
+      gas: 1000000,
+    }
+  )) as Web3.TransactionReceipt<any>) as Web3.TransactionReceipt<IAttestEventArgs>
+
+  const matchingLog = logs.find(log => log.event === 'TraitAttested')
+  if (!matchingLog) {
+    throw new Error('Matching log not found')
+  }
+  return matchingLog
+}
+
+type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
+
+export const sendAttestTxV2 = async (
+  attestationParams: Omit<
+    TSignedAgreementRequestPayload,
+    'attestationId' | 'gasPrice'
+  >,
+  gasPrice: string
+) => {
+  serverLogger.info(
+    `[sendAttestV2] ${JSON.stringify({...attestationParams, gasPrice})}`
+  )
+
+  const {logs} = ((await attestationLogic.attest(
+    attestationParams.subject,
+    attestationParams.requester,
+    0, // EH TODO How should we be getting this?
+    '', // EH TODO How should we be getting this?
+    '', // EH TODO How should we be getting this?
+    attestationParams.dataHash,
+    [], // EH TODO How should we be getting this?
+    attestationParams.nonce,
+    attestationParams.signature,
     {
       from: account.address,
       gasPrice: new BigNumber(gasPrice).toNumber(),

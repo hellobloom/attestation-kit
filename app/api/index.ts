@@ -52,9 +52,7 @@ app.post('/api/v2/submit-data', attCtrl.receiveSubjectData)
 app.post('/api/v2/submit-signed-agreement', attCtrl.receiveSignedAgreement)
 
 app.get('/api/attestations', attCtrl.show)
-app.post('/api/attestations', attCtrl.perform('v1'))
-app.post('/api/v1/attestations', attCtrl.perform('v1'))
-app.post('/api/v2/attestations', attCtrl.perform('v2'))
+app.post('/api/attestations', attCtrl.perform)
 
 app.listen(13000, () => console.log('App listening on port 13000'))
 
