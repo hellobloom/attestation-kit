@@ -40,13 +40,6 @@ export const notifyDoAttestation = async (
   job_details: any,
   attestationId: string
 ) => {
-  serverLogger.info(
-    '[WE ARE IN notifyDoAttestation]',
-    JSON.stringify({
-      job_details: JSON.stringify(job_details),
-      id: attestationId,
-    })
-  )
   await webhookRequest('/api/webhooks/perform_attestation', {
     job_details: JSON.stringify(job_details),
     id: attestationId,

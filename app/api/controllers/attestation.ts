@@ -10,18 +10,22 @@ import {AttestationTypeNames, HashingLogic} from '@bloomprotocol/attestations-li
 import {env} from '@shared/environment'
 import {toBuffer} from 'ethereumjs-util'
 import {TVersion} from '@shared/version'
+import {
+  validateDateNodes,
+  validateSignedAgreement,
+} from '@shared/attestations/validations'
 
 // list all attestations
 export const show = (req: any, res: any) => {
   const where = req.body.where ? dc(req.body.where) : {}
   where.role = 'attester'
 
-  let per_page = req.body.per_page ? parseInt(req.body.per_page) : 100
-  let offset = req.body.page ? per_page * parseInt(req.body.page) : 0
+  let perPage = req.body.per_page ? parseInt(req.body.per_page, 10) : 100
+  let offset = req.body.page ? perPage * parseInt(req.body.page, 10) : 0
 
   m.Attestation.findAll({
     where: where,
-    limit: per_page,
+    limit: perPage,
     offset: offset,
   }).then(r => {
     res.json({success: true, attestations: r})
@@ -40,8 +44,8 @@ export const perform = (version: TVersion) => async (req: any, res: any) => {
       },
     })
     // tie in - perform attestation
-    const boss_instance = await boss
-    boss_instance.publish('submit-attestation', {
+    const bossInstance = await boss
+    bossInstance.publish('submit-attestation', {
       negotiationId: req.body.negotiation_id || attestation.negotiationId,
       attestationId: attestation.id,
       gasPrice: req.body.gas_price,
@@ -84,9 +88,13 @@ export const receiveSubjectData: express.RequestHandler = async (req, res) => {
   }
 
   const dataNodes: HashingLogic.IAttestation[] = req.body.dataNodes
-
-  // EH TODO
-  // Validate dataNodes
+  const validationResult = validateDateNodes(dataNodes)
+  if (validationResult.length) {
+    return res.status(400).json({
+      success: false,
+      message: `Errors: ${validationResult.join('\n')}`,
+    })
+  }
 
   const attesterPrivateKey = toBuffer(env.owner.ethPrivKey)
   const merkleTreeComponents = HashingLogic.getSignedMerkleTreeComponents(
@@ -100,4 +108,37 @@ export const receiveSubjectData: express.RequestHandler = async (req, res) => {
   )
 
   return res.status(200).json({merkleTreeComponents})
+}
+
+export const receiveSignedAgreement: express.RequestHandler = async (req, res) => {
+  if (
+    typeof req.body.attestationId !== 'string' ||
+    typeof req.body.subject !== 'string' ||
+    typeof req.body.requester !== 'string' ||
+    typeof req.body.attester !== 'string' ||
+    typeof req.body.dataHash !== 'string' ||
+    typeof req.body.nonce !== 'string' ||
+    typeof req.body.signature !== 'string'
+  ) {
+    return res.status(400).json({
+      success: false,
+      message:
+        'Request body must contain the fields of a structured attestation agreement plus a signature.',
+    })
+  }
+
+  const validationResult = validateSignedAgreement(req.body)
+  if (!validationResult) {
+    return res.status(400).json({
+      success: false,
+      message:
+        'Subject address recovered from signed agreement does not match passed in subject address.',
+    })
+  }
+
+  // TODO Queue up job that will call sendAttestTx and hit a
+  // webhook on bloom-web to store the attestTx for the given
+  // PendingAttestation.id via notifyAttestationCompleted
+
+  return res.status(200).json({success: true})
 }
