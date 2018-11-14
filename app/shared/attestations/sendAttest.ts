@@ -82,9 +82,9 @@ export const sendAttestTxV2 = async (
   const {logs} = ((await attestationLogic.attest(
     attestationParams.subject,
     attestationParams.requester,
-    0, // EH TODO How should we be getting this?
-    '', // EH TODO How should we be getting this?
-    '', // EH TODO How should we be getting this?
+    0, // EH TODO How should we be getting this? // Should have this after soliciting / negotiation process
+    '', // EH TODO How should we be getting this? // Should have this after soliciting / negotiation process
+    '', // EH TODO How should we be getting this? // Should have this after soliciting / negotiation process
     attestationParams.dataHash,
     [], // EH TODO How should we be getting this?
     attestationParams.nonce,
