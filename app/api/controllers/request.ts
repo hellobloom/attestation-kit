@@ -8,6 +8,7 @@ import {getAttestationTypeStr} from '@bloomprotocol/attestations-lib'
 import {toBuffer} from 'ethereumjs-util'
 import {toTopic} from '@shared/whisper'
 import {TVersion} from '@shared/version'
+const uuid = require('uuidv4')
 
 // list all requests
 export const show = (req: any, res: any) => {
@@ -48,17 +49,19 @@ export const create = (version: TVersion) => async (req: any, res: any) => {
     return
   }
 
+  const sessionId = uuid()
   await initiateSolicitation(
     attestation.id,
     new BigNumber(req.body.reward),
     toTopic(env.whisper.topics[attestation_type].toString()),
     env.whisper.password,
     requesterWallet,
+    sessionId,
     version
   )
 
   // tie in - initiate whisper interactions
-  res.json({success: true, attestation: attestation})
+  res.json({success: true, sessionId})
 }
 
 // send job

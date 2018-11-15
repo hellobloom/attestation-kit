@@ -9,6 +9,7 @@ export enum PersistDataTypes {
   storeSolicitation = 'storeSolicitation',
   storeAttestationBid = 'storeAttestationBid',
   storeAwaitSubjectData = 'storeAwaitSubjectData',
+  storeSendPaymentAuthorization = 'storeSendPaymentAuthorization',
   storeSendJobDetails = 'storeSendJobDetails',
   storeStartAttestation = 'storeStartAttestation',
 }
@@ -17,6 +18,7 @@ export type TPersistData =
   | ISolicitationStore
   | IAttestationBidStore
   | IAwaitSubjectDataStore
+  | ISendPaymentAuthorizationStore
   | ISendJobDetailsStore
   | IStartAttestationStore
 
@@ -47,6 +49,16 @@ export interface IAwaitSubjectDataStore {
   replyTo: string
   negotiationSession: string
   reward: BigNumber
+}
+
+export interface ISendPaymentAuthorizationStore {
+  messageType: PersistDataTypes.storeSendPaymentAuthorization
+  session: string
+  reSession: string
+  reward: BigNumber
+  negotiationSession: string
+  paymentNonce: string
+  paymentSig: string
 }
 
 export interface ISendJobDetailsStore {
@@ -213,4 +225,35 @@ export const storeStartAttestation = async (persistData: IStartAttestationStore)
     paymentNonce: persistData.jobDetails.paymentNonce,
   })
   serverLogger.debug('Finished storing SA...')
+}
+
+export const storeSendPaymentAuthorization = async (
+  persistData: ISendPaymentAuthorizationStore
+) => {
+  try {
+    serverLogger.info(
+      '[storeSendPaymentAuthorization] ' + JSON.stringify(persistData)
+    )
+    await NegotiationMsg.create({
+      messageType: persistData.messageType,
+      regardingUuid: persistData.reSession,
+      negotiationId: persistData.negotiationSession,
+      bid: persistData.reward,
+    })
+    const attestation = await Attestation.findOne({
+      where: {
+        negotiationId: persistData.negotiationSession,
+        role: 'requester',
+      },
+    })
+    if (attestation === null) throw new Error('Attestation not found')
+
+    await attestation.update({
+      paymentSig: toBuffer(persistData.paymentSig),
+      paymentNonce: persistData.paymentNonce,
+    })
+    serverLogger.debug('Finished [storeSendPaymentAuthorization]')
+  } catch (err) {
+    serverLogger.error('ERROR [storeSendPaymentAuthorization]', err)
+  }
 }

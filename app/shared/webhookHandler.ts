@@ -1,9 +1,6 @@
 import {env} from '@shared/environment'
 import fetch from 'node-fetch'
 import {serverLogger} from '@shared/logger'
-import {TVersion} from './version'
-
-// import {primaryWallet} from '@shared/attestations/attestationWallets'
 
 export const genHeaders = async (headers: any, str: string) => {
   return Object.assign({}, headers, {

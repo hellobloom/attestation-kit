@@ -7,6 +7,7 @@ import {
   storeSendJobDetails,
   storeStartAttestation,
   PersistDataTypes,
+  storeSendPaymentAuthorization,
 } from '@shared/whisper/persistDataHandler'
 import {
   TBloomMessage,
@@ -18,7 +19,11 @@ import * as Web3 from 'web3'
 import * as Wallet from 'ethereumjs-wallet'
 import {env} from '@shared/environment'
 import {fetchAllMessages} from '@shared/whisper'
-import {handleSolicitation, handleJobDetails} from '@shared/whisper/attesterActions'
+import {
+  handleSolicitation,
+  handleJobDetails,
+  handlePaymentAuthorization,
+} from '@shared/whisper/attesterActions'
 import {handleAttestationBid} from '@shared/whisper/requesterActions'
 import {
   MessageSubscriber,
@@ -135,7 +140,9 @@ const handleMessage = async (
   wallet: Wallet.Wallet,
   version: TVersion
 ) => {
-  serverLogger.debug('Handling message', body)
+  const date = new Date()
+  serverLogger.debug(`${date}[handleMessage]`, JSON.stringify(body))
+  serverLogger.debug(`${date}[handleMessage] body.messageType = ${body.messageType}`)
   let messageDecision: IMessageDecision | false
   if (body.hasOwnProperty('messageType')) {
     switch (body.messageType) {
@@ -175,6 +182,14 @@ const handleMessage = async (
         serverLogger.debug('Handling sendJobDetails message')
         messageDecision = await handleJobDetails(body, messageTopic, wallet, version)
         break
+      case EMsgTypes.paymentAuthorization:
+        serverLogger.info('Handling handlePaymentAuthorization message')
+        messageDecision = await handlePaymentAuthorization(
+          body,
+          messageTopic,
+          wallet
+        )
+        break
       default:
         serverLogger.debug('Handling unknown message')
         messageDecision = await handleUnknownMessageType(body, messageTopic, version)
@@ -191,6 +206,9 @@ export const actOnMessage = async (
   messageDecision: IMessageDecision,
   entity: string
 ) => {
+  serverLogger.info(
+    'DEBUG [actOnMessage] ' + JSON.stringify({messageDecision, entity})
+  )
   if (messageDecision.persist !== null) {
     switch (messageDecision.persist.messageType) {
       case PersistDataTypes.storeSolicitation:
@@ -208,6 +226,10 @@ export const actOnMessage = async (
       case PersistDataTypes.storeSendJobDetails:
         serverLogger.debug('Acting on message, storeSendJobDetails')
         await storeSendJobDetails(messageDecision.persist)
+        break
+      case PersistDataTypes.storeSendPaymentAuthorization:
+        serverLogger.debug('Acting on message, storeSendPaymentAuthorization')
+        await storeSendPaymentAuthorization(messageDecision.persist)
         break
       case PersistDataTypes.storeStartAttestation:
         serverLogger.debug('Acting on message, storeStartAttestation')
@@ -289,6 +311,9 @@ export const actOnMessage = async (
     // The situation does not currently exist where you subscribe to a broadcast and also send a message
   }
 
+  // EH TODO Add externalAction message handler
+  // for attester to collect subject data
+  serverLogger.info('[actOnMessage] Made it to externalAction')
   if (messageDecision.externalAction !== null) {
     switch (messageDecision.externalAction.actionType) {
       case ExternalActionTypes.awaitSubjectData:

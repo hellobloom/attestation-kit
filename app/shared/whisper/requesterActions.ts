@@ -11,6 +11,7 @@ import {
   IAttestationBid,
   ISendJobDetails,
   ISubmitSubjectData,
+  IPaymentAuthorization,
 } from '@shared/whisper/msgTypes'
 import {
   MessageSubscribers,
@@ -27,6 +28,7 @@ import {toTopic} from '@shared/whisper'
 import {
   ISolicitationStore,
   IAwaitSubjectDataStore,
+  ISendPaymentAuthorizationStore,
   PersistDataTypes,
   ISendJobDetailsStore,
 } from '@shared/whisper/persistDataHandler'
@@ -46,10 +48,10 @@ export const initiateSolicitation = async (
   topic: string,
   symKeyPassword: string,
   requesterWallet: Wallet.Wallet,
+  newSession: string,
   version: TVersion
 ) => {
   serverLogger.debug('Initiating solicitation...')
-  const newSession = uuid()
   const newTopic = toTopic(newSession) // The topic attestation bids will come in on
   const newSubscription: IDirectMessageSubscriber = {
     messageType: MessageSubscribers.directMessage,
@@ -160,17 +162,94 @@ export const waitForSubjectData = (
   return messageDecision
 }
 
+const sendPaymentAuthorization = (
+  message: IAttestationBid,
+  messageTopic: string,
+  requesterWallet: Wallet.Wallet,
+  version: TVersion
+) => {
+  const paymentNonce = generateSigNonce()
+  const attesterAddress = recoverSessionIDSig(
+    message.reSession,
+    message.reSessionSigned
+  )
+
+  const paymentSig = signPaymentAuthorization(
+    requesterWallet.getAddressString(),
+    attesterAddress,
+    message.rewardBid,
+    paymentNonce,
+    requesterWallet.getPrivateKey()
+  )
+  const newSession = uuid()
+
+  const persistData: ISendPaymentAuthorizationStore = {
+    messageType: PersistDataTypes.storeSendPaymentAuthorization,
+    session: newSession,
+    reSession: message.session,
+    negotiationSession: message.negotiationSession,
+    reward: new BigNumber(message.rewardBid),
+    paymentNonce: paymentNonce,
+    paymentSig: paymentSig,
+  }
+
+  const recipient: IDirectMessageSubscriber = {
+    messageType: MessageSubscribers.directMessage,
+    topic: toTopic(message.session),
+    publicKey: message.replyTo,
+  }
+
+  const messageResponse: IPaymentAuthorization = {
+    messageType: EMsgTypes.paymentAuthorization,
+    replyTo: 'new', // Dont want a response
+    session: newSession,
+    reSession: message.session,
+    reSessionSigned: signSessionID(message.session, requesterWallet.getPrivateKey()),
+    negotiationSession: message.negotiationSession,
+    attester: attesterAddress,
+    requester: requesterWallet.getAddressString(),
+    reward: message.rewardBid,
+    paymentSig: paymentSig,
+    paymentNonce: paymentNonce,
+  }
+
+  const messageDecision: IMessageDecision = {
+    unsubscribeFrom: messageTopic,
+    subscribeTo: null,
+    respondTo: recipient,
+    respondWith: messageResponse,
+    persist: persistData,
+    externalAction: null,
+    version,
+  }
+
+  newrelic.recordCustomEvent('WhisperEvent', {
+    Action: 'SendPaymentAuthorization',
+    NegotiationSession: message.negotiationSession,
+  })
+  return messageDecision
+}
+
 export const handleAttestationBid: TMsgHandler = async (
   message: IAttestationBid,
   messageTopic: string,
   requesterWallet: Wallet.Wallet,
   version: TVersion
 ) => {
+  serverLogger.info(
+    'DEBUG [handleAttestationBid] ' +
+      JSON.stringify({message, messageTopic, requesterWallet, version})
+  )
   let decision: IMessageDecision
   const approvedAttester = await isApprovedAttester(message)
   const bidMatch = await bidMatchesAsk(message)
   if (approvedAttester && bidMatch) {
-    decision = waitForSubjectData(message, messageTopic, requesterWallet, version)
+    decision = sendPaymentAuthorization(
+      message,
+      messageTopic,
+      requesterWallet,
+      version
+    )
   } else {
     serverLogger.info(
       'Bid params failed validation.  Attester approved: ',

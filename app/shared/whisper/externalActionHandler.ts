@@ -1,6 +1,6 @@
 import {ISendJobDetails} from '@shared/whisper/msgTypes'
 import {Attestation} from '@shared/models'
-import {toBuffer} from 'ethereumjs-util'
+import {toBuffer, bufferToHex} from 'ethereumjs-util'
 import {AttestationStatus} from '@bloomprotocol/attestations-lib'
 import {notifyCollectData, notifyDoAttestation} from '@shared/webhookHandler'
 import {serverLogger} from '@shared/logger'
@@ -57,6 +57,15 @@ export const collectSubjectData = async (input: ICollectSubjectData) => {
     throw new Error('collect subject data failed failed')
   }
 }
+
+export const requestSubjectData = async (attestation: Attestation) =>
+  await notifyCollectData({
+    status: attestation.status,
+    attester: bufferToHex(attestation.attester),
+    requester: bufferToHex(attestation.requester),
+    negotiationId: attestation.negotiationId,
+    version: attestation.version,
+  })
 
 export const performAttestation = async (data: IPerformAttestation) => {
   notifyDoAttestation(data.jobDetailsMessage, data.id)

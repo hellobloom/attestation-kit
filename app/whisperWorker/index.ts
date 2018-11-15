@@ -60,7 +60,7 @@ const main = async () => {
         let hashed_topic = toTopic(env.whisper.topics[topic_name])
         let entity: string = AttestationTypeToEntity[topic_name]
         await listenForSolicitations(hashed_topic, password, entity)
-        await handleMessages(entity as string, attesterWallet)
+        // await handleMessages(entity as string, attesterWallet)
         await handleMessages(entity as string, attesterWallet, 'v2')
       })
     }

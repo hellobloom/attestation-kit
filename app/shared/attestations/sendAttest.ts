@@ -6,7 +6,6 @@ import {IAttestParams} from '@shared/attestations/validateAttestParams'
 import * as account from '@shared/ethereum/account'
 import BigNumber from 'bignumber.js'
 import {privateEngine} from '@shared/ethereum/customWeb3Provider'
-import {TSignedAgreementRequestPayload} from './validations'
 
 const attestationLogic = loadAttestationLogic(
   env.attestationContracts.logicAddress
@@ -66,13 +65,19 @@ export const sendAttestTx = async (
   return matchingLog
 }
 
-type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
+export type TSendAttestParams = {
+  subject: string
+  requester: string
+  reward: BigNumber
+  paymentNonce: string
+  requesterSig: string
+  dataHash: string
+  requestNonce: string
+  subjectSig: string
+}
 
 export const sendAttestTxV2 = async (
-  attestationParams: Omit<
-    TSignedAgreementRequestPayload,
-    'attestationId' | 'gasPrice'
-  >,
+  attestationParams: TSendAttestParams,
   gasPrice: string
 ) => {
   serverLogger.info(
@@ -82,13 +87,13 @@ export const sendAttestTxV2 = async (
   const {logs} = ((await attestationLogic.attest(
     attestationParams.subject,
     attestationParams.requester,
-    0, // EH TODO How should we be getting this? // Should have this after soliciting / negotiation process
-    '', // EH TODO How should we be getting this? // Should have this after soliciting / negotiation process
-    '', // EH TODO How should we be getting this? // Should have this after soliciting / negotiation process
+    attestationParams.reward,
+    attestationParams.paymentNonce,
+    attestationParams.requesterSig,
     attestationParams.dataHash,
-    [], // EH TODO How should we be getting this?
-    attestationParams.nonce,
-    attestationParams.signature,
+    [-1], // EH TODO Remove this when contracts are updated
+    attestationParams.requestNonce,
+    attestationParams.subjectSig,
     {
       from: account.address,
       gasPrice: new BigNumber(gasPrice).toNumber(),

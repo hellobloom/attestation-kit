@@ -6,7 +6,7 @@ import {serverLogger} from '@shared/logger'
 const ethSigUtil = require('eth-sig-util')
 
 export type TSignedAgreementRequestPayload = HashingLogic.IAgreementParameters & {
-  attestationId: string
+  negotiationId: string
   signature: string
   gasPrice: string
 }

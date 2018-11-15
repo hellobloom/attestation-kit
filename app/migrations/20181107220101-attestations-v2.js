@@ -10,6 +10,10 @@ module.exports = {
 
     COMMIT;
     `)
+
+    await queryInterface.sequelize.query(`
+    ALTER TYPE enum_whisper_msg_types ADD VALUE 'storeSendPaymentAuthorization';
+    `)
   },
 
   down: async (queryInterface, Sequelize) => {

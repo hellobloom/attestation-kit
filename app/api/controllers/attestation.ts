@@ -1,10 +1,7 @@
 import * as m from '@shared/models'
 import {serverLogger} from '@shared/logger'
-
 import {boss} from '@shared/jobs/boss'
-
 import * as dc from 'deepcopy'
-
 import * as express from 'express'
 import {AttestationTypeNames, HashingLogic} from '@bloomprotocol/attestations-lib-v2'
 import {env} from '@shared/environment'
@@ -109,7 +106,7 @@ export const receiveSubjectData: express.RequestHandler = async (req, res) => {
 
 export const receiveSignedAgreement: express.RequestHandler = async (req, res) => {
   if (
-    typeof req.body.attestationId !== 'string' ||
+    typeof req.body.negotiationId !== 'string' ||
     typeof req.body.subject !== 'string' ||
     typeof req.body.requester !== 'string' ||
     typeof req.body.attester !== 'string' ||
@@ -122,7 +119,7 @@ export const receiveSignedAgreement: express.RequestHandler = async (req, res) =
       success: false,
       message:
         'Request body must contain the fields of an attestation agreement,' +
-        ' an attestationId, a signature, and a gasPrice.',
+        ' an negotiationId, a signature, and a gasPrice.',
     })
   }
 

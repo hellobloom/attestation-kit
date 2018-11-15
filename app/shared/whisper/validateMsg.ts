@@ -8,6 +8,7 @@ import {
   IAttestationBid,
   ISolicitation,
   ISendJobDetails,
+  IPaymentAuthorization,
 } from '@shared/whisper/msgTypes'
 import {checkEscrowBalance} from '@shared/attestations/attestationMarketplace'
 import {PersistDataTypes} from '@shared/whisper/persistDataHandler'
@@ -32,7 +33,7 @@ export const isApprovedAttester = async (
 }
 
 export const isApprovedRequester = async (
-  data: ISendJobDetails
+  data: ISendJobDetails | IPaymentAuthorization
 ): Promise<boolean> => {
   const negotiation = await Negotiation.findOne({
     where: {id: data.negotiationSession},
@@ -63,7 +64,9 @@ export const bidMatchesAsk = async (data: IAttestationBid): Promise<boolean> => 
   }
 }
 
-export const rewardMatchesBid = async (data: ISendJobDetails): Promise<boolean> => {
+export const rewardMatchesBid = async (
+  data: ISendJobDetails | IPaymentAuthorization
+): Promise<boolean> => {
   const bidMessage = await NegotiationMsg.findOne({
     where: {
       negotiationId: data.negotiationSession,

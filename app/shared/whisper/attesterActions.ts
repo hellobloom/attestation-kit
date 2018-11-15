@@ -16,6 +16,7 @@ import {
   ISolicitation,
   IAttestationBid,
   ISendJobDetails,
+  IPaymentAuthorization,
 } from '@shared/whisper/msgTypes'
 import {
   MessageSubscribers,
@@ -33,12 +34,14 @@ import {validateSubjectData} from '@shared/attestations/validateJobDetails'
 import {
   IPerformAttestation,
   ExternalActionTypes,
+  requestSubjectData,
 } from '@shared/whisper/externalActionHandler'
 import {hashedTopicToAttestationType} from '@shared/attestations/AttestationUtils'
 import {env} from '@shared/environment'
 import * as Web3 from 'web3'
 import {AttestationTypeID, HashingLogic} from '@bloomprotocol/attestations-lib'
 import {TVersion} from '@shared/version'
+import {AttestationStatus} from '@bloomprotocol/attestations-lib-v2'
 
 export const listenForSolicitations = async (
   listeningTopic: string,
@@ -62,7 +65,7 @@ export const listenForSolicitations = async (
 const rejectAttestationJob = (
   message: ISendJobDetails | ISolicitation,
   messageTopic: string,
-  version: TVersion
+  version: TVersion = 'v2'
 ) => {
   const decision: IMessageDecision = {
     unsubscribeFrom: messageTopic,
@@ -264,4 +267,48 @@ export const handleJobDetails: TMsgHandler = async (
   } catch (err) {
     throw err
   }
+}
+
+export const handlePaymentAuthorization: TMsgHandler = async (
+  message: IPaymentAuthorization,
+  messageTopic: string,
+  attesterWallet: Wallet.Wallet
+) => {
+  serverLogger.info(
+    'DEBUG [handlePaymentAuthorization] ' +
+      JSON.stringify({message, messageTopic, attesterWallet})
+  )
+  const _isApprovedRequester = await isApprovedRequester(message)
+  const _rewardMatchesBid = await rewardMatchesBid(message)
+  serverLogger.info(
+    `_isApprovedRequester = ${_isApprovedRequester} _rewardMatchesBid = ${_rewardMatchesBid}`
+  )
+  const attestation = await Attestation.findOne({
+    where: {
+      negotiationId: message.negotiationSession,
+      role: 'attester',
+    },
+  })
+  if (!attestation) {
+    throw new Error(
+      'Could not find attestation by negotiation session in handlePaymentAuthorization'
+    )
+  }
+
+  await attestation.update({
+    attester: toBuffer(message.attester),
+    requester: toBuffer(message.requester),
+    paymentNonce: message.paymentNonce,
+    paymentSig: toBuffer(message.paymentSig),
+    status: AttestationStatus.ready,
+  })
+
+  if (_isApprovedRequester && _rewardMatchesBid) {
+    await requestSubjectData(attestation)
+  } else {
+    serverLogger.info(
+      `Message rejected.  Approved requester: ${_isApprovedRequester}; Reward matches bid: ${_rewardMatchesBid}; `
+    )
+  }
+  return false
 }

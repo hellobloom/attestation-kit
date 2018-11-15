@@ -88,9 +88,11 @@ export interface IRequestPayment extends IBloomWhisperResponse {
 // Message #5, send payment authorization to attester
 export interface IPaymentAuthorization extends IBloomWhisperResponse {
   messageType: EMsgTypes.paymentAuthorization
-  reward: string
+  attester: string
+  requester: string
   paymentNonce: string
   paymentSig: string
+  reward: string
 }
 
 // Message #6, Notify attestation is complete
