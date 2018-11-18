@@ -7,6 +7,7 @@ import {requesterWallet} from '@shared/attestations/attestationWallets'
 import {getAttestationTypeStr} from '@bloomprotocol/attestations-lib'
 import {toBuffer} from 'ethereumjs-util'
 import {toTopic} from '@shared/whisper'
+import * as Web3 from 'web3'
 
 // list all requests
 export const show = (req: any, res: any) => {
@@ -46,9 +47,13 @@ export const create = async (req: any, res: any) => {
     return
   }
 
+  const reward = new BigNumber(
+    Web3.prototype.toWei(req.body.reward, 'ether') // Note that the reward parameter is measured in whole BLT, >>> NOT in wei or gwei !!! <<<
+  )
+
   await initiateSolicitation(
     attestation.id,
-    new BigNumber(req.body.reward),
+    reward,
     toTopic(env.whisper.topics[attestation_type].toString()),
     env.whisper.password,
     requesterWallet
