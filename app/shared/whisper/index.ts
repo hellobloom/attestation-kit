@@ -116,10 +116,14 @@ export const newBroadcastSession = async (
       where: {topic: toBuffer(newTopic), entity: entity},
     })
     if (filter !== null) {
-      // Try to delete the filter. No way to just check if it works
-      const filterIdToRemove = filter.filterId
-      await filter.destroy()
-      await shh.deleteMessageFilter(filterIdToRemove)
+      try {
+        // Try to delete the filter. No way to just check if it works
+        const filterIdToRemove = filter.filterId
+        await filter.destroy()
+        await shh.deleteMessageFilter(filterIdToRemove)
+      } catch (err) {
+        serverLogger.info('Warning: filter removal failed (probably negligible)')
+      }
     }
     const broadcastMessageFilterID = await shh.newMessageFilter({
       topics: [newTopic],
