@@ -40,7 +40,6 @@ import {hashedTopicToAttestationType} from '@shared/attestations/AttestationUtil
 import {env} from '@shared/environment'
 import * as Web3 from 'web3'
 import {AttestationTypeID, HashingLogic} from '@bloomprotocol/attestations-lib'
-import {TVersion} from '@shared/version'
 import {AttestationStatus} from '@bloomprotocol/attestations-lib-v2'
 
 export const listenForSolicitations = async (
@@ -64,8 +63,7 @@ export const listenForSolicitations = async (
 
 const rejectAttestationJob = (
   message: ISendJobDetails | ISolicitation,
-  messageTopic: string,
-  version: TVersion = 'v2'
+  messageTopic: string
 ) => {
   const decision: IMessageDecision = {
     unsubscribeFrom: messageTopic,
@@ -74,7 +72,6 @@ const rejectAttestationJob = (
     respondWith: null,
     persist: null,
     externalAction: null,
-    version,
   }
 
   newrelic.recordCustomEvent('WhisperEvent', {
@@ -87,8 +84,7 @@ const rejectAttestationJob = (
 export const handleSolicitation: TMsgHandler = async (
   message: ISolicitation,
   messageTopic: string,
-  attesterWallet: Wallet.Wallet,
-  version: TVersion
+  attesterWallet: Wallet.Wallet
 ) => {
   let decision: IMessageDecision
   // replyTo: indicate that a new key should be generated
@@ -154,7 +150,6 @@ export const handleSolicitation: TMsgHandler = async (
     respondWith: attestationBid,
     persist: persistData,
     externalAction: null,
-    version,
   }
   newrelic.recordCustomEvent('WhisperEvent', {
     Action: 'Bid',
@@ -167,8 +162,7 @@ const startAttestation = (
   message: ISendJobDetails,
   messageTopic: string,
   attesterWallet: Wallet.Wallet,
-  attestationId: string,
-  version: TVersion
+  attestationId: string
 ) => {
   const jobDetails: IStoreJobDetails = {
     subject: message.subjectAddress,
@@ -207,7 +201,6 @@ const startAttestation = (
     respondWith: null,
     persist: persistData,
     externalAction: performAttestation,
-    version,
   }
 
   newrelic.recordCustomEvent('WhisperEvent', {
@@ -220,8 +213,7 @@ const startAttestation = (
 export const handleJobDetails: TMsgHandler = async (
   message: ISendJobDetails,
   messageTopic: string,
-  attesterWallet: Wallet.Wallet,
-  version: TVersion
+  attesterWallet: Wallet.Wallet
 ) => {
   try {
     let decision: IMessageDecision
@@ -239,7 +231,6 @@ export const handleJobDetails: TMsgHandler = async (
       where: {
         negotiationId: message.negotiationSession,
         role: 'attester',
-        version,
       },
     })
 
@@ -254,14 +245,13 @@ export const handleJobDetails: TMsgHandler = async (
         message,
         messageTopic,
         attesterWallet,
-        attestation.id,
-        version
+        attestation.id
       )
     } else {
       serverLogger.info(
         `Message rejected.  Approved requester: ${_isApprovedRequester}; Reward matches bid: ${_rewardMatchesBid}; validateSubjectData: ${_validateSubjectData} `
       )
-      decision = rejectAttestationJob(message, messageTopic, version)
+      decision = rejectAttestationJob(message, messageTopic) // , version)
     }
     return decision
   } catch (err) {

@@ -7,7 +7,6 @@ import {requesterWallet} from '@shared/attestations/attestationWallets'
 import {getAttestationTypeStr} from '@bloomprotocol/attestations-lib'
 import {toBuffer} from 'ethereumjs-util'
 import {toTopic} from '@shared/whisper'
-import {TVersion} from '@shared/version'
 const uuid = require('uuidv4')
 import * as Web3 from 'web3'
 
@@ -29,7 +28,7 @@ export const show = (req: any, res: any) => {
 }
 
 // create request
-export const create = (version: TVersion) => async (req: any, res: any) => {
+export const create = async (req: any, res: any) => {
   const attestation_type =
     req.body.attestation_type || getAttestationTypeStr(req.body.attestation_type_id)
 
@@ -38,7 +37,6 @@ export const create = (version: TVersion) => async (req: any, res: any) => {
     type: attestation_type,
     types: [req.body.attestation_type_id],
     role: 'requester',
-    version,
   })
 
   if (typeof env.whisper.topics[attestation_type] === 'undefined') {
@@ -61,8 +59,7 @@ export const create = (version: TVersion) => async (req: any, res: any) => {
     toTopic(env.whisper.topics[attestation_type].toString()),
     env.whisper.password,
     requesterWallet,
-    sessionId,
-    version
+    sessionId
   )
 
   // tie in - initiate whisper interactions

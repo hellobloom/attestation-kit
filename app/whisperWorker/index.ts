@@ -1,7 +1,6 @@
 import * as newrelic from 'newrelic'
 import * as Web3 from 'web3'
 import * as Raven from 'raven'
-// import BigNumber from 'bignumber.js'
 import {env} from '@shared/environment'
 import {resetShh, newBroadcastSession} from '@shared/whisper'
 import {
@@ -70,8 +69,7 @@ const main = async () => {
         let hashed_topic = toTopic(env.whisper.topics[topic_name])
         let entity: string = AttestationTypeToEntity[topic_name]
         await listenForSolicitations(hashed_topic, password, entity)
-        // await handleMessages(entity as string, attesterWallet)
-        await handleMessages(entity as string, attesterWallet, 'v2')
+        await handleMessages(entity as string, attesterWallet)
       })
     }
 
@@ -85,8 +83,8 @@ const main = async () => {
     console.log(error, error.stack)
     resetShh()
   }
-  // setTimeout(main, 500) // twice per second
-  setTimeout(main, env.whisperPollInterval) // once per five seconds
+
+  setTimeout(main, env.whisperPollInterval)
 }
 
 main()

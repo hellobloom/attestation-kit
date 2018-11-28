@@ -20,7 +20,6 @@ import {
   TValidateAttestParamsOutput,
   IUnvalidatedAttestParams,
 } from '@shared/attestations/validateAttestParams'
-import {TVersion} from '@shared/version'
 
 export interface IEmailAttestationJSONB {
   data: Array<HashingLogic.IAttestationData>
@@ -148,9 +147,6 @@ export default class Attestation extends Sequelize.Model<Attestation> {
   set attestTx(value: string) {
     this.setDataValue('attestTx', toBuffer(value))
   }
-
-  @Sequelize.Column({type: Sequelize.DataType.STRING})
-  version: TVersion
 
   /**
    * Given (negotiationId), returns an Attestation model
