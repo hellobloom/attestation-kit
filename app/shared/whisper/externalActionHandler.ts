@@ -44,14 +44,16 @@ export const collectSubjectData = async (input: ICollectSubjectData) => {
       requester: toBuffer(input.requester),
       status: AttestationStatus.ready,
     })
-    notifyCollectData({
-      id: attestation.id,
-      status: attestation.status,
-      attester: input.attester,
-      requester: input.requester,
-      negotiationId: attestation.negotiationId,
-      version: attestation.version,
-    })
+    notifyCollectData(
+      {
+        id: attestation.id,
+        status: attestation.status,
+        attester: input.attester,
+        requester: input.requester,
+        negotiationId: attestation.negotiationId,
+      },
+      'v1'
+    )
     serverLogger.debug('Finished notifying to collect subject data')
   } else {
     throw new Error('collect subject data failed failed')
@@ -59,13 +61,15 @@ export const collectSubjectData = async (input: ICollectSubjectData) => {
 }
 
 export const requestSubjectData = async (attestation: Attestation) =>
-  await notifyCollectData({
-    status: attestation.status,
-    attester: bufferToHex(attestation.attester),
-    requester: bufferToHex(attestation.requester),
-    negotiationId: attestation.negotiationId,
-    version: attestation.version,
-  })
+  await notifyCollectData(
+    {
+      status: attestation.status,
+      attester: bufferToHex(attestation.attester),
+      requester: bufferToHex(attestation.requester),
+      negotiationId: attestation.negotiationId,
+    },
+    'v2'
+  )
 
 export const performAttestation = async (data: IPerformAttestation) => {
   notifyDoAttestation(data.jobDetailsMessage, data.id)
