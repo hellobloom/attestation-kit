@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
 
+DOCKER_CONF=docker-compose.dev.yml
+
 git pull
-docker-compose -f docker-compose.dev.yml build && docker-compose -f docker-compose.dev.yml down && docker-compose -f docker-compose.dev.yml up -d
+docker-compose -f $DOCKER_CONF build
+docker-compose -f $DOCKER_CONF down
+docker-compose -f $DOCKER_CONF up -d
