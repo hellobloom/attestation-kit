@@ -88,7 +88,9 @@ export const confirmRequesterFunds = async (
   serverLogger.debug('Confirming requester funds...')
   const requesterAddress = recoverSessionIDSig(data.session, data.sessionSigned)
   const balance = await checkEscrowBalance(requesterAddress)
-  serverLogger.debug('Confirmed requester funds')
+  serverLogger.debug(
+    `Got requester balance for ${requesterAddress}: ${balance.toString()}`
+  )
   if (balance.comparedTo(new BigNumber(data.rewardAsk)) === 1) {
     return true
   } else {

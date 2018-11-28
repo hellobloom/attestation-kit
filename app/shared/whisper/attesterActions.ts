@@ -50,7 +50,7 @@ export const listenForSolicitations = async (
 ) => {
   const filter = await WhisperFilters.findOne({
     where: {topic: toBuffer(listeningTopic), entity: attester},
-    logging: !env.logs.whisper.sql,
+    logging: env.logs.whisper.sql,
   })
   if (filter === null) {
     // This can't use a delayed job or tons will fill up the queue if redis is bogged down

@@ -44,14 +44,24 @@ const main = async () => {
   try {
     if (env.whisper.ping.enabled) {
       try {
-        await sendPings(await pingFilterPromise, web3)
+        const wf = await pingFilterPromise
+        if (wf) {
+          console.log('Working with WhisperFilter', wf.filterId)
+          try {
+            await sendPings(wf, web3)
+          } catch (err) {
+            console.log('Unhandled error sending whisper pings', err)
+          }
+          try {
+            await handlePongMessages(wf, web3)
+          } catch (err) {
+            console.log('Unhandled error handling whisper pongs', err)
+          }
+        } else {
+          console.log('pingFilterPromise returned nothing')
+        }
       } catch (err) {
-        console.log('Unhandled error sending whisper pings', err)
-      }
-      try {
-        await handlePongMessages(await pingFilterPromise, web3)
-      } catch (err) {
-        console.log('Unhandled error handling whisper pongs', err)
+        console.log('Unhandled error handling ping (general)', err)
       }
     }
 

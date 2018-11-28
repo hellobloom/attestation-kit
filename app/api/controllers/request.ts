@@ -9,6 +9,7 @@ import {toBuffer} from 'ethereumjs-util'
 import {toTopic} from '@shared/whisper'
 import {TVersion} from '@shared/version'
 const uuid = require('uuidv4')
+import * as Web3 from 'web3'
 
 // list all requests
 export const show = (req: any, res: any) => {
@@ -50,9 +51,13 @@ export const create = (version: TVersion) => async (req: any, res: any) => {
   }
 
   const sessionId = uuid()
+  const reward = new BigNumber(
+    Web3.prototype.toWei(req.body.reward, 'ether') // Note that the reward parameter is measured in whole BLT, >>> NOT in wei or gwei !!! <<<
+  )
+
   await initiateSolicitation(
     attestation.id,
-    new BigNumber(req.body.reward),
+    reward,
     toTopic(env.whisper.topics[attestation_type].toString()),
     env.whisper.password,
     requesterWallet,

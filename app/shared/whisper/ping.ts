@@ -15,14 +15,15 @@ import {EMsgTypes, IPing, IPong, IPingPong} from '@shared/whisper/msgTypes'
 
 // Outgoing
 export const sendPings = async (wf: WhisperFilters, web3: Web3) => {
-  const existing = Ping.findOne({
+  const existing = await Ping.findOne({
     where: {
       created: {
         [Op.gte]: S.literal(
-          `CURRENT_TIMESTAMP - INTERVAL '${env.whisper.ping.interval}`
+          `CURRENT_TIMESTAMP - INTERVAL '${env.whisper.ping.interval}'`
         ),
       },
     },
+    logging: env.logs.whisper.pings,
   })
   if (existing) return
   sendPing(wf, web3)
@@ -32,9 +33,17 @@ const symkeyId = shh.generateSymKeyFromPassword(env.whisper.ping.password)
 
 export const sendPing = async (wf: WhisperFilters, web3: Web3) => {
   try {
+    if (env.logs.whisper.pings) serverLogger.info('Sending ping')
     // Generate symkey from password
 
-    const ping = await Ping.create()
+    const ping = await Ping.create(
+      {},
+      {
+        logging: env.logs.whisper.pings,
+      }
+    )
+
+    if (env.logs.whisper.pings) serverLogger.info('Ping enqueued', ping.id)
 
     const outcome = await shh.post({
       ttl: 10,
@@ -74,12 +83,15 @@ export const handlePongMessages = async (wf: WhisperFilters, web3: Web3) => {
     where: {
       answered: false,
     },
+    logging: env.logs.whisper.pings,
   })
   const pingTable: IPingTable = {}
   pings.forEach((ping: Ping) => {
     pingTable[ping.id] = ping
   })
   wPings.map(async (wPing: Shh.Message) => {
+    if (env.logs.whisper.pings)
+      serverLogger.info('Processing message on ping channel', JSON.stringify(wPing))
     let body: IPingPong = JSON.parse(web3.toAscii(wPing.payload))
     if (body.messageType === EMsgTypes.pong) {
       await handlePong(body, wf, pingTable)
@@ -96,8 +108,10 @@ export const handlePongMessages = async (wf: WhisperFilters, web3: Web3) => {
             `CURRENT_TIMESTAMP - INTERVAL '${env.whisper.ping.alertInterval}'`
           ),
         },
+        answered: true,
       },
       attributes: [[S.fn('COUNT', S.col('*')), 'count']],
+      logging: env.logs.whisper.pings,
     })) as any)[0].dataValues.count
   )
 
@@ -136,11 +150,24 @@ export const handlePong = (
   wf: WhisperFilters,
   pingTable: IPingTable
 ) => {
+  if (env.logs.whisper.pings) serverLogger.info('Handling pong', body)
   let correspondingPing = pingTable[body.session]
   if (correspondingPing) {
-    correspondingPing.update({
-      answered: true,
-    })
+    if (env.logs.whisper.pings)
+      serverLogger.info(
+        'Handling pong',
+        body,
+        '; updating corresponding ping:',
+        correspondingPing.id
+      )
+    correspondingPing.update(
+      {
+        answered: true,
+      },
+      {
+        logging: env.logs.whisper.pings,
+      }
+    )
   }
 }
 
@@ -149,12 +176,17 @@ export const maybeReplyToPing = async (
   wf: WhisperFilters,
   web3: Web3
 ) => {
+  if (env.logs.whisper.pings) serverLogger.info('Maybe replying to ping', body)
+
   // Don't reply to your own messages
-  let ping = await Ping.findOne({where: {id: body.session}})
+  let ping = await Ping.findOne({
+    where: {id: body.session},
+    logging: env.logs.whisper.pings,
+  })
   if (ping) return
 
   if (env.logs.whisper.pings)
-    serverLogger.debug(`Replying with pong to ping ${body.session}`)
+    serverLogger.info(`Replying with pong to ping ${body.session}`)
 
   await shh.post({
     ttl: 10,
