@@ -3,7 +3,7 @@ import {serverLogger} from '@shared/logger'
 import {boss} from '@shared/jobs/boss'
 import * as dc from 'deepcopy'
 import * as express from 'express'
-import {AttestationTypeNames, HashingLogic} from '@bloomprotocol/attestations-lib-v2'
+import {AttestationTypeNames, HashingLogic} from '@bloomprotocol/attestations-lib'
 import {env} from '@shared/environment'
 import {toBuffer} from 'ethereumjs-util'
 import {

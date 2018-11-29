@@ -40,7 +40,7 @@ import {hashedTopicToAttestationType} from '@shared/attestations/AttestationUtil
 import {env} from '@shared/environment'
 import * as Web3 from 'web3'
 import {AttestationTypeID, HashingLogic} from '@bloomprotocol/attestations-lib'
-import {AttestationStatus} from '@bloomprotocol/attestations-lib-v2'
+import {AttestationStatus} from '@bloomprotocol/attestations-lib'
 
 export const listenForSolicitations = async (
   listeningTopic: string,

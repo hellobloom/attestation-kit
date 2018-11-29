@@ -1,11 +1,15 @@
-import {HashingLogic} from '@bloomprotocol/attestations-lib-v2'
+import {env} from '@shared/environment'
+import {HashingLogic} from '@bloomprotocol/attestations-lib'
 import * as U from '@shared/utils'
 import {toBuffer, bufferToHex} from 'ethereumjs-util'
 import {serverLogger} from '@shared/logger'
 
 const ethSigUtil = require('eth-sig-util')
 
-export type TSignedAgreementRequestPayload = HashingLogic.IAgreementParameters & {
+export type TSignedAgreementRequestPayload = {
+  subject: string
+  dataHash: string
+  nonce: string
   negotiationId: string
   signature: string
   gasPrice: string
@@ -21,13 +25,12 @@ export const validateSignedAgreement = (
 ): boolean => {
   serverLogger.info(`[validateSignedAgreement] ${JSON.stringify(signedAgreement)}`)
   const expectedDigest = ethSigUtil.typedSignatureHash(
-    HashingLogic.getAttestationAgreement({
-      subject: signedAgreement.subject,
-      attester: signedAgreement.attester,
-      requester: signedAgreement.requester,
-      dataHash: signedAgreement.dataHash,
-      nonce: signedAgreement.nonce,
-    })
+    HashingLogic.getAttestationAgreement(
+      env.attestationContracts.logicAddress,
+      1,
+      signedAgreement.dataHash,
+      signedAgreement.nonce,
+    )
   )
   const subjectEthAddress = toBuffer(signedAgreement.subject)
   const recoveredEthAddress = U.recoverEthAddressFromDigest(

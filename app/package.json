@@ -7,8 +7,7 @@
     "yarn": "^1.3.2"
   },
   "dependencies": {
-    "@bloomprotocol/attestations-lib": "^0.4.3",
-    "@bloomprotocol/attestations-lib-v2": "npm:@bloomprotocol/attestations-lib@2.0.0",
+    "@bloomprotocol/attestations-lib": "^3.0.0",
     "@types/async": "^2.0.47",
     "@types/bignumber.js": "^4.0.3",
     "@types/chalk": "^2.2.0",

@@ -237,7 +237,6 @@ export default class Attestation extends Sequelize.Model<Attestation> {
       attester: bufferToHex(this.attester),
       requester: bufferToHex(this.requester),
       reward: await this.reward(),
-      paymentNonce: this.paymentNonce,
       requesterSig: bufferToHex(this.paymentSig),
       data: {
         // Making sure the order of properties matches client side
@@ -251,9 +250,6 @@ export default class Attestation extends Sequelize.Model<Attestation> {
           }
         }),
       },
-      types: this.data.data
-        .map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type])
-        .sort((a: number, b: number) => a - b),
       requestNonce: this.requestNonce,
       subjectSig: bufferToHex(this.subjectSig),
     }

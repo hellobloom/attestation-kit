@@ -6,7 +6,6 @@ import {IAttestParams} from '@shared/attestations/validateAttestParams'
 import * as account from '@shared/ethereum/account'
 import BigNumber from 'bignumber.js'
 import { privateEngine } from '@shared/ethereum/customWeb3Provider'
-import * as Wallet from 'ethereumjs-wallet'
 
 const attestationLogic = loadAttestationLogic(
   env.attestationContracts.logicAddress
@@ -44,10 +43,8 @@ export const sendAttestTx = async (
     attestationParams.subject,
     attestationParams.requester,
     attestationParams.reward,
-    attestationParams.paymentNonce,
     attestationParams.requesterSig,
     attestationParams.dataHash,
-    attestationParams.typeIds,
     attestationParams.requestNonce,
     attestationParams.subjectSig,
     {
@@ -73,36 +70,4 @@ export type TSendAttestParams = {
   dataHash: string
   requestNonce: string
   subjectSig: string
-}
-
-export const sendAttestTxV2 = async (
-  attestationParams: TSendAttestParams,
-  gasPrice: string
-) => {
-  serverLogger.info(
-    `[sendAttestV2] ${JSON.stringify({...attestationParams, gasPrice})}`
-  )
-
-  const {logs} = ((await attestationLogic.attest(
-    attestationParams.subject,
-    attestationParams.requester,
-    attestationParams.reward,
-    attestationParams.paymentNonce,
-    attestationParams.requesterSig,
-    attestationParams.dataHash,
-    [-1], // EH TODO Remove this when contracts are updated
-    attestationParams.requestNonce,
-    attestationParams.subjectSig,
-    {
-      from: account.address,
-      gasPrice: new BigNumber(gasPrice).toNumber(),
-      gas: 1000000,
-    }
-  )) as Web3.TransactionReceipt<any>) as Web3.TransactionReceipt<IAttestEventArgs>
-
-  const matchingLog = logs.find(log => log.event === 'TraitAttested')
-  if (!matchingLog) {
-    throw new Error('Matching log not found')
-  }
-  return matchingLog
 }

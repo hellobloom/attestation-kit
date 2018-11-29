@@ -32,7 +32,6 @@ export type TValidateJobDetailsOutput = IInvalidParamError | ISuccess
 export interface IJobDetails {
   data: IAttestationDataJSONB
   requestNonce: string
-  types: number[]
   subject: string
   subjectSig: string
   attester: string
@@ -54,27 +53,19 @@ const validateSubjectSig = (unvalidatedJobDetails: TUnvalidated<IJobDetails>) =>
   serverLogger.info('Validating subject sig', subjectSig)
   const agreementDataInput = {
     requestNonce: unvalidatedJobDetails.requestNonce,
-    // types: unvalidatedJobDetails.data.data.map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]),
-    types: unvalidatedJobDetails.types,
-    subject: unvalidatedJobDetails.subject,
-    subjectSig: unvalidatedJobDetails.subjectSig,
-    attester: unvalidatedJobDetails.attester,
-    requester: unvalidatedJobDetails.requester,
     data: {
       data: unvalidatedJobDetails.data.data,
     },
   }
   const merkleTree = HashingLogic.getMerkleTree(agreementDataInput.data.data)
   const merkleTreeRootHash = bufferToHex(merkleTree.getRoot())
-  const expectedDigest = ethSigUtil.typedSignatureHash(
-    HashingLogic.getAttestationAgreement({
-      subject: agreementDataInput.subject,
-      attester: agreementDataInput.attester,
-      requester: agreementDataInput.requester,
-      dataHash: merkleTreeRootHash,
-      typeHash: HashingLogic.hashAttestationTypes(agreementDataInput.types),
-      nonce: agreementDataInput.requestNonce,
-    })
+  const expectedDigest = ethSigUtil.TypedDataUtils.sign(
+    HashingLogic.getAttestationAgreement(
+      env.attestationContracts.logicAddress,
+      1,
+      merkleTreeRootHash,
+      agreementDataInput.requestNonce,
+    )
   )
   serverLogger.info('Agreement data input', agreementDataInput)
   serverLogger.info('Agreement data input', JSON.stringify(agreementDataInput))
@@ -108,7 +99,6 @@ const validateParamsType = (
     ['requester', U.isNotEmptyString],
     ['requester', isValidAddress],
     ['requestNonce', U.isNotEmptyString],
-    ['types', value => value instanceof Array],
   ]
 
   // TODO: This could be collapsed into validations similar to above

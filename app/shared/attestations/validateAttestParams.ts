@@ -28,10 +28,8 @@ export interface IUnvalidatedAttestParams {
   attester: string
   requester: string
   reward: BigNumber
-  paymentNonce: string
   requesterSig: string
   data: IAttestationDataJSONB
-  types: AttestationTypeID[]
   requestNonce: string
   subjectSig: string
 }
@@ -63,11 +61,10 @@ export const validateSubjectSig = (input: TUnvalidated<IAttestParams>) => (
     attester: input.attester,
     requester: input.requester,
     dataHash: input.dataHash,
-    typeHash: HashingLogic.hashAttestationTypes(input.typeIds),
     nonce: input.requestNonce,
   }
   const recoveredETHAddress: string = ethSigUtil.recoverTypedSignatureLegacy({
-    data: HashingLogic.getAttestationAgreement(attestationAgreement),
+    data: HashingLogic.getAttestationAgreement(input.dataHash, input.requestNonce),
     sig: input.subjectSig,
   })
   return recoveredETHAddress.toLowerCase() === input.subject.toLowerCase()

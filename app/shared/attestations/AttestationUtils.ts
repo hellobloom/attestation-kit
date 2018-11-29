@@ -34,7 +34,7 @@ Object.keys(env.whisper.topics).forEach(k => {
 export const hashedTopicToAttestationType = invert(topicsHashed)
 
 export const allowEntity = (addr: string, type: string, entity: string) => {
-  var obj = entity == 'requester' ? env.approved_requesters : env.approved_attesters
+  var obj = entity === 'requester' ? env.approved_requesters : env.approved_attesters
   console.log(`DEBUG AE allowed: ${JSON.stringify(obj)}`)
 
   if (!obj) {

@@ -45,36 +45,22 @@ class ContractWithoutProvider<InstanceType> {
  * address
  */
 
-export function loadUnstableAccountRegistry(address: string) {
-  return new ContractWithoutProvider<truffle.IUnstableAccountRegistryInstance>(
-    require('./UnstableAccountRegistry.json'),
-    address
-  )
-}
-
 export function loadTokenEscrowMarketplace(address: string) {
-  return new ContractWithoutProvider<truffle.ITokenEscrowMarketplaceInstance>(
+  return new ContractWithoutProvider<truffle.TokenEscrowMarketplaceInstance>(
     require('./TokenEscrowMarketplace.json'),
     address
   )
 }
 
 export function loadBLT(address: string) {
-  return new ContractWithoutProvider<truffle.IBLTInstance>(
+  return new ContractWithoutProvider<truffle.BLTInstance>(
     require('./BLT.json'),
     address
   )
 }
 
-export function loadAttestationRepo(address: string) {
-  return new ContractWithoutProvider<truffle.IAttestationRepoInstance>(
-    require('./AttestationRepo.json'),
-    address
-  )
-}
-
 export function loadAttestationLogic(address: string) {
-  return new ContractWithoutProvider<truffle.IAttestationLogicInstance>(
+  return new ContractWithoutProvider<truffle.AttestationLogicInstance>(
     require('./AttestationLogic.json'),
     address
   )
