@@ -3,13 +3,14 @@ import {uniq} from 'lodash'
 
 import {TUnvalidated} from '@shared/params/validation'
 import * as U from '@shared/utils'
-import {getFormattedTypedDataReleaseTokensLegacy} from '@shared/ethereum/signingLogic'
 import {AttestationTypeID, HashingLogic} from '@bloomprotocol/attestations-lib'
 import {IAttestationDataJSONB} from '@shared/models/Attestations/Attestation'
 import BigNumber from 'bignumber.js'
 import {requiredField} from '@shared/requiredField'
 import {serverLogger} from '@shared/logger'
 const ethSigUtil = require('eth-sig-util')
+import {env} from '@shared/environment'
+import { getFormattedTypedDataPayTokens } from '@shared/ethereum/signingLogic'
 
 interface IInvalidParamError {
   kind: 'invalid_param'
@@ -39,10 +40,8 @@ export interface IAttestParams {
   attester: string
   requester: string
   reward: BigNumber
-  paymentNonce: string
   requesterSig: string
   dataHash: string
-  typeIds: AttestationTypeID[]
   requestNonce: string
   subjectSig: string
 }
@@ -56,15 +55,13 @@ type TReject = (error: string) => void
 export const validateSubjectSig = (input: TUnvalidated<IAttestParams>) => (
   subjectSig: string
 ) => {
-  const attestationAgreement = {
-    subject: input.subject,
-    attester: input.attester,
-    requester: input.requester,
-    dataHash: input.dataHash,
-    nonce: input.requestNonce,
-  }
   const recoveredETHAddress: string = ethSigUtil.recoverTypedSignatureLegacy({
-    data: HashingLogic.getAttestationAgreement(input.dataHash, input.requestNonce),
+    data: HashingLogic.getAttestationAgreement(
+      env.attestationContracts.logicAddress,
+      1,
+      input.dataHash,
+      input.requestNonce
+    ),
     sig: input.subjectSig,
   })
   return recoveredETHAddress.toLowerCase() === input.subject.toLowerCase()
@@ -75,11 +72,13 @@ export const validateRequesterSig = (input: TUnvalidated<IAttestParams>) => (
 ) => {
   serverLogger.debug('Validating requester sig...')
   const recoveredETHAddress: string = ethSigUtil.recoverTypedSignatureLegacy({
-    data: getFormattedTypedDataReleaseTokensLegacy(
+    data: getFormattedTypedDataPayTokens(
+      env.tokenEscrowMarketplace.address,
+      1,
       input.requester,
       input.attester,
       input.reward.toString(),
-      input.paymentNonce
+      input.requestNonce,
     ),
     sig: input.requesterSig,
   })
@@ -99,12 +98,10 @@ const validateParamsType = (
     ['subject', isValidAddress],
     ['requester', U.isNotEmptyString],
     ['requester', isValidAddress],
-    ['paymentNonce', U.isNotEmptyString],
     ['requesterSig', U.isNotEmptyString],
     ['subjectSig', validateRequesterSig(data)],
     ['requesterSig', U.isValidSignatureString],
     ['dataHash', U.isNotEmptyString],
-    ['typeIds', value => value instanceof Array],
     ['requestNonce', U.isNotEmptyString],
   ]
 
@@ -141,10 +138,8 @@ const generateAttestParams = (
     attester: data.attester,
     requester: data.requester,
     reward: data.reward,
-    paymentNonce: data.paymentNonce,
     requesterSig: data.requesterSig,
     dataHash: bufferToHex(HashingLogic.getMerkleTree(data.data.data).getRoot()), // IP TODO data.data.data is bad
-    typeIds: data.types,
     requestNonce: data.requestNonce,
     subjectSig: data.subjectSig,
   }

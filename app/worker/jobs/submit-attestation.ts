@@ -40,6 +40,7 @@ export const submitAttestation = async (job: any) => {
         '[submit-attestation.ts] Submitting delegated attestation via tx-service attestFor.'
       )
       const delegationSig = signAttestForDelegation(
+        env.attestationContracts.logicAddress,
         attestationParams.data,
         attesterWallet.getPrivateKey()
       )

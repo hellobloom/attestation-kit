@@ -13,8 +13,6 @@ import {toBuffer} from 'ethereumjs-util'
 // import {MessageSubscribers} from '@shared/whisper/subscriptionHandler'
 import {toTopic} from '@shared/whisper'
 import {Entities} from '@shared/whisper/msgHandler'
-import {PersistDataTypes} from '@shared/whisper/persistDataHandler'
-import {ExternalActionTypes} from '@shared/whisper/externalActionHandler'
 import * as Wallet from 'ethereumjs-wallet'
 
 const zeroReward = new BigNumber(0).toString(10)
@@ -74,14 +72,6 @@ describe('Handling bid', () => {
     expect(decision).toHaveProperty('subscribeTo', null)
     expect(decision).toHaveProperty('respondTo', null)
     expect(decision).toHaveProperty('respondWith', null)
-    expect(decision).toHaveProperty(
-      'persist.messageType',
-      PersistDataTypes.storeAwaitSubjectData
-    )
-    expect(decision).toHaveProperty(
-      'externalAction.actionType',
-      ExternalActionTypes.awaitSubjectData
-    )
     expect(newrelic.recordCustomEvent).toHaveBeenCalledTimes(1)
     expect(newrelic.recordCustomEvent).toHaveBeenCalledWith('WhisperEvent', {
       Action: 'WaitForSubjectData',
@@ -103,14 +93,6 @@ describe('Handling bid', () => {
     expect(decision).toHaveProperty('subscribeTo', null)
     expect(decision).toHaveProperty('respondTo', null)
     expect(decision).toHaveProperty('respondWith', null)
-    expect(decision).toHaveProperty(
-      'persist.messageType',
-      PersistDataTypes.storeAwaitSubjectData
-    )
-    expect(decision).toHaveProperty(
-      'externalAction.actionType',
-      ExternalActionTypes.awaitSubjectData
-    )
     expect(newrelic.recordCustomEvent).toHaveBeenCalledTimes(1)
     expect(newrelic.recordCustomEvent).toHaveBeenCalledWith('WhisperEvent', {
       Action: 'WaitForSubjectData',

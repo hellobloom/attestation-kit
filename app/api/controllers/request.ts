@@ -2,7 +2,7 @@ import * as m from '@shared/models'
 import * as dc from 'deepcopy'
 import {env} from '@shared/environment'
 import BigNumber from 'bignumber.js'
-import {initiateSolicitation, sendJobDetails} from '@shared/whisper/requesterActions'
+import {initiateSolicitation} from '@shared/whisper/requesterActions'
 import {requesterWallet} from '@shared/attestations/attestationWallets'
 import {getAttestationTypeStr} from '@bloomprotocol/attestations-lib'
 import {toBuffer} from 'ethereumjs-util'
@@ -64,16 +64,4 @@ export const create = async (req: any, res: any) => {
 
   // tie in - initiate whisper interactions
   res.json({success: true, sessionId})
-}
-
-// send job
-export const sendjob = async (req: any, res: any) => {
-  try {
-    await sendJobDetails(req.body.message, requesterWallet)
-
-    // tie in - initiate whisper interactions
-    res.json({success: true})
-  } catch {
-    res.json({success: false})
-  }
 }

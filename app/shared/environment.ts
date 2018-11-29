@@ -164,6 +164,8 @@ const envVar = (
         return toBuffer(value)
       case 'bn':
         return new bn(value)
+      default:
+        throw new Error(`Unhandled type ${type}`)
     }
   } else {
     if (!value && typeof defaultVal !== 'undefined') return defaultVal
@@ -180,6 +182,8 @@ const envVar = (
         return value && toBuffer(value)
       case 'bn':
         return value && new bn(value)
+      default:
+        throw new Error(`Unhandled type ${type}`)
     }
   }
 }
@@ -192,7 +196,7 @@ const topics: any = envVar('WHISPER_TOPICS', 'json')
 
 export const env: IEnvironmentConfig = {
   apiKey: envVar('API_KEY_SHA256'),
-  appId: envVar('APP_ID', 'string', true), // Mark with something meaningful to indicate which environment, e.g., attestation-kit_dev_bob
+  appId: envVar('APP_ID', 'string', true), // e.g., attestation-kit_dev_bob
   appPort: envVar('PORT', 'int', false, 3000),
   approved_attesters: envVar('APPROVED_ATTESTERS', 'json', false),
   approved_requesters: envVar('APPROVED_REQUESTERS', 'json', false),

@@ -3,9 +3,6 @@ import {
   TPersistData,
   storeSolicitation,
   storeAttestationBid,
-  storeAwaitSubjectData,
-  storeSendJobDetails,
-  storeStartAttestation,
   PersistDataTypes,
   storeSendPaymentAuthorization,
 } from '@shared/whisper/persistDataHandler'
@@ -21,7 +18,6 @@ import {env} from '@shared/environment'
 import {fetchAllMessages} from '@shared/whisper'
 import {
   handleSolicitation,
-  handleJobDetails,
   handlePaymentAuthorization,
 } from '@shared/whisper/attesterActions'
 import {handleAttestationBid} from '@shared/whisper/requesterActions'
@@ -33,12 +29,6 @@ import {
 } from '@shared/whisper/subscriptionHandler'
 import {serverLogger} from '@shared/logger'
 import {boss} from '@shared/jobs/boss'
-import {
-  TExternalAction,
-  ExternalActionTypes,
-  collectSubjectData,
-  performAttestation,
-} from '@shared/whisper/externalActionHandler'
 import {confirmRequesterFunds} from '@shared/whisper/validateMsg'
 
 export enum Entities {
@@ -113,7 +103,6 @@ export interface IMessageDecision {
   respondTo: MessageSubscriber | null
   respondWith: TBloomMessage | null
   persist: TPersistData | null
-  externalAction: TExternalAction | null
 }
 
 const handleUnknownMessageType: TMsgHandler = async (
@@ -126,7 +115,6 @@ const handleUnknownMessageType: TMsgHandler = async (
     respondTo: null,
     respondWith: null,
     persist: null,
-    externalAction: null,
   }
   newrelic.recordCustomEvent('WhisperEvent', {
     Action: 'EncounteredUnknownMessageType',
@@ -166,10 +154,6 @@ const handleMessage = async (
         serverLogger.debug('Handling attestation message')
         messageDecision = await handleAttestationBid(body, messageTopic, wallet)
         break
-      case EMsgTypes.sendJobDetails:
-        serverLogger.debug('Handling sendJobDetails message')
-        messageDecision = await handleJobDetails(body, messageTopic, wallet)
-        break
       case EMsgTypes.paymentAuthorization:
         serverLogger.info('Handling handlePaymentAuthorization message')
         messageDecision = await handlePaymentAuthorization(
@@ -207,21 +191,9 @@ export const actOnMessage = async (
         serverLogger.debug('Acting on message, storeAttestationBid')
         await storeAttestationBid(messageDecision.persist)
         break
-      case PersistDataTypes.storeAwaitSubjectData:
-        serverLogger.debug('Acting on message, storeAwaitSubjectData')
-        await storeAwaitSubjectData(messageDecision.persist)
-        break
-      case PersistDataTypes.storeSendJobDetails:
-        serverLogger.debug('Acting on message, storeSendJobDetails')
-        await storeSendJobDetails(messageDecision.persist)
-        break
       case PersistDataTypes.storeSendPaymentAuthorization:
         serverLogger.debug('Acting on message, storeSendPaymentAuthorization')
         await storeSendPaymentAuthorization(messageDecision.persist)
-        break
-      case PersistDataTypes.storeStartAttestation:
-        serverLogger.debug('Acting on message, storeStartAttestation')
-        await storeStartAttestation(messageDecision.persist)
         break
       default:
         break
@@ -299,21 +271,6 @@ export const actOnMessage = async (
     // The situation does not currently exist where you subscribe to a broadcast and also send a message
   }
 
-  // EH TODO Add externalAction message handler
-  // for attester to collect subject data
-  serverLogger.info('[actOnMessage] Made it to externalAction')
-  if (messageDecision.externalAction !== null) {
-    switch (messageDecision.externalAction.actionType) {
-      case ExternalActionTypes.awaitSubjectData:
-        await collectSubjectData(messageDecision.externalAction)
-        break
-      case ExternalActionTypes.performAttestation:
-        await performAttestation(messageDecision.externalAction)
-        break
-      default:
-        break
-    }
-  }
 }
 
 const actOnMessages = (messageDecisions: IMessageDecision[], entity: string) => {
@@ -345,7 +302,9 @@ export const handleMessages = async (entity: string, wallet: Wallet.Wallet) => {
       try {
         serverLogger.info('Attempting to handle Whisper message', message.payload)
         serverLogger.info('Decoding Whisper message', web3.toAscii(message.payload))
-      } catch {}
+      } catch {
+        serverLogger.info('Failed to decode payload')
+      }
       const body: TBloomMessage = JSON.parse(web3.toAscii(message.payload))
       serverLogger.info('Decoded Whisper message...', body)
       const messageTopic: string = message.topic

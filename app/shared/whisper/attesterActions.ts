@@ -9,38 +9,29 @@ import {
   // Entities,
 } from '@shared/whisper/msgHandler'
 import {WhisperFilters, Attestation} from '@shared/models'
-import {toBuffer} from 'ethereumjs-util'
+import {toBuffer, bufferToHex} from 'ethereumjs-util'
 import {newBroadcastSession, toTopic} from '@shared/whisper'
 import {
   EMsgTypes,
   ISolicitation,
   IAttestationBid,
-  ISendJobDetails,
   IPaymentAuthorization,
 } from '@shared/whisper/msgTypes'
 import {
   MessageSubscribers,
   IDirectMessageSubscriber,
 } from '@shared/whisper/subscriptionHandler'
-import {signSessionID, recoverSessionIDSig} from '@shared/ethereum/signingLogic'
+import {signSessionID} from '@shared/ethereum/signingLogic'
 import {
   IAttestationBidStore,
   PersistDataTypes,
-  IStartAttestationStore,
-  IStoreJobDetails,
 } from '@shared/whisper/persistDataHandler'
 import {rewardMatchesBid, isApprovedRequester} from '@shared/whisper/validateMsg'
-import {validateSubjectData} from '@shared/attestations/validateJobDetails'
-import {
-  IPerformAttestation,
-  ExternalActionTypes,
-  requestSubjectData,
-} from '@shared/whisper/externalActionHandler'
 import {hashedTopicToAttestationType} from '@shared/attestations/AttestationUtils'
 import {env} from '@shared/environment'
 import * as Web3 from 'web3'
-import {AttestationTypeID, HashingLogic} from '@bloomprotocol/attestations-lib'
 import {AttestationStatus} from '@bloomprotocol/attestations-lib'
+import { notifyCollectData } from '@shared/webhookHandler'
 
 export const listenForSolicitations = async (
   listeningTopic: string,
@@ -59,26 +50,6 @@ export const listenForSolicitations = async (
     })
     await newBroadcastSession(listeningTopic, password, attester)
   }
-}
-
-const rejectAttestationJob = (
-  message: ISendJobDetails | ISolicitation,
-  messageTopic: string
-) => {
-  const decision: IMessageDecision = {
-    unsubscribeFrom: messageTopic,
-    subscribeTo: null,
-    respondTo: null,
-    respondWith: null,
-    persist: null,
-    externalAction: null,
-  }
-
-  newrelic.recordCustomEvent('WhisperEvent', {
-    Action: 'RejectJob',
-    NegotiationSession: message.negotiationSession,
-  })
-  return decision
 }
 
 export const handleSolicitation: TMsgHandler = async (
@@ -149,114 +120,12 @@ export const handleSolicitation: TMsgHandler = async (
     respondTo: recipient,
     respondWith: attestationBid,
     persist: persistData,
-    externalAction: null,
   }
   newrelic.recordCustomEvent('WhisperEvent', {
     Action: 'Bid',
     NegotiationSession: message.session,
   })
   return decision
-}
-
-const startAttestation = (
-  message: ISendJobDetails,
-  messageTopic: string,
-  attesterWallet: Wallet.Wallet,
-  attestationId: string
-) => {
-  const jobDetails: IStoreJobDetails = {
-    subject: message.subjectAddress,
-    attester: attesterWallet.getAddressString(),
-    requester: recoverSessionIDSig(message.reSession, message.reSessionSigned),
-    subjectData: message.subjectData,
-    subjectRequestNonce: message.subjectRequestNonce,
-    type: hashedTopicToAttestationType[messageTopic],
-    typeIds: message.subjectData.data.map(
-      (a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]
-    ),
-    subjectSignature: message.subjectSignature,
-    paymentSignature: message.paymentSignature,
-    paymentNonce: message.paymentNonce,
-  }
-  const persistData: IStartAttestationStore = {
-    messageType: PersistDataTypes.storeStartAttestation,
-    session: uuid(),
-    reSession: message.reSession,
-    replyTo: message.replyTo,
-    negotiationSession: message.negotiationSession,
-    reward: new BigNumber(message.reward),
-    jobDetails: jobDetails,
-  }
-
-  const performAttestation: IPerformAttestation = {
-    id: attestationId,
-    actionType: ExternalActionTypes.performAttestation,
-    jobDetailsMessage: message,
-  }
-
-  const decision: IMessageDecision = {
-    unsubscribeFrom: messageTopic,
-    subscribeTo: null,
-    respondTo: null,
-    respondWith: null,
-    persist: persistData,
-    externalAction: performAttestation,
-  }
-
-  newrelic.recordCustomEvent('WhisperEvent', {
-    Action: 'StartAttestation',
-    NegotiationSession: message.negotiationSession,
-  })
-  return decision
-}
-
-export const handleJobDetails: TMsgHandler = async (
-  message: ISendJobDetails,
-  messageTopic: string,
-  attesterWallet: Wallet.Wallet
-) => {
-  try {
-    let decision: IMessageDecision
-    const _isApprovedRequester = await isApprovedRequester(message)
-    const _rewardMatchesBid = await rewardMatchesBid(message)
-    const _validateSubjectData = validateSubjectData(
-      message.subjectData,
-      message.subjectData.data.map(
-        (a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]
-      )
-    )
-    serverLogger.info(`validate output: ${_validateSubjectData}`)
-
-    const attestation = await Attestation.findOne({
-      where: {
-        negotiationId: message.negotiationSession,
-        role: 'attester',
-      },
-    })
-
-    if (!attestation) {
-      throw new Error(
-        'Could not find attestation by negotiation session in handleJobDetails'
-      )
-    }
-
-    if (_isApprovedRequester && _rewardMatchesBid && _validateSubjectData) {
-      decision = startAttestation(
-        message,
-        messageTopic,
-        attesterWallet,
-        attestation.id
-      )
-    } else {
-      serverLogger.info(
-        `Message rejected.  Approved requester: ${_isApprovedRequester}; Reward matches bid: ${_rewardMatchesBid}; validateSubjectData: ${_validateSubjectData} `
-      )
-      decision = rejectAttestationJob(message, messageTopic) // , version)
-    }
-    return decision
-  } catch (err) {
-    throw err
-  }
 }
 
 export const handlePaymentAuthorization: TMsgHandler = async (
@@ -294,7 +163,15 @@ export const handlePaymentAuthorization: TMsgHandler = async (
   })
 
   if (_isApprovedRequester && _rewardMatchesBid) {
-    await requestSubjectData(attestation)
+    await notifyCollectData(
+      {
+        status: attestation.status,
+        attester: bufferToHex(attestation.attester),
+        requester: bufferToHex(attestation.requester),
+        negotiationId: attestation.negotiationId,
+      },
+      'v2'
+    )
   } else {
     serverLogger.info(
       `Message rejected.  Approved requester: ${_isApprovedRequester}; Reward matches bid: ${_rewardMatchesBid}; `
