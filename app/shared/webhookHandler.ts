@@ -41,6 +41,7 @@ export const notifyDoAttestation = async (
     id: attestationId,
   })
 }
+<<<<<<< HEAD
 
 export const notifyAttestationCompleted = async (
   attestation_id: string,
@@ -55,3 +56,5 @@ export const notifyAttestationCompleted = async (
     result,
   })
 }
+=======
+>>>>>>> 3bbf971cd8d6c044e3b4c9a157e59f7a5fdc982c

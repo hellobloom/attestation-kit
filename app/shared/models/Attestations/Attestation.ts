@@ -69,6 +69,12 @@ export default class Attestation extends Sequelize.Model<Attestation> {
 
   @Sequelize.Column({
     allowNull: true,
+    type: Sequelize.DataType.INTEGER,
+  })
+  tx_id: number
+
+  @Sequelize.Column({
+    allowNull: true,
     type: Sequelize.DataType.STRING,
   })
   type: string
@@ -245,9 +251,9 @@ export default class Attestation extends Sequelize.Model<Attestation> {
           }
         }),
       },
-      types: this.data.data.map(
-        (a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]
-      ),
+      types: this.data.data
+        .map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type])
+        .sort((a: number, b: number) => a - b),
       requestNonce: this.requestNonce,
       subjectSig: bufferToHex(this.subjectSig),
     }

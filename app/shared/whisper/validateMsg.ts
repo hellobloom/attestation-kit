@@ -25,6 +25,8 @@ export const isApprovedAttester = async (
 
   const attesterAddress = recoverSessionIDSig(data.reSession, data.reSessionSigned)
 
+  console.log(`DEBUG IAA recovered: ${attesterAddress}`)
+
   return allowEntity(
     bufferToHex(attesterAddress),
     bufferToHex(negotiation.attestationTopic),

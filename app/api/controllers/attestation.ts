@@ -138,3 +138,9 @@ export const receiveSignedAgreement: express.RequestHandler = async (req, res) =
 
   return res.status(200).json({success: true})
 }
+export interface ITxAttempt {
+  id: number
+  nonce: number
+  txHash: Buffer
+  tx_id: string
+}

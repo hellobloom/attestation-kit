@@ -54,6 +54,8 @@ app.post('/api/v2/submit-signed-agreement', attCtrl.receiveSignedAgreement)
 app.get('/api/attestations', attCtrl.show)
 app.post('/api/attestations', attCtrl.perform)
 
+// IP todo tx_mined and tx_failed?
+
 app.listen(13000, () => console.log('App listening on port 13000'))
 
 export default app

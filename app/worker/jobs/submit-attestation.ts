@@ -2,9 +2,12 @@ import * as newrelic from 'newrelic'
 import {Attestation} from '@shared/models'
 import {sendAttestTx} from '@shared/attestations/sendAttest'
 import {IAttestationResult} from '@shared/models/Attestations/Attestation'
-import {notifyAttestationCompleted} from '@shared/webhookHandler'
 import {serverLogger} from '@shared/logger'
 import {env} from '@shared/environment'
+import {sendTx} from '@shared/txService'
+import {signAttestForDelegation} from '@shared/ethereum/signingLogic'
+import {IAttestForParams} from '@shared/attestations/validateAttestParams'
+import { attesterWallet } from '@shared/attestations/attestationWallets'
 
 export const submitAttestation = async (job: any) => {
   serverLogger.info('Submitting attestation...')
@@ -32,36 +35,88 @@ export const submitAttestation = async (job: any) => {
   if (attestationParams.kind === 'validated') {
     serverLogger.debug('SA: Validated attestation params...')
 
-    const attestationLogs = await sendAttestTx(
-      attestationParams.data,
-      job.data.gasPrice
-    )
+    if (env.txService) {
+      serverLogger.info(
+        '[submit-attestation.ts] Submitting delegated attestation via tx-service attestFor.'
+      )
+      const delegationSig = signAttestForDelegation(
+        attestationParams.data,
+        attesterWallet.getPrivateKey()
+      )
+      const attestForParams: IAttestForParams = {
+        subject: attestationParams.data.subject,
+        attester: attestationParams.data.attester,
+        requester: attestationParams.data.requester,
+        reward: attestationParams.data.reward,
+        paymentNonce: attestationParams.data.paymentNonce,
+        requesterSig: attestationParams.data.requesterSig,
+        dataHash: attestationParams.data.dataHash,
+        typeIds: attestationParams.data.typeIds.sort(
+          (a: number, b: number) => a - b
+        ),
+        requestNonce: attestationParams.data.requestNonce,
+        subjectSig: attestationParams.data.subjectSig,
+        delegationSig: delegationSig,
+      }
+      try {
+        const response = await sendTx({
+          tx: {
+            network: job.data.network || 'rinkeby',
+            contract_name: 'AttestationLogic',
+            method: 'attestFor',
+            args: attestForParams,
+          },
+        })
+        if (!response) {
+          throw new Error(`No response from tx service`)
+        }
+        const responseJSON = await response.json()
+        console.log(`response from tx service ${JSON.stringify(responseJSON)}`)
+        if (responseJSON.success) {
+          const txId = responseJSON.tx.id
+          // Link attestation to tx service id so we can respond to broadcast webhook later
+          await attestation.update({
+            tx_id: txId,
+          })
+        } else {
+          throw new Error(
+            `Request to tx service failed: ${JSON.stringify(responseJSON)}`
+          )
+        }
+      } catch (err) {
+        newrelic.recordCustomEvent('ContractError', {
+          Action: 'VoteForFailed',
+          error: JSON.stringify(err),
+        })
+      }
+    } else {
+      serverLogger.info(
+        '[submit-attestation.ts] Submitting attestation directly using attest.'
+      )
+      const attestationLogs = await sendAttestTx(
+        attestationParams.data,
+        job.data.gasPrice
+      )
 
-    serverLogger.debug('Sent attest tx...', attestationLogs.transactionHash)
+      serverLogger.debug('Sent attest tx...', attestationLogs.transactionHash)
 
-    newrelic.recordCustomEvent('ContractEvent', {
-      Action: 'SendAttestation',
-      TxHash: attestationLogs.transactionHash,
-    })
+      newrelic.recordCustomEvent('ContractEvent', {
+        Action: 'SendAttestation',
+        TxHash: attestationLogs.transactionHash,
+      })
 
-    const result: IAttestationResult = {
-      attestationId: attestationLogs.args.attestationId.toNumber(),
+      const result: IAttestationResult = {
+        attestationId: attestationLogs.args.attestationId.toNumber(),
+      }
+
+      serverLogger.debug('Got attestation result', result)
+
+      await attestation.update({
+        attestTx: attestationLogs.transactionHash,
+        result: result,
+        data: null,
+      })
     }
-
-    serverLogger.debug('Got attestation result', result)
-
-    await attestation.update({
-      attestTx: attestationLogs.transactionHash,
-      result: result,
-      data: null,
-    })
-
-    notifyAttestationCompleted(
-      attestation.id,
-      attestationLogs.transactionHash,
-      attestationParams.data.dataHash,
-      JSON.stringify(result)
-    )
   } else {
     newrelic.recordCustomEvent('ContractError', {
       Action: 'SendAttestationFailed',

@@ -68,6 +68,9 @@ export enum Entities {
   utilityAttester = 'UtilityAttester',
   incomeAttester = 'IncomeAttester',
   assetsAttester = 'AssetsAttester',
+  fullnameAttester = 'FullnameAttester',
+  birthdateAttester = 'BirthdateAttester',
+  genderAttester = 'GenderAttester',
 }
 
 export const AttestationTypeToEntity = {
@@ -97,6 +100,9 @@ export const AttestationTypeToEntity = {
   utility: Entities.utilityAttester,
   income: Entities.incomeAttester,
   assets: Entities.assetsAttester,
+  'full-name': Entities.fullnameAttester,
+  'birth-date': Entities.birthdateAttester,
+  gender: Entities.genderAttester,
 }
 
 export type TMsgHandler = (...args: any[]) => Promise<IMessageDecision | false>
@@ -321,6 +327,8 @@ const actOnMessages = (messageDecisions: IMessageDecision[], entity: string) => 
         Entity: entity,
       })
       serverLogger.warn('Encountered an error while acting on whisper messages', {
+        item,
+        entity,
         error,
       })
     }

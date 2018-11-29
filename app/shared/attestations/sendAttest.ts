@@ -5,7 +5,8 @@ import {serverLogger} from '@shared/logger'
 import {IAttestParams} from '@shared/attestations/validateAttestParams'
 import * as account from '@shared/ethereum/account'
 import BigNumber from 'bignumber.js'
-import {privateEngine} from '@shared/ethereum/customWeb3Provider'
+import { privateEngine } from '@shared/ethereum/customWeb3Provider'
+import * as Wallet from 'ethereumjs-wallet'
 
 const attestationLogic = loadAttestationLogic(
   env.attestationContracts.logicAddress
@@ -27,9 +28,7 @@ export const sendAttestTx = async (
   gasPrice: string
 ) => {
   serverLogger.info(`Sending attest transaction for ${attestationParams.subject}`)
-  attestationParams.types = attestationParams.types.sort(
-    (a: number, b: number) => a - b
-  )
+  attestationParams.typeIds = attestationParams.typeIds.sort((a: number, b: number) => a - b)
   serverLogger.debug(
     `[sendAttestTx] attestationParams: ${JSON.stringify(attestationParams)}`
   )
@@ -48,7 +47,7 @@ export const sendAttestTx = async (
     attestationParams.paymentNonce,
     attestationParams.requesterSig,
     attestationParams.dataHash,
-    attestationParams.types,
+    attestationParams.typeIds,
     attestationParams.requestNonce,
     attestationParams.subjectSig,
     {

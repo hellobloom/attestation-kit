@@ -51,6 +51,12 @@ interface IEnvironmentConfig {
     }
     level?: string
   }
+  log_level?: string
+  txService?: {
+    address: string
+    key: string
+    webhookKeySha: string
+  }
 }
 
 export interface IAttestationTypesToArr {
@@ -240,4 +246,11 @@ export const env: IEnvironmentConfig = {
     },
   },
   whisperPollInterval: envVar('WHISPER_POLL_INTERVAL', 'int', false, 5000),
+  txService: process.env['TX_SERVICE_ADDRESS']
+    ? {
+        address: envVar('TX_SERVICE_ADDRESS'),
+        key: envVar('TX_SERVICE_KEY'),
+        webhookKeySha: envVar('TX_SERVICE_KEY_SHA256'),
+      }
+    : undefined,
 }
