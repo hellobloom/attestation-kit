@@ -3,8 +3,8 @@ import {uniq} from 'lodash'
 
 import {TUnvalidated} from '@shared/params/validation'
 import * as U from '@shared/utils'
-import {AttestationTypeID, HashingLogic} from '@bloomprotocol/attestations-lib'
-import {IAttestationDataJSONB} from '@shared/models/Attestations/Attestation'
+import {HashingLogic} from '@bloomprotocol/attestations-lib'
+import Attestation, { IAttestationDataJSONB } from '@shared/models/Attestations/Attestation'
 import BigNumber from 'bignumber.js'
 import {requiredField} from '@shared/requiredField'
 import {serverLogger} from '@shared/logger'
@@ -36,6 +36,7 @@ export interface IUnvalidatedAttestParams {
 }
 
 export interface IAttestParams {
+  attestationId: string
   subject: string
   attester: string
   requester: string
@@ -44,6 +45,8 @@ export interface IAttestParams {
   dataHash: string
   requestNonce: string
   subjectSig: string
+  attestationLogicAddress: string
+  tokenEscrowMarketplaceAddress: string
 }
 
 export interface IAttestForParams extends IAttestParams {
@@ -52,6 +55,47 @@ export interface IAttestForParams extends IAttestParams {
 
 type TReject = (error: string) => void
 
+export const validateSignedAgreement = (
+  attestParams: TUnvalidated<IAttestParams>
+) => (subjectSig: string): boolean => {
+  serverLogger.info(`[validateSignedAgreement] ${JSON.stringify(attestParams)}`)
+  const recoveredEthAddress = ethSigUtil.recoverTypedSignature({
+    data: 
+    HashingLogic.getAttestationAgreement(
+      attestParams.attestationLogicAddress,
+      1,
+      attestParams.dataHash,
+      attestParams.requestNonce,
+    ),
+    sig: attestParams.subjectSig
+  })
+  serverLogger.info(
+    `[validateSignedAgreement] recoveredEthAddress '${recoveredEthAddress}'`
+  )
+  return recoveredEthAddress.toLowerCase() === attestParams.subject.toLowerCase()
+}
+export const validatePaymentSig = (
+  attestParams: TUnvalidated<IAttestParams>
+) => (requesterSig: string): boolean => {
+  serverLogger.info(`[validatePaymentSig] ${JSON.stringify(attestParams)}`)
+  const recoveredEthAddress = ethSigUtil.recoverTypedSignature({
+    data: getFormattedTypedDataPayTokens(
+      attestParams.tokenEscrowMarketplaceAddress,
+      1,
+      attestParams.requester,
+      attestParams.attester,
+      attestParams.reward.toString(10),
+      attestParams.requestNonce
+    ),
+    sig: attestParams.requesterSig
+  })
+  serverLogger.info(
+    `[validateSignedAgreement] recoveredEthAddress '${bufferToHex(
+      recoveredEthAddress
+    )}'`
+  )
+  return recoveredEthAddress.toLowerCase() === attestParams.requester.toLowerCase()
+}
 export const validateSubjectSig = (input: TUnvalidated<IAttestParams>) => (
   subjectSig: string
 ) => {
@@ -67,24 +111,6 @@ export const validateSubjectSig = (input: TUnvalidated<IAttestParams>) => (
   return recoveredETHAddress.toLowerCase() === input.subject.toLowerCase()
 }
 
-export const validateRequesterSig = (input: TUnvalidated<IAttestParams>) => (
-  requesterSig: string
-) => {
-  serverLogger.debug('Validating requester sig...')
-  const recoveredETHAddress: string = ethSigUtil.recoverTypedSignatureLegacy({
-    data: getFormattedTypedDataPayTokens(
-      env.tokenEscrowMarketplace.address,
-      1,
-      input.requester,
-      input.attester,
-      input.reward.toString(),
-      input.requestNonce,
-    ),
-    sig: input.requesterSig,
-  })
-  return recoveredETHAddress.toLowerCase() === input.requester.toLowerCase()
-}
-
 const validateParamsType = (
   data: TUnvalidated<IAttestParams>,
   reject: TReject
@@ -93,14 +119,15 @@ const validateParamsType = (
 
   const validations: TValidation[] = [
     ['subjectSig', U.isValidSignatureString],
-    ['subjectSig', validateSubjectSig(data)],
+    ['subjectSig', validateSignedAgreement(data)],
     ['subject', U.isNotEmptyString],
     ['subject', isValidAddress],
     ['requester', U.isNotEmptyString],
     ['requester', isValidAddress],
     ['requesterSig', U.isNotEmptyString],
-    ['subjectSig', validateRequesterSig(data)],
+    ['subjectSig', validateSignedAgreement(data)],
     ['requesterSig', U.isValidSignatureString],
+    ['requesterSig', validatePaymentSig(data)],
     ['dataHash', U.isNotEmptyString],
     ['requestNonce', U.isNotEmptyString],
   ]
@@ -139,7 +166,6 @@ const generateAttestParams = (
     requester: data.requester,
     reward: data.reward,
     requesterSig: data.requesterSig,
-    dataHash: bufferToHex(HashingLogic.getMerkleTree(data.data.data).getRoot()), // IP TODO data.data.data is bad
     requestNonce: data.requestNonce,
     subjectSig: data.subjectSig,
   }

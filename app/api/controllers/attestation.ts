@@ -5,11 +5,12 @@ import * as dc from 'deepcopy'
 import * as express from 'express'
 import {AttestationTypeNames, HashingLogic} from '@bloomprotocol/attestations-lib'
 import {env} from '@shared/environment'
-import {toBuffer} from 'ethereumjs-util'
+import {toBuffer, bufferToHex} from 'ethereumjs-util'
 import {
   validateDateNodes,
-  validateSignedAgreement,
 } from '@shared/attestations/validations'
+import { Attestation } from '@shared/models'
+import { IAttestParams, validateAttestParams } from '@shared/attestations/validateAttestParams'
 
 // list all attestations
 export const show = (req: any, res: any) => {
@@ -122,21 +123,50 @@ export const receiveSignedAgreement: express.RequestHandler = async (req, res) =
         ' an negotiationId, a signature, and a gasPrice.',
     })
   }
+  const attestation = await Attestation.findOne({
+    where: {
+      negotiationId: req.body.negotiationId,
+    },
+  })
 
-  const validationResult = validateSignedAgreement(req.body)
-  if (!validationResult) {
+  if (!attestation) {
     return res.status(400).json({
       success: false,
-      message:
-        'Subject address recovered from signed agreement does not match passed in subject address.',
+      message: `Attestation not found for negotiation id ${req.body.negotiationId}`,
     })
   }
 
-  // Call attestation logic `attest` and webhook bloom-web with tx and more
-  const bossInstance = await boss
-  bossInstance.publish('submit-attestation-v2', req.body)
+  const reward = await attestation.reward()
 
-  return res.status(200).json({success: true})
+  const attestParams: IAttestParams = {
+    attestationId: attestation.id,
+    subject: req.body.subject,
+    attester: req.body.attester,
+    requester: req.body.requester,
+    reward: reward,
+    requesterSig: bufferToHex(attestation.paymentSig),
+    dataHash: req.body.dataHash,
+    requestNonce: req.body.nonce,
+    subjectSig: req.body.subjectSig,
+    attestationLogicAddress: env.attestationContracts.logicAddress,
+    tokenEscrowMarketplaceAddress: env.tokenEscrowMarketplace.address,
+  }
+  
+  const validationResult = await validateAttestParams(attestParams)
+  if (validationResult.kind === 'validated') {
+    // Call attestation logic `attest` and webhook bloom-web with tx and more
+    const bossInstance = await boss
+    bossInstance.publish('submit-attestation', attestParams)
+
+    return res.status(200).json({success: true})
+  } else {
+    return res.status(400).json({
+      success: false,
+      message: validationResult.message
+    })
+
+  }
+
 }
 export interface ITxAttempt {
   id: number

@@ -1,5 +1,4 @@
 import {env} from '@shared/environment'
-import * as Web3 from 'web3'
 import {loadAttestationLogic} from '@shared/contracts/load'
 import {serverLogger} from '@shared/logger'
 import {IAttestParams} from '@shared/attestations/validateAttestParams'
@@ -11,23 +10,11 @@ const attestationLogic = loadAttestationLogic(
   env.attestationContracts.logicAddress
 ).withProvider(privateEngine(env.owner.ethPrivKey, {stage: 'testnet'}))
 
-interface IAttestEventArgs {
-  attestationId: BigNumber
-  subjectId: BigNumber
-  attesterId: BigNumber
-  requesterId: BigNumber
-  dataHash: string
-  typeIds: BigNumber[]
-  stakeValue: BigNumber
-  expiresAt: BigNumber
-}
-
 export const sendAttestTx = async (
   attestationParams: IAttestParams,
   gasPrice: string
 ) => {
   serverLogger.info(`Sending attest transaction for ${attestationParams.subject}`)
-  attestationParams.typeIds = attestationParams.typeIds.sort((a: number, b: number) => a - b)
   serverLogger.debug(
     `[sendAttestTx] attestationParams: ${JSON.stringify(attestationParams)}`
   )
@@ -39,7 +26,7 @@ export const sendAttestTx = async (
     })}`
   )
 
-  const {logs} = ((await attestationLogic.attest(
+  const txHash = await attestationLogic.attest.sendTransaction(
     attestationParams.subject,
     attestationParams.requester,
     attestationParams.reward,
@@ -52,20 +39,14 @@ export const sendAttestTx = async (
       gasPrice: new BigNumber(gasPrice).toNumber(),
       gas: 1000000,
     }
-  )) as Web3.TransactionReceipt<any>) as Web3.TransactionReceipt<IAttestEventArgs>
-
-  const matchingLog = logs.find(log => log.event === 'TraitAttested')
-  if (!matchingLog) {
-    throw new Error('Matching log not found')
-  }
-  return matchingLog
+  )
+  return txHash
 }
 
 export type TSendAttestParams = {
   subject: string
   requester: string
   reward: BigNumber
-  paymentNonce: string
   requesterSig: string
   dataHash: string
   requestNonce: string

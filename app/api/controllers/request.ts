@@ -50,7 +50,8 @@ export const create = async (req: any, res: any) => {
 
   const sessionId = uuid()
   const reward = new BigNumber(
-    Web3.prototype.toWei(req.body.reward, 'ether') // Note that the reward parameter is measured in whole BLT, >>> NOT in wei or gwei !!! <<<
+    // Note that the reward parameter is measured in whole BLT, >>> NOT in wei or gwei !!! <<<
+    Web3.prototype.toWei(req.body.reward, 'ether') 
   )
 
   await initiateSolicitation(

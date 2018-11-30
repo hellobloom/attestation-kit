@@ -42,7 +42,7 @@ export const signAttestForDelegation = (
   attestParams: IAttestParams,
   privKey: Buffer
 ) =>
-  ethSigUtil.signTypedDataLegacy(privKey, {
+  ethSigUtil.signTypedData(privKey, {
     data: getFormattedTypedDataAttestFor(
       contractAddress,
       1,

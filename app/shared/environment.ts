@@ -14,7 +14,6 @@ interface IEnvironmentConfig {
   bltAddress: string
   dbUrl: string
   nodeEnv: string
-  rinkebyAccountRegistryAddress: string
   rinkebyWeb3Provider: string
   sentryDSN: string
   skipValidations: boolean
@@ -23,7 +22,6 @@ interface IEnvironmentConfig {
   webhook_key: string
   whisperPollInterval?: number
   attestationContracts: {
-    repoAddress: string
     logicAddress: string
   }
   tokenEscrowMarketplace: {
@@ -204,14 +202,12 @@ export const env: IEnvironmentConfig = {
   bltAddress: envVar('BLT_ADDRESS'),
   dbUrl: envVar('PG_URL'),
   nodeEnv: envVar('NODE_ENV'),
-  rinkebyAccountRegistryAddress: envVar('RINKEBY_ACCOUNT_REGISTRY_ADDRESS'),
   rinkebyWeb3Provider: envVar('RINKEBY_WEB3_PROVIDER'),
   sentryDSN: envVar('SENTRY_DSN'),
   web3Provider: envVar('WEB3_PROVIDER'),
   webhook_host: envVar('WEBHOOK_HOST'),
   webhook_key: envVar('WEBHOOK_KEY'),
   attestationContracts: {
-    repoAddress: envVar('ATTESTATION_REPO_ADDRESS'),
     logicAddress: envVar('ATTESTATION_LOGIC_ADDRESS'),
   },
   logs: {
