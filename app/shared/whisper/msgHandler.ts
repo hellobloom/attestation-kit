@@ -44,6 +44,14 @@ export interface IMessageDecision {
   persist: TPersistData | null
 }
 
+export const getTopic = (at: TWhisperEntity) => {
+  var name = `${env.whisper.topicPrefix}-${at}`
+  var camelName = name.replace(/-([a-z])/g, function(g) {
+    return g[1].toUpperCase()
+  })
+  return camelName
+}
+
 const handleUnknownMessageType: TMsgHandler = async (
   message: IBloomWhisperMessage,
   messageTopic: string

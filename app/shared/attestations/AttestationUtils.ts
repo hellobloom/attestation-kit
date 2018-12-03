@@ -1,10 +1,15 @@
-import {AttestationTypeID, AttestationTypeIDs} from '@bloomprotocol/attestations-lib'
+import {
+  AttestationTypeID,
+  AttestationTypes,
+  AttestationTypeIDs,
+} from '@bloomprotocol/attestations-lib'
 import {EmailAttestationStatus} from '@shared/attestations/EmailAttestationStatus'
 import {CognitoSMSStatus} from '@shared/attestations/CognitoSMSStatus'
 import {GenericAttestationStatus} from '@shared/AttestationStatus'
 import {invert} from 'lodash'
 import {env} from '@shared/environment'
 import {toTopic} from '@shared/whisper'
+import {getTopic, TWhisperEntity} from '@shared/whisper/msgHandler'
 import {includes} from 'lodash'
 
 export function getTypedPendingStatus(
@@ -21,15 +26,26 @@ export function getTypedPendingStatus(
   }
 }
 
-export const topicToAttestationType = invert(env.whisper.topics)
-
 export const topicsHashed = {}
 export const hashedToUnhashedTopics = {}
 
-Object.keys(env.whisper.topics).forEach(k => {
-  topicsHashed[k] = toTopic(env.whisper.topics[k].toString())
-  hashedToUnhashedTopics[topicsHashed[k]] = env.whisper.topics[k]
+const extraTopicTypes: Array<TWhisperEntity> = ['ping', 'requester']
+const attestationTopicTypes: Array<TWhisperEntity> = Object.keys(
+  AttestationTypes
+) as Array<TWhisperEntity>
+
+var allTopicTypes: Array<TWhisperEntity> = extraTopicTypes.concat(
+  attestationTopicTypes
+)
+
+allTopicTypes.forEach(k => {
+  let topic = getTopic(k)
+  topicsHashed[k] = toTopic(topic)
+  hashedToUnhashedTopics[topicsHashed[k]] = topic
 })
+
+console.log('topicsHashed', JSON.stringify(topicsHashed))
+console.log('hashedToUnhashedTopics', JSON.stringify(hashedToUnhashedTopics))
 
 export const hashedTopicToAttestationType = invert(topicsHashed)
 

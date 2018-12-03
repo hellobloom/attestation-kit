@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv'
 import {BigNumber as bn} from 'bignumber.js'
 import {toBuffer} from 'ethereumjs-util'
+import {AttestationTypeID} from '@bloomprotocol/attestations-lib'
 
 dotenv.config()
 
@@ -8,9 +9,9 @@ interface IEnvironmentConfig {
   apiKey: string
   appId: string
   appPort: number
-  approved_attesters?: IAttestationTypesToArr
-  approved_requesters?: IAttestationTypesToArr
-  attester_rewards?: IAttestationTypesToStr
+  approved_attesters?: IAttestationTypesToArrAnyAll
+  approved_requesters?: IAttestationTypesToArrAnyAll
+  attester_rewards?: IAttestationTypesToStrAll
   bltAddress: string
   dbUrl: string
   nodeEnv: string
@@ -34,7 +35,7 @@ interface IEnvironmentConfig {
   whisper: {
     provider: string
     password: string
-    topics: IWhisperTopics
+    topicPrefix: string
     ping: {
       enabled: boolean
       interval: number
@@ -57,74 +58,21 @@ interface IEnvironmentConfig {
   }
 }
 
-export interface IAttestationTypesToArr {
-  any?: string
+export type TAtTypeAll = keyof typeof AttestationTypeID | 'all'
+
+export type TAttestationTypesToArr = {
+  [P in keyof typeof AttestationTypeID]?: Array<string>
+}
+
+export interface IAttestationTypesToArrAnyAll extends TAttestationTypesToArr {
+  any?: boolean
   all?: string[]
-  phone?: string[]
-  email?: string[]
-  'sanction-screen'?: string[]
-  facebook?: string[]
-  'pep-screen'?: string[]
-  'id-document'?: string[]
-  google?: string[]
-  linkedin?: string[]
-  twitter?: string[]
-  payroll?: string[]
-  ssn?: string[]
-  criminal?: string[]
-  offense?: string[]
-  driving?: string[]
-  employment?: string[]
-  education?: string[]
-  drug?: string[]
-  bank?: string[]
-  utility?: string[]
 }
 
-export interface IAttestationTypesToStr {
+export type TAttestationTypesToStr = {[P in keyof typeof AttestationTypeID]?: string}
+
+export interface IAttestationTypesToStrAll {
   all?: string
-  phone?: string
-  email?: string
-  'sanction-screen'?: string
-  facebook?: string
-  'pep-screen'?: string
-  'id-document'?: string
-  google?: string
-  linkedin?: string
-  twitter?: string
-  payroll?: string
-  ssn?: string
-  criminal?: string
-  offense?: string
-  driving?: string
-  employment?: string
-  education?: string
-  drug?: string
-  bank?: string
-  utility?: string
-}
-
-interface IWhisperTopics {
-  ping: string
-  phone: string
-  email: string
-  'sanction-screen': string
-  facebook: string
-  'pep-screen': string
-  'id-document': string
-  google: string
-  linkedin: string
-  twitter: string
-  payroll: string
-  ssn: string
-  criminal: string
-  offense: string
-  driving: string
-  employment: string
-  education: string
-  drug: string
-  bank: string
-  utility: string
 }
 
 type TEnvType = 'string' | 'json' | 'int' | 'float' | 'bool' | 'buffer' | 'bn'
@@ -187,10 +135,12 @@ const envVar = (
 }
 
 // Topics shouldn't be number but string
-const topics: any = envVar('WHISPER_TOPICS', 'json')
+/* 
+ * const topics: any = envVar('WHISPER_TOPICS', 'json')
 ;(Object as any).keys(topics).forEach((k: string) => {
   topics[k] = topics[k].toString()
 })
+*/
 
 export const env: IEnvironmentConfig = {
   apiKey: envVar('API_KEY_SHA256'),
@@ -228,7 +178,7 @@ export const env: IEnvironmentConfig = {
   whisper: {
     provider: envVar('WHISPER_PROVIDER'),
     password: envVar('WHISPER_PASSWORD'),
-    topics: topics,
+    topicPrefix: envVar('WHISPER_TOPIC_PREFIX'),
     ping: {
       enabled: envVar('WHISPER_PING_ENABLED', 'bool', false), // Defaults to false if not specified
       interval: envVar('WHISPER_PING_INTERVAL', 'string', false, '1 minute'), // PostgreSQL interval - Defaults to 1 min if not specified

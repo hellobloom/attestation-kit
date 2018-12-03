@@ -9,6 +9,7 @@ import {env} from '@shared/environment'
 import {toBuffer} from 'ethereumjs-util'
 // import {MessageSubscribers} from '@shared/whisper/subscriptionHandler'
 import {toTopic} from '@shared/whisper'
+import {getTopic} from '@shared/whisper/msgHandler'
 import * as Wallet from 'ethereumjs-wallet'
 
 const zeroReward = new BigNumber(0).toString(10)
@@ -54,7 +55,7 @@ describe('Handling bid', () => {
   it('Accepts a valid sms bid', async () => {
     Negotiation.findOne = jest.fn(() => ({
       initialReward: new BigNumber(0),
-      attestationTopic: toBuffer(toTopic(env.whisper.topics.phone)),
+      attestationTopic: toBuffer(toTopic(getTopic('phone'))),
     }))
     WhisperFilters.findOne = jest.fn(() => ({
       entity: 'phone',
@@ -78,7 +79,7 @@ describe('Handling bid', () => {
   it('Accepts a valid email bid', async () => {
     Negotiation.findOne = jest.fn(() => ({
       initialReward: new BigNumber(0),
-      attestationTopic: toBuffer(toTopic(env.whisper.topics.email)),
+      attestationTopic: toBuffer(toTopic(getTopic('email'))),
     }))
     const decision = await handleAttestationBid(
       attestationBid,
@@ -99,7 +100,7 @@ describe('Handling bid', () => {
   it('Rejects a bid with the wrong reward', async () => {
     Negotiation.findOne = jest.fn(() => ({
       initialReward: new BigNumber(2),
-      attestationTopic: toBuffer(toTopic(env.whisper.topics.phone)),
+      attestationTopic: toBuffer(toTopic(getTopic('phone'))),
     }))
     WhisperFilters.findOne = jest.fn(() => ({
       entity: 'phone',
@@ -147,7 +148,7 @@ describe('Handling bid', () => {
   it('Rejects a bid with an unapproved attester', async () => {
     Negotiation.findOne = jest.fn(() => ({
       initialReward: new BigNumber(0),
-      attestationTopic: toBuffer(toTopic(env.whisper.topics.phone)),
+      attestationTopic: toBuffer(toTopic(getTopic('phone'))),
     }))
     WhisperFilters.findOne = jest.fn(() => ({entity: 'email'}))
     const decision = await handleAttestationBid(attestationBid, 'testTopic')
@@ -167,7 +168,7 @@ describe('Handling bid', () => {
   it('Rejects a bid if attester sig does not match attester address', async () => {
     Negotiation.findOne = jest.fn(() => ({
       initialReward: new BigNumber(0),
-      attestationTopic: toBuffer(toTopic(env.whisper.topics.phone)),
+      attestationTopic: toBuffer(toTopic(getTopic('phone'))),
     }))
     const decision = await handleAttestationBid(invalidAttestationBid, 'testTopic')
     expect(decision).toHaveProperty('unsubscribeFrom')
