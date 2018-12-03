@@ -33,11 +33,13 @@ ADD . /app
 USER root
 RUN rm -f /app/build/api.js /app/build/worker.js /app/build/whisperWorker.js
 RUN cp /app/supervisord.conf /etc/supervisord.conf
+RUN chown -R ubuntu /vol/app-logs /app
 
 # INITIALIZE APP
 USER ubuntu
 WORKDIR /app
 RUN /app/bin/docker-cleanup-env
+RUN ls -la yarn.lock
 RUN yarn
 RUN /app/bin/build
 

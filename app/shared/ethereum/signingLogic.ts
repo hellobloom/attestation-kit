@@ -1,6 +1,7 @@
 const ethSigUtil = require('eth-sig-util')
 import {HashingLogic} from '@bloomprotocol/attestations-lib'
 import { IAttestParams } from '@shared/attestations/validateAttestParams'
+import { toBuffer } from 'ethereumjs-util';
 
 interface ITypedDataParam {
   type: string
@@ -28,7 +29,7 @@ export const signAttestationRequest = (
   requestNonce: string,
   privKey: Buffer
 ) =>
-  ethSigUtil.signTypedDataLegacy(privKey, {
+  ethSigUtil.signTypedData(privKey, {
     data: HashingLogic.getAttestationAgreement(
       contractAddress,
       1,
@@ -67,15 +68,10 @@ export const signPaymentAuthorization = (
   })
 
 export const signSessionID = (session: string, privKey: Buffer) =>
-  ethSigUtil.signTypedDataLegacy(privKey, {
-    data: [{type: 'string', name: 'Session', value: session}],
-  })
+  HashingLogic.signHash(toBuffer(HashingLogic.hashMessage(session)), privKey)
 
 export const recoverSessionIDSig = (session: string, signature: string) =>
-  ethSigUtil.recoverTypedSignatureLegacy({
-    data: [{type: 'string', name: 'Session', value: session}],
-    sig: signature,
-  })
+  HashingLogic.recoverHashSigner(toBuffer(HashingLogic.hashMessage(session)), signature)
 
 export const getFormattedTypedDataPayTokens = (
   contractAddress: string,

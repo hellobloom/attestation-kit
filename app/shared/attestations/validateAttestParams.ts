@@ -4,7 +4,7 @@ import {uniq} from 'lodash'
 import {TUnvalidated} from '@shared/params/validation'
 import * as U from '@shared/utils'
 import {HashingLogic} from '@bloomprotocol/attestations-lib'
-import Attestation, { IAttestationDataJSONB } from '@shared/models/Attestations/Attestation'
+import { IAttestationDataJSONB } from '@shared/models/Attestations/Attestation'
 import BigNumber from 'bignumber.js'
 import {requiredField} from '@shared/requiredField'
 import {serverLogger} from '@shared/logger'
@@ -99,7 +99,7 @@ export const validatePaymentSig = (
 export const validateSubjectSig = (input: TUnvalidated<IAttestParams>) => (
   subjectSig: string
 ) => {
-  const recoveredETHAddress: string = ethSigUtil.recoverTypedSignatureLegacy({
+  const recoveredETHAddress: string = ethSigUtil.recoverTypedSignature({
     data: HashingLogic.getAttestationAgreement(
       env.attestationContracts.logicAddress,
       1,
