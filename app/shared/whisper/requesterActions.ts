@@ -27,10 +27,10 @@ import {
   ISendPaymentAuthorizationStore,
   PersistDataTypes,
 } from '@shared/whisper/persistDataHandler'
-import {actOnMessage, Entities} from '@shared/whisper/msgHandler'
+import {actOnMessage} from '@shared/whisper/msgHandler'
 import {serverLogger} from '@shared/logger'
 import {bidMatchesAsk, isApprovedAttester} from '@shared/whisper/validateMsg'
-import { HashingLogic } from '@bloomprotocol/attestations-lib'
+import {HashingLogic} from '@bloomprotocol/attestations-lib'
 
 export const initiateSolicitation = async (
   attestationId: string,
@@ -85,7 +85,7 @@ export const initiateSolicitation = async (
     Topic: topic,
     NegotiationSession: newSession,
   })
-  await actOnMessage(messageDecision, Entities.requester)
+  await actOnMessage(messageDecision, 'requester')
 }
 
 export const rejectAttestationBid = (

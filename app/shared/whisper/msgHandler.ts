@@ -30,8 +30,11 @@ import {
 import {serverLogger} from '@shared/logger'
 import {boss} from '@shared/jobs/boss'
 import {confirmRequesterFunds} from '@shared/whisper/validateMsg'
+import {AttestationTypeManifest} from '@bloomprotocol/attestations-lib'
 
-export enum Entities {
+export type TWhisperEntity = keyof AttestationTypeManifest | 'ping' | 'requester'
+
+/* export enum Entities {
   // Non-attestation entities
   ping = 'Ping',
   requester = 'Requester',
@@ -94,6 +97,7 @@ export const AttestationTypeToEntity = {
   'birth-date': Entities.birthdateAttester,
   gender: Entities.genderAttester,
 }
+ */
 
 export type TMsgHandler = (...args: any[]) => Promise<IMessageDecision | false>
 
@@ -270,7 +274,6 @@ export const actOnMessage = async (
     }
     // The situation does not currently exist where you subscribe to a broadcast and also send a message
   }
-
 }
 
 const actOnMessages = (messageDecisions: IMessageDecision[], entity: string) => {
@@ -292,7 +295,10 @@ const actOnMessages = (messageDecisions: IMessageDecision[], entity: string) => 
   })
 }
 
-export const handleMessages = async (entity: string, wallet: Wallet.Wallet) => {
+export const handleMessages = async (
+  entity: TWhisperEntity,
+  wallet: Wallet.Wallet
+) => {
   // Make sure attester is listening for solicitations
   let newMessages: Shh.Message[] = await fetchAllMessages(entity)
   let messageDecisions: IMessageDecision[] = []
