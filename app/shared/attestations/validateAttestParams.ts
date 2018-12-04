@@ -4,12 +4,10 @@ import {uniq} from 'lodash'
 import {TUnvalidated} from '@shared/params/validation'
 import * as U from '@shared/utils'
 import {HashingLogic} from '@bloomprotocol/attestations-lib'
-import { IAttestationDataJSONB } from '@shared/models/Attestations/Attestation'
 import BigNumber from 'bignumber.js'
 import {requiredField} from '@shared/requiredField'
 import {serverLogger} from '@shared/logger'
 const ethSigUtil = require('eth-sig-util')
-import {env} from '@shared/environment'
 import { getFormattedTypedDataPayTokens } from '@shared/ethereum/signingLogic'
 
 interface IInvalidParamError {
@@ -23,17 +21,6 @@ interface ISuccess {
 }
 
 export type TValidateAttestParamsOutput = IInvalidParamError | ISuccess
-
-export interface IUnvalidatedAttestParams {
-  subject: string
-  attester: string
-  requester: string
-  reward: BigNumber
-  requesterSig: string
-  data: IAttestationDataJSONB
-  requestNonce: string
-  subjectSig: string
-}
 
 export interface IAttestParams {
   attestationId: string
@@ -74,41 +61,47 @@ export const validateSignedAgreement = (
   )
   return recoveredEthAddress.toLowerCase() === attestParams.subject.toLowerCase()
 }
+
 export const validatePaymentSig = (
-  attestParams: TUnvalidated<IAttestParams>
-) => (requesterSig: string): boolean => {
-  serverLogger.info(`[validatePaymentSig] ${JSON.stringify(attestParams)}`)
+  tokenEscrowMarketplaceAddress: string,
+  payer: string,
+  payee: string,
+  reward: string,
+  requestNonce: string,
+  requesterSig: string
+
+): boolean => {
   const recoveredEthAddress = ethSigUtil.recoverTypedSignature({
     data: getFormattedTypedDataPayTokens(
-      attestParams.tokenEscrowMarketplaceAddress,
+      tokenEscrowMarketplaceAddress,
       1,
-      attestParams.requester,
-      attestParams.attester,
-      attestParams.reward.toString(10),
-      attestParams.requestNonce
+      payer,
+      payee,
+      reward,
+      requestNonce
     ),
-    sig: attestParams.requesterSig
+    sig: requesterSig
   })
   serverLogger.info(
-    `[validateSignedAgreement] recoveredEthAddress '${bufferToHex(
+    `[validatePaymentSig] recoveredEthAddress '${bufferToHex(
       recoveredEthAddress
     )}'`
   )
-  return recoveredEthAddress.toLowerCase() === attestParams.requester.toLowerCase()
+  return recoveredEthAddress.toLowerCase() === payer.toLowerCase()
 }
-export const validateSubjectSig = (input: TUnvalidated<IAttestParams>) => (
-  subjectSig: string
-) => {
-  const recoveredETHAddress: string = ethSigUtil.recoverTypedSignature({
-    data: HashingLogic.getAttestationAgreement(
-      env.attestationContracts.logicAddress,
-      1,
-      input.dataHash,
-      input.requestNonce
-    ),
-    sig: input.subjectSig,
-  })
-  return recoveredETHAddress.toLowerCase() === input.subject.toLowerCase()
+
+export const validateRequesterSig = (
+  attestParams: TUnvalidated<IAttestParams>
+) => (requesterSig: string): boolean => {
+  serverLogger.info(`[validatePaymentSig] ${JSON.stringify(attestParams)}`)
+  return validatePaymentSig(
+      attestParams.tokenEscrowMarketplaceAddress,
+      attestParams.requester,
+      attestParams.attester,
+      attestParams.reward.toString(10),
+      attestParams.requestNonce,
+      attestParams.requesterSig,
+  )
 }
 
 const validateParamsType = (
@@ -122,14 +115,20 @@ const validateParamsType = (
     ['subjectSig', validateSignedAgreement(data)],
     ['subject', U.isNotEmptyString],
     ['subject', isValidAddress],
+    ['attester', U.isNotEmptyString],
+    ['attester', isValidAddress],
     ['requester', U.isNotEmptyString],
     ['requester', isValidAddress],
+    ['reward', U.isValidReward],
     ['requesterSig', U.isNotEmptyString],
-    ['subjectSig', validateSignedAgreement(data)],
     ['requesterSig', U.isValidSignatureString],
-    ['requesterSig', validatePaymentSig(data)],
+    ['requesterSig', validateRequesterSig(data)],
     ['dataHash', U.isNotEmptyString],
     ['requestNonce', U.isNotEmptyString],
+    ['attestationLogicAddress', U.isNotEmptyString],
+    ['attestationLogicAddress', U.isNotEmptyString],
+    ['tokenEscrowMarketplaceAddress', isValidAddress],
+    ['tokenEscrowMarketplaceAddress', isValidAddress],
   ]
 
   const requiredFields = uniq(validations.map(([first]) => first))
@@ -157,29 +156,15 @@ const validateAttestationData = async (
     resolve(data)
   })
 
-const generateAttestParams = (
-  data: TUnvalidated<IUnvalidatedAttestParams>
-): TUnvalidated<IAttestParams> => {
-  return {
-    subject: data.subject,
-    attester: data.attester,
-    requester: data.requester,
-    reward: data.reward,
-    requesterSig: data.requesterSig,
-    requestNonce: data.requestNonce,
-    subjectSig: data.subjectSig,
-  }
-}
-
 export const validateAttestParams = async (
-  input: TUnvalidated<IUnvalidatedAttestParams>
+  input: TUnvalidated<IAttestParams>
 ): Promise<IInvalidParamError | {kind: 'validated'; data: IAttestParams}> => {
   try {
-    serverLogger.debug('Validating attestation params...')
-    const attestParams = generateAttestParams(input)
-    const validated = await validateAttestationData(attestParams)
+    serverLogger.debug(`Validating attestation params...${JSON.stringify(input)}`)
+    const validated = await validateAttestationData(input)
     return {kind: 'validated', data: validated}
   } catch (error) {
+    serverLogger.debug(`invalid param ${error}`)
     return {kind: 'invalid_param', message: error}
   }
 }

@@ -3,6 +3,7 @@ import {isString} from 'lodash'
 import * as EthU from 'ethereumjs-util'
 import * as wallet from 'ethereumjs-wallet'
 import {isNumber} from 'util'
+import * as BigNumber from 'bignumber.js'
 
 export const trimEmailInData = (data: {email?: any}): {email?: any} => {
   if (typeof data.email === 'string') {
@@ -39,6 +40,8 @@ export const isValidEmail = (email: string): boolean =>
 
 const isNotEmpty = (value: string) => value.replace(/\s+/g, '') !== ''
 export const isNotEmptyString = (value: any) => isString(value) && isNotEmpty(value)
+
+export const isValidReward = (value: BigNumber.BigNumber) => isString(value.toString()) && isNotEmpty(value.toString())
 
 export const isValidTimestamp = (value: any) =>
   isNumber(value) && value >= 0 && value <= new Date().getTime()
