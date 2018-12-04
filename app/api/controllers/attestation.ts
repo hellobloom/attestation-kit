@@ -147,7 +147,7 @@ export const receiveSignedAgreement: express.RequestHandler = async (req, res) =
     requesterSig: bufferToHex(attestation.paymentSig),
     dataHash: req.body.dataHash,
     requestNonce: req.body.nonce,
-    subjectSig: req.body.subjectSig,
+    subjectSig: req.body.signature,
     attestationLogicAddress: env.attestationContracts.logicAddress,
     tokenEscrowMarketplaceAddress: env.tokenEscrowMarketplace.address,
   }

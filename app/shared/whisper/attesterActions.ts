@@ -28,10 +28,11 @@ import {
 } from '@shared/whisper/persistDataHandler'
 import {rewardMatchesBid, isApprovedRequester} from '@shared/whisper/validateMsg'
 import {hashedTopicToAttestationType} from '@shared/attestations/AttestationUtils'
-import {env} from '@shared/environment'
 import * as Web3 from 'web3'
 import {AttestationStatus} from '@bloomprotocol/attestations-lib'
-import { notifyCollectData } from '@shared/webhookHandler'
+import {notifyCollectData} from '@shared/webhookHandler'
+import {validatePaymentSig} from '@shared/attestations/validateAttestParams'
+import {env} from '@shared/environment'
 
 export const listenForSolicitations = async (
   listeningTopic: string,
@@ -139,8 +140,18 @@ export const handlePaymentAuthorization: TMsgHandler = async (
   )
   const _isApprovedRequester = await isApprovedRequester(message)
   const _rewardMatchesBid = await rewardMatchesBid(message)
+  const _validatePaymentSig = await validatePaymentSig(
+    env.tokenEscrowMarketplace.address,
+    message.requester,
+    message.attester,
+    message.reward,
+    message.paymentNonce,
+    message.paymentSig
+  )
   serverLogger.info(
-    `_isApprovedRequester = ${_isApprovedRequester} _rewardMatchesBid = ${_rewardMatchesBid}`
+    `_isApprovedRequester = ${_isApprovedRequester} _rewardMatchesBid = ${_rewardMatchesBid}
+    _validatePaymentSig = ${_validatePaymentSig}
+    `
   )
   const attestation = await Attestation.findOne({
     where: {
@@ -162,7 +173,7 @@ export const handlePaymentAuthorization: TMsgHandler = async (
     status: AttestationStatus.ready,
   })
 
-  if (_isApprovedRequester && _rewardMatchesBid) {
+  if (_isApprovedRequester && _rewardMatchesBid && _validatePaymentSig) {
     await notifyCollectData(
       {
         status: attestation.status,

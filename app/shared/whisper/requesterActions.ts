@@ -119,7 +119,7 @@ const sendPaymentAuthorization = (
   )
 
   const paymentSig = signPaymentAuthorization(
-    env.attestationContracts.logicAddress,
+    env.tokenEscrowMarketplace.address,
     requesterWallet.getAddressString(),
     attesterAddress,
     message.rewardBid,
