@@ -156,6 +156,7 @@ export const receiveSignedAgreement: express.RequestHandler = async (req, res) =
   if (validationResult.kind === 'validated') {
     // Call attestation logic `attest` and webhook bloom-web with tx and more
     const bossInstance = await boss
+    Object.assign(attestParams, {gasPrice: req.body.gasPrice})
     bossInstance.publish('submit-attestation', attestParams)
 
     return res.status(200).json({success: true})
