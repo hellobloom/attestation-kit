@@ -15,7 +15,7 @@ import * as Shh from 'web3-shh'
 import * as Web3 from 'web3'
 import * as Wallet from 'ethereumjs-wallet'
 import {env} from '@shared/environment'
-import {fetchAllMessages} from '@shared/whisper'
+import {fetchAllMessages, TWhisperEntity} from '@shared/whisper'
 import {
   handleSolicitation,
   handlePaymentAuthorization,
@@ -30,9 +30,6 @@ import {
 import {serverLogger} from '@shared/logger'
 import {boss} from '@shared/jobs/boss'
 import {confirmRequesterFunds} from '@shared/whisper/validateMsg'
-import {AttestationTypeManifest} from '@bloomprotocol/attestations-lib'
-
-export type TWhisperEntity = keyof AttestationTypeManifest | 'ping' | 'requester'
 
 export type TMsgHandler = (...args: any[]) => Promise<IMessageDecision | false>
 
@@ -42,14 +39,6 @@ export interface IMessageDecision {
   respondTo: MessageSubscriber | null
   respondWith: TBloomMessage | null
   persist: TPersistData | null
-}
-
-export const getTopic = (at: TWhisperEntity) => {
-  var name = `${env.whisper.topicPrefix}-${at}`
-  var camelName = name.replace(/-([a-z])/g, function(g) {
-    return g[1].toUpperCase()
-  })
-  return camelName
 }
 
 const handleUnknownMessageType: TMsgHandler = async (

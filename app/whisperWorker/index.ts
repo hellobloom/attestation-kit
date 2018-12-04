@@ -2,7 +2,12 @@ import * as newrelic from 'newrelic'
 import * as Web3 from 'web3'
 import * as Raven from 'raven'
 import {env} from '@shared/environment'
-import {resetShh, newBroadcastSession} from '@shared/whisper'
+import {
+  resetShh,
+  newBroadcastSession,
+  TWhisperEntity,
+  getTopic,
+} from '@shared/whisper'
 import {
   attesterWallet,
   requesterWallet,
@@ -10,7 +15,7 @@ import {
 
 import {serverLogger} from '@shared/logger'
 
-import {handleMessages, TWhisperEntity, getTopic} from '@shared/whisper/msgHandler'
+import {handleMessages} from '@shared/whisper/msgHandler'
 
 import {listenForSolicitations} from '@shared/whisper/attesterActions'
 import {sendPings, handlePongMessages} from '@shared/whisper/ping'

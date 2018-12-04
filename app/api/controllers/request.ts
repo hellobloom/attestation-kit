@@ -6,8 +6,7 @@ import {initiateSolicitation} from '@shared/whisper/requesterActions'
 import {requesterWallet} from '@shared/attestations/attestationWallets'
 import {getAttestationTypeStr} from '@bloomprotocol/attestations-lib'
 import {toBuffer} from 'ethereumjs-util'
-import {toTopic} from '@shared/whisper'
-import {getTopic} from '@shared/whisper/msgHandler'
+import {toTopic, getTopic} from '@shared/whisper'
 const uuid = require('uuidv4')
 import * as Web3 from 'web3'
 

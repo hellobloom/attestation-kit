@@ -8,8 +8,7 @@ import {signSessionID} from '@shared/ethereum/signingLogic'
 import {env} from '@shared/environment'
 import {toBuffer} from 'ethereumjs-util'
 // import {MessageSubscribers} from '@shared/whisper/subscriptionHandler'
-import {toTopic} from '@shared/whisper'
-import {getTopic} from '@shared/whisper/msgHandler'
+import {toTopic, getTopic} from '@shared/whisper'
 import * as Wallet from 'ethereumjs-wallet'
 
 const zeroReward = new BigNumber(0).toString(10)

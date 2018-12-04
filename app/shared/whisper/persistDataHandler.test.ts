@@ -5,8 +5,7 @@ import {
   PersistDataTypes,
 } from '@shared/whisper/persistDataHandler'
 import BigNumber from 'bignumber.js'
-import {toTopic} from '@shared/whisper'
-import {getTopic} from '@shared/whisper/msgHandler'
+import {toTopic, getTopic} from '@shared/whisper'
 
 const solicitationUuid = uuid()
 const solicitationStore: ISolicitationStore = {
