@@ -19,6 +19,9 @@ export const sendAttestTx = async (
     `[sendAttestTx] attestationParams: ${JSON.stringify(attestationParams)}`
   )
   serverLogger.debug(
+    `[sendAttestTx] gasPrice: ${gasPrice}`
+  )
+  serverLogger.debug(
     `[sendAttestTx] attest transaction options: ${JSON.stringify({
       from: account.address,
       gasPrice: new BigNumber(gasPrice).toNumber(),
@@ -39,6 +42,9 @@ export const sendAttestTx = async (
       gasPrice: new BigNumber(gasPrice).toNumber(),
       gas: 1000000,
     }
+  )
+  serverLogger.debug(
+    `[sendAttestTx] txHash: ${txHash}`
   )
   return txHash
 }

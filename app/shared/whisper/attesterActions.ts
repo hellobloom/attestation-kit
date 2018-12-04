@@ -173,6 +173,8 @@ export const handlePaymentAuthorization: TMsgHandler = async (
     status: AttestationStatus.ready,
   })
 
+  serverLogger.info(`nonce ${attestation.paymentNonce}`)
+
   if (_isApprovedRequester && _rewardMatchesBid && _validatePaymentSig) {
     await notifyCollectData(
       {
