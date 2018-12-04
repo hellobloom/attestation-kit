@@ -1,6 +1,7 @@
 import {toBuffer} from 'ethereumjs-util'
 import {WhisperFilters} from '@shared/models'
 import {boss} from '@shared/jobs/boss'
+import {env} from '@shared/environment'
 
 export type MessageSubscriber = IBroadcastSubscriber | IDirectMessageSubscriber
 
@@ -24,6 +25,7 @@ export interface IDirectMessageSubscriber {
 export const unsubscribeFromTopic = async (topic: string) => {
   const filter = await WhisperFilters.findOne({
     where: {topic: toBuffer(topic)},
+    logging: env.logs.whisper.sql,
   })
   if (filter !== null) {
     const filterIDToRemove = filter.filterId

@@ -58,6 +58,7 @@ export const broadcastMessage = async (
     if (replyToTopic !== null) {
       const filter = await WhisperFilters.findOne({
         where: {topic: toBuffer(replyToTopic)},
+        logging: env.logs.whisper.sql,
       })
       if (filter !== null) {
         const keypairId = filter.keypairId
@@ -91,6 +92,7 @@ export const directMessage = async (
     if (replyToTopic !== null) {
       const filter = await WhisperFilters.findOne({
         where: {topic: toBuffer(replyToTopic)},
+        logging: env.logs.whisper.sql,
       })
       if (filter !== null) {
         const keypairId = filter.keypairId
@@ -124,6 +126,7 @@ export const newBroadcastSession = async (
     // Don't create duplicate filters for the same entity
     const filter = await WhisperFilters.findOne({
       where: {topic: toBuffer(newTopic), entity: entity},
+      logging: env.logs.whisper.sql,
     })
     if (filter !== null) {
       try {
@@ -158,6 +161,7 @@ export const newDirectMessageSession = async (newTopic: string, entity: string) 
     // Don't create duplicate filters for the same entity
     const filter = await WhisperFilters.findOne({
       where: {topic: toBuffer(newTopic), entity: entity},
+      logging: env.logs.whisper.sql,
     })
     if (filter !== null) {
       // Try to delete the filter. No way to just check if it works
@@ -186,6 +190,7 @@ export const endSession = async (filterId: string, keypairId: string) => {
   try {
     const filter = await WhisperFilters.findOne({
       where: {filterId: filterId},
+      logging: env.logs.whisper.sql,
     })
     if (filter !== null) {
       const filterIdToRemove = filter.filterId
