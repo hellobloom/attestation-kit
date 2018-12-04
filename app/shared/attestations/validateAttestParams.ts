@@ -83,7 +83,7 @@ export const validatePaymentSig = (
     sig: requesterSig
   })
   serverLogger.info(
-    `[validateSignedAgreement] recoveredEthAddress '${bufferToHex(
+    `[validatePaymentSig] recoveredEthAddress '${bufferToHex(
       recoveredEthAddress
     )}'`
   )
