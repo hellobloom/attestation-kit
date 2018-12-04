@@ -5,9 +5,19 @@ import {WhisperFilters} from '@shared/models'
 import {toBuffer} from 'ethereumjs-util'
 import {IBloomWhisperMessage} from '@shared/whisper/msgTypes'
 import {serverLogger} from '@shared/logger'
+import {AttestationTypeManifest} from '@bloomprotocol/attestations-lib'
+
+export type TWhisperEntity = keyof AttestationTypeManifest | 'ping' | 'requester'
 
 export const web3 = new Web3(new Web3.providers.HttpProvider(env.web3Provider))
 export const toTopic = (ascii: string) => web3.sha3(ascii).slice(0, 10)
+export const getTopic = (at: TWhisperEntity) => {
+  var name = `${env.whisper.topicPrefix}-${at}`
+  var camelName = name.replace(/-([a-z])/g, function(g) {
+    return g[1].toUpperCase()
+  })
+  return camelName
+}
 export var shh = new Shh(env.whisper.provider)
 
 export const resetShh = () => {

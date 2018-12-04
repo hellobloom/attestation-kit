@@ -2,7 +2,12 @@ import * as newrelic from 'newrelic'
 import * as Web3 from 'web3'
 import * as Raven from 'raven'
 import {env} from '@shared/environment'
-import {resetShh, newBroadcastSession} from '@shared/whisper'
+import {
+  resetShh,
+  newBroadcastSession,
+  TWhisperEntity,
+  getTopic,
+} from '@shared/whisper'
 import {
   attesterWallet,
   requesterWallet,
@@ -10,7 +15,7 @@ import {
 
 import {serverLogger} from '@shared/logger'
 
-import {handleMessages, AttestationTypeToEntity} from '@shared/whisper/msgHandler'
+import {handleMessages} from '@shared/whisper/msgHandler'
 
 import {listenForSolicitations} from '@shared/whisper/attesterActions'
 import {sendPings, handlePongMessages} from '@shared/whisper/ping'
@@ -30,9 +35,9 @@ if (env.whisper.ping.enabled) {
       return (
         existing ||
         newBroadcastSession(
-          toTopic(env.whisper.topics.ping),
+          toTopic(getTopic('ping')),
           env.whisper.ping.password,
-          AttestationTypeToEntity.ping
+          'ping'
         )
       )
     }
@@ -65,15 +70,16 @@ const main = async () => {
     }
 
     if (env.attester_rewards) {
-      Object.keys(env.attester_rewards).forEach(async (topic_name: string) => {
-        let hashed_topic = toTopic(env.whisper.topics[topic_name])
-        let entity: string = AttestationTypeToEntity[topic_name]
-        await listenForSolicitations(hashed_topic, password, entity)
-        await handleMessages(entity as string, attesterWallet)
-      })
+      Object.keys(env.attester_rewards).forEach(
+        async (topic_name: TWhisperEntity) => {
+          let hashed_topic = toTopic(getTopic(topic_name))
+          await listenForSolicitations(hashed_topic, password, topic_name)
+          await handleMessages(topic_name, attesterWallet)
+        }
+      )
     }
 
-    await handleMessages(AttestationTypeToEntity['requester'], requesterWallet)
+    await handleMessages('requester', requesterWallet)
   } catch (error) {
     Raven.captureException(error, {
       tags: {logger: 'whisper'},

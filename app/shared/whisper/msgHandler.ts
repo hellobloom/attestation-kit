@@ -15,7 +15,7 @@ import * as Shh from 'web3-shh'
 import * as Web3 from 'web3'
 import * as Wallet from 'ethereumjs-wallet'
 import {env} from '@shared/environment'
-import {fetchAllMessages} from '@shared/whisper'
+import {fetchAllMessages, TWhisperEntity} from '@shared/whisper'
 import {
   handleSolicitation,
   handlePaymentAuthorization,
@@ -30,70 +30,6 @@ import {
 import {serverLogger} from '@shared/logger'
 import {boss} from '@shared/jobs/boss'
 import {confirmRequesterFunds} from '@shared/whisper/validateMsg'
-
-export enum Entities {
-  // Non-attestation entities
-  ping = 'Ping',
-  requester = 'Requester',
-
-  // Actual attestation types
-  phoneAttester = 'PhoneAttester',
-  emailAttester = 'EmailAttester',
-  sanctionAttester = 'SanctionAttester',
-  facebookAttester = 'FacebookAttester',
-  pepAttester = 'PEPAttester',
-  idAttester = 'IDAttester',
-  linkedinAttester = 'LinkedinAttester',
-  googleAttester = 'GoogleAttester',
-  twitterAttester = 'TwitterAttester',
-  payrollAttester = 'PayrollAttester',
-  ssnAttester = 'SSNAttester',
-  criminalAttester = 'CriminalAttester',
-  offenseAttester = 'OffenseAttester',
-  drivingAttester = 'DrivingAttester',
-  employmentAttester = 'EmploymentAttester',
-  educationAttester = 'EducationAttester',
-  drugAttester = 'DrugAttester',
-  bankAttester = 'BankAttester',
-  utilityAttester = 'UtilityAttester',
-  incomeAttester = 'IncomeAttester',
-  assetsAttester = 'AssetsAttester',
-  fullnameAttester = 'FullnameAttester',
-  birthdateAttester = 'BirthdateAttester',
-  genderAttester = 'GenderAttester',
-}
-
-export const AttestationTypeToEntity = {
-  // Non-attestation entities
-  ping: Entities.ping,
-  requester: Entities.requester,
-
-  // Actual attestation types
-  phone: Entities.phoneAttester,
-  email: Entities.emailAttester,
-  'sanction-screen': Entities.sanctionAttester,
-  facebook: Entities.facebookAttester,
-  'pep-screen': Entities.pepAttester,
-  'id-document': Entities.idAttester,
-  google: Entities.googleAttester,
-  linkedin: Entities.linkedinAttester,
-  twitter: Entities.twitterAttester,
-  payroll: Entities.payrollAttester,
-  ssn: Entities.ssnAttester,
-  criminal: Entities.criminalAttester,
-  offense: Entities.offenseAttester,
-  driving: Entities.drivingAttester,
-  employment: Entities.employmentAttester,
-  education: Entities.educationAttester,
-  drug: Entities.drugAttester,
-  bank: Entities.bankAttester,
-  utility: Entities.utilityAttester,
-  income: Entities.incomeAttester,
-  assets: Entities.assetsAttester,
-  'full-name': Entities.fullnameAttester,
-  'birth-date': Entities.birthdateAttester,
-  gender: Entities.genderAttester,
-}
 
 export type TMsgHandler = (...args: any[]) => Promise<IMessageDecision | false>
 
@@ -270,7 +206,6 @@ export const actOnMessage = async (
     }
     // The situation does not currently exist where you subscribe to a broadcast and also send a message
   }
-
 }
 
 const actOnMessages = (messageDecisions: IMessageDecision[], entity: string) => {
@@ -292,7 +227,10 @@ const actOnMessages = (messageDecisions: IMessageDecision[], entity: string) => 
   })
 }
 
-export const handleMessages = async (entity: string, wallet: Wallet.Wallet) => {
+export const handleMessages = async (
+  entity: TWhisperEntity,
+  wallet: Wallet.Wallet
+) => {
   // Make sure attester is listening for solicitations
   let newMessages: Shh.Message[] = await fetchAllMessages(entity)
   let messageDecisions: IMessageDecision[] = []

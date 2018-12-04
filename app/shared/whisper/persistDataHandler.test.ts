@@ -5,8 +5,7 @@ import {
   PersistDataTypes,
 } from '@shared/whisper/persistDataHandler'
 import BigNumber from 'bignumber.js'
-import {toTopic} from '@shared/whisper'
-import {env} from '@shared/environment'
+import {toTopic, getTopic} from '@shared/whisper'
 
 const solicitationUuid = uuid()
 const solicitationStore: ISolicitationStore = {
@@ -16,7 +15,7 @@ const solicitationStore: ISolicitationStore = {
   topic: '0xa74846db',
   attestationId: 'df990a7f-92a9-4a0f-8491-c333d37178b5',
   negotiationSession: solicitationUuid,
-  attestationTopic: toTopic(env.whisper.topics.phone),
+  attestationTopic: toTopic(getTopic('phone')),
 }
 
 describe('Acting on solicitation', () => {

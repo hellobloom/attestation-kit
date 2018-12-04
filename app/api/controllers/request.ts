@@ -6,7 +6,7 @@ import {initiateSolicitation} from '@shared/whisper/requesterActions'
 import {requesterWallet} from '@shared/attestations/attestationWallets'
 import {getAttestationTypeStr} from '@bloomprotocol/attestations-lib'
 import {toBuffer} from 'ethereumjs-util'
-import {toTopic} from '@shared/whisper'
+import {toTopic, getTopic} from '@shared/whisper'
 const uuid = require('uuidv4')
 import * as Web3 from 'web3'
 
@@ -39,7 +39,7 @@ export const create = async (req: any, res: any) => {
     role: 'requester',
   })
 
-  if (typeof env.whisper.topics[attestation_type] === 'undefined') {
+  if (typeof getTopic(attestation_type) === 'undefined') {
     res.status(422).json({
       success: false,
       error: 'No topic configured for attestation type',
@@ -51,13 +51,13 @@ export const create = async (req: any, res: any) => {
   const sessionId = uuid()
   const reward = new BigNumber(
     // Note that the reward parameter is measured in whole BLT, >>> NOT in wei or gwei !!! <<<
-    Web3.prototype.toWei(req.body.reward, 'ether') 
+    Web3.prototype.toWei(req.body.reward, 'ether')
   )
 
   await initiateSolicitation(
     attestation.id,
     reward,
-    toTopic(env.whisper.topics[attestation_type].toString()),
+    toTopic(getTopic(attestation_type)),
     env.whisper.password,
     requesterWallet,
     sessionId

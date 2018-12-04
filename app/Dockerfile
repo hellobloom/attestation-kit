@@ -2,7 +2,7 @@ FROM ubuntu:16.04
 
 # BASE 
 RUN useradd -ms /bin/bash ubuntu
-RUN apt update && apt-get install -y software-properties-common apt-utils curl apt-transport-https openssh-server git
+RUN apt update && apt-get install -y software-properties-common apt-utils curl apt-transport-https openssh-server git nmap
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
