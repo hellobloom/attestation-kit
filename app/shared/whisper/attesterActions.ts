@@ -35,9 +35,11 @@ import {
   ExternalActionTypes,
 } from '@shared/whisper/externalActionHandler'
 import {hashedTopicToAttestationType} from '@shared/attestations/AttestationUtils'
+import {TAttestationDataJSONB} from '@shared/models/Attestation'
 import {env} from '@shared/environment'
+import axios from 'axios'
 import * as Web3 from 'web3'
-import {AttestationTypeID, HashingLogic} from '@bloomprotocol/attestations-lib'
+// import {AttestationTypeID, HashingLogic} from '@bloomprotocol/attestations-lib'
 
 export const listenForSolicitations = async (
   listeningTopic: string,
@@ -168,9 +170,10 @@ const startAttestation = (
     subjectData: message.subjectData,
     subjectRequestNonce: message.subjectRequestNonce,
     type: hashedTopicToAttestationType[messageTopic],
-    typeIds: message.subjectData.data.map(
+    typeIds: message.typeIds,
+    /* typeIds: message.subjectData.data.map(
       (a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]
-    ),
+    ), */
     subjectSignature: message.subjectSignature,
     paymentSignature: message.paymentSignature,
     paymentNonce: message.paymentNonce,
@@ -207,20 +210,50 @@ const startAttestation = (
   return decision
 }
 
+// Retrieve the subject data if the message instructs it to be retrieved over HTTPS out-of-band, and then return the modified message if so
+export const checkForMessageRetrieval = async (message: ISendJobDetails) => {
+  try {
+    let info = message.subjectData as any
+    if (info.dataHostedExternally) {
+      var dataObj
+      if (info.retrievalUrl) {
+        dataObj = (await axios.get(info.retrievalUrl)).data
+        if (info.deletionUrl) {
+          await axios.delete(info.deletionUrl)
+        }
+      } else {
+        var resourceUrl = `https://${info.nodeHost}/attestation_data/${
+          info.attestationDataId
+        }?passphrase=${info.passphrase}`
+        dataObj = (await axios.get(resourceUrl)).data
+        await axios.delete(resourceUrl)
+      }
+      message.subjectData = JSON.parse(dataObj.data)
+    }
+    return message
+  } catch (error) {
+    console.log(error)
+    throw new Error('Asynchronous data retrieval failed')
+  }
+}
+
 export const handleJobDetails: TMsgHandler = async (
   message: ISendJobDetails,
   messageTopic: string,
   attesterWallet: Wallet.Wallet
 ) => {
+  message = await checkForMessageRetrieval(message)
+
   try {
     let decision: IMessageDecision
     const _isApprovedRequester = await isApprovedRequester(message)
     const _rewardMatchesBid = await rewardMatchesBid(message)
     const _validateSubjectData = validateSubjectData(
-      message.subjectData,
-      message.subjectData.data.map(
+      message.subjectData as TAttestationDataJSONB,
+      message.typeIds
+      /* message.subjectData.data.map(
         (a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]
-      )
+      ) */
     )
     serverLogger.info(`validate output: ${_validateSubjectData}`)
 

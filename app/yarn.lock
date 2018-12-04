@@ -824,6 +824,19 @@ atob@^2.0.0:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/atob/-/atob-2.0.3.tgz#19c7a760473774468f20b2d2d03372ad7d4cbf5d"
 
+"attestations-lib@https://github.com/hellobloom/attestations-lib/releases/download/v0.2.1/attestations-lib-v0.2.1.tgz":
+  version "0.2.1"
+  resolved "https://github.com/hellobloom/attestations-lib/releases/download/v0.2.1/attestations-lib-v0.2.1.tgz#d2b77ee6107df3695f7fea6c41a3afa736573278"
+  dependencies:
+    "@types/lodash" "^4.14.116"
+    js-sha3 "^0.8.0"
+    lodash "^4.17.10"
+    merkletreejs "^0.0.10"
+    ts-node "^7.0.1"
+    tsconfig-paths "^3.5.0"
+    uuidv4 "^1.0.1"
+    web3-utils "^1.0.0-beta.36"
+
 autoprefixer@^6.3.1:
   version "6.7.7"
   resolved "https://registry.yarnpkg.com/autoprefixer/-/autoprefixer-6.7.7.tgz#1dbd1c835658e35ce3f9984099db00585c782014"
@@ -846,6 +859,14 @@ aws-sign2@~0.7.0:
 aws4@^1.2.1, aws4@^1.6.0:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.6.0.tgz#83ef5ca860b2b32e4a0deedee8c771b9db57471e"
+
+axios@^0.18.0:
+  version "0.18.0"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-0.18.0.tgz#32d53e4851efdc0a11993b6cd000789d70c05102"
+  integrity sha1-MtU+SFHv3AoRmTts0AB4nXDAUQI=
+  dependencies:
+    follow-redirects "^1.3.0"
+    is-buffer "^1.1.5"
 
 babel-code-frame@^6.22.0, babel-code-frame@^6.26.0:
   version "6.26.0"
@@ -2501,7 +2522,7 @@ date-now@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/date-now/-/date-now-0.1.4.tgz#eaf439fd4d4848ad74e5cc7dbef200672b9e345b"
 
-debug@*, debug@3.1.0, debug@^3.0.0, debug@^3.1.0:
+debug@*, debug@3.1.0, debug@=3.1.0, debug@^3.0.0, debug@^3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/debug/-/debug-3.1.0.tgz#5bb5a0672628b64149566ba16819e61518c67261"
   dependencies:
@@ -3601,6 +3622,12 @@ follow-redirects@^1.0.0:
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.5.0.tgz#234f49cf770b7f35b40e790f636ceba0c3a0ab77"
   dependencies:
     debug "^3.1.0"
+
+follow-redirects@^1.3.0:
+  version "1.5.8"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.5.8.tgz#1dbfe13e45ad969f813e86c00e5296f525c885a1"
+  dependencies:
+    debug "=3.1.0"
 
 for-each@^0.3.2, for-each@~0.3.2:
   version "0.3.2"
@@ -5884,6 +5911,15 @@ merkle-patricia-tree@^2.1.2:
     readable-stream "^2.0.0"
     rlp "^2.0.0"
     semaphore ">=1.0.1"
+
+merkletreejs@^0.0.10:
+  version "0.0.10"
+  resolved "https://registry.yarnpkg.com/merkletreejs/-/merkletreejs-0.0.10.tgz#c282e714d9db10b1ac2ac478b1dfae242e76e795"
+  integrity sha512-sxcnWhzm+dXAB4NWIx6olRE7euMV1eCL6L9Hyhe8cyz601n7l3jq8/uxAfcR6nBofFYy6k55Fe9etcUs7NznWg==
+  dependencies:
+    buffer-reverse "^1.0.1"
+    crypto-js "^3.1.9-1"
+    is-buffer "^2.0.3"
 
 merkletreejs@^0.0.11:
   version "0.0.11"

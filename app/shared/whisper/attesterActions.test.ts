@@ -1,22 +1,15 @@
 import * as newrelic from 'newrelic'
 const uuid = require('uuidv4')
 import BigNumber from 'bignumber.js'
-import {
-  handleSolicitation,
-  handleJobDetails,
-} from '@shared/whisper/attesterActions'
-import {
-  ISolicitation,
-  ISendJobDetails,
-  EMsgTypes,
-} from '@shared/whisper/msgTypes'
+import {handleSolicitation, handleJobDetails} from '@shared/whisper/attesterActions'
+import {ISolicitation, ISendJobDetails, EMsgTypes} from '@shared/whisper/msgTypes'
 import {NegotiationMsg} from '@shared/models'
 import {MessageSubscribers} from '@shared/whisper/subscriptionHandler'
 import {toBuffer, bufferToHex} from 'ethereumjs-util'
 import * as Wallet from 'ethereumjs-wallet'
 import {signSessionID, signPaymentAuthorization} from '@shared/ethereum/signingLogic'
-import {PersistDataTypes} from '@shared/whisper/persistDataHandler'
 import {signAttestationRequest} from '@shared/ethereum/signingLogic'
+import {PersistDataTypes} from '@shared/whisper/persistDataHandler'
 import {
   attesterWallet,
   requesterWallet,

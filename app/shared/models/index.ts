@@ -1,10 +1,11 @@
 import {Sequelize} from 'sequelize-typescript'
 import {env} from '@shared/environment'
 import * as config from '../../config/database'
-import Negotiation from '@shared/models/Attestations/Negotiation'
-import NegotiationMsg from '@shared/models/Attestations/NegotiationMsg'
-import WhisperFilters from '@shared/models/Attestations/WhisperFilters'
-import Attestation from '@shared/models/Attestations/Attestation'
+import Negotiation from '@shared/models/Negotiation'
+import NegotiationMsg from '@shared/models/NegotiationMsg'
+import WhisperFilters from '@shared/models/WhisperFilters'
+import Attestation from '@shared/models/Attestation'
+import AttestationData from '@shared/models/AttestationData'
 import GasPrice from '@shared/models/GasPrice'
 import Ping from '@shared/models/Ping'
 
@@ -30,6 +31,7 @@ sequelize.addModels([
   NegotiationMsg,
   WhisperFilters,
   Attestation,
+  AttestationData,
   GasPrice,
   Ping,
 ])
@@ -43,6 +45,7 @@ export {
   sequelize,
   WhisperFilters,
   Attestation,
+  AttestationData,
   GasPrice,
   Ping,
 }

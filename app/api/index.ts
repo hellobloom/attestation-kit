@@ -1,10 +1,12 @@
 import * as express from 'express'
 // import * as path from 'path'
 import {env} from '@shared/environment'
-import * as attCtrl from '@api/controllers/attestation'
-import * as reqCtrl from '@api/controllers/request'
 import {sha256} from 'ethereumjs-util'
 import * as bodyParser from 'body-parser'
+
+import * as attCtrl from '@api/controllers/attestation'
+import * as reqCtrl from '@api/controllers/request'
+import * as atDatCtrl from '@api/controllers/attestation_data'
 
 const app = express()
 
@@ -48,6 +50,9 @@ app.post('/api/requests/send', reqCtrl.sendjob)
 
 app.get('/api/attestations', attCtrl.show)
 app.post('/api/attestations', attCtrl.perform)
+
+app.get('/api/attestation_data/:attestation_data_id', atDatCtrl.show)
+app.delete('/api/attestation_data/:attestation_data_id', atDatCtrl.destroy)
 
 app.listen(13000, () => console.log('App listening on port 13000'))
 

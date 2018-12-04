@@ -5,6 +5,7 @@ import {toBuffer} from 'ethereumjs-util'
 dotenv.config()
 
 interface IEnvironmentConfig {
+  hostname: string
   apiKey: string
   appId: string
   appPort: number
@@ -185,6 +186,7 @@ const topics: any = envVar('WHISPER_TOPICS', 'json')
 })
 
 export const env: IEnvironmentConfig = {
+  hostname: envVar('HOSTNAME'),
   apiKey: envVar('API_KEY_SHA256'),
   appId: envVar('APP_ID', 'string', true), // Mark with something meaningful to indicate which environment, e.g., attestation-kit_dev_bob
   appPort: envVar('PORT', 'int', false, 3000),

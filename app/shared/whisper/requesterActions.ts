@@ -2,7 +2,11 @@ import * as newrelic from 'newrelic'
 const uuid = require('uuidv4')
 import BigNumber from 'bignumber.js'
 import * as Wallet from 'ethereumjs-wallet'
-import {toBuffer} from 'ethereumjs-util'
+import {bufferToHex, sha256, toBuffer} from 'ethereumjs-util'
+import {AttestationData} from '@shared/models'
+import {generateNonce} from '@shared/models/generateNonce'
+import {IDataRetrievalKit} from '@shared/models/Attestation'
+import {env} from '@shared/environment'
 
 import {
   IMessageDecision,
@@ -239,6 +243,28 @@ export const sendJobDetails = async (
       paymentNonce,
       requesterWallet.getPrivateKey()
     )
+
+    // Store the subject data in DB and send retrieval details if it's too big
+    let subjectDataString = JSON.stringify(jobDetails.data.data)
+    if (subjectDataString.length > 10000) {
+      var passphrase = generateNonce()
+        .toString(16)
+        .substr(0, 64)
+      const attData = await AttestationData.create({
+        attestationId: attestation.id,
+        challenge: bufferToHex(sha256(passphrase)),
+        messageType: 'storeSendJobDetails',
+        datatype: 'text',
+        dtext: subjectDataString,
+      })
+      const dataRetrievalInstructions: IDataRetrievalKit = {
+        dataHostedExternally: true,
+        nodeHost: env.hostname,
+        attestationDataId: attData.id,
+        passphrase: passphrase,
+      }
+      jobDetails.data.data = dataRetrievalInstructions
+    }
 
     const messageResponse: ISendJobDetails = {
       messageType: EMsgTypes.sendJobDetails,

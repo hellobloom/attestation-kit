@@ -1,4 +1,7 @@
-import {IAttestationDataJSONB} from '@shared/models/Attestations/Attestation'
+import {
+  TAttestationDataJSONB,
+  TUnresolvedAttestationData,
+} from '@shared/models/Attestation'
 
 export enum EMsgTypes {
   ping = 'ping',
@@ -70,7 +73,7 @@ export interface ISubmitSubjectData extends IBloomWhisperResponse {
 export interface ISendJobDetails extends IBloomWhisperResponse {
   messageType: EMsgTypes.sendJobDetails
   reward: string
-  subjectData: IAttestationDataJSONB
+  subjectData: TUnresolvedAttestationData | TAttestationDataJSONB
   subjectRequestNonce: string
   typeIds: number[]
   subjectAddress: string

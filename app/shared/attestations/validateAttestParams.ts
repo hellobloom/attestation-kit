@@ -4,8 +4,8 @@ import {uniq} from 'lodash'
 import {TUnvalidated} from '@shared/params/validation'
 import * as U from '@shared/utils'
 import {getFormattedTypedDataReleaseTokensLegacy} from '@shared/ethereum/signingLogic'
+import {TAttestationDataJSONB} from '@shared/models/Attestation'
 import {AttestationTypeID, HashingLogic} from '@bloomprotocol/attestations-lib'
-import {IAttestationDataJSONB} from '@shared/models/Attestations/Attestation'
 import BigNumber from 'bignumber.js'
 import {requiredField} from '@shared/requiredField'
 import {serverLogger} from '@shared/logger'
@@ -30,7 +30,7 @@ export interface IUnvalidatedAttestParams {
   reward: BigNumber
   paymentNonce: string
   requesterSig: string
-  data: IAttestationDataJSONB
+  data: TAttestationDataJSONB
   types: AttestationTypeID[]
   requestNonce: string
   subjectSig: string
