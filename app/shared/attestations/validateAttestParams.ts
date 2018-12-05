@@ -40,6 +40,7 @@ export interface IAttestForParams extends IAttestParams {
 }
 
 export const validateSignedAgreement = (
+  subjectSig: string,
   attestParams: TUnvalidated<IAttestParams>
 ) => {
   serverLogger.info(`[validateSignedAgreement] ${JSON.stringify(attestParams)}`)
@@ -88,6 +89,7 @@ export const validatePaymentSig = (
 }
 
 export const validateRequesterSig = (
+  requesterSig: string,
   attestParams: TUnvalidated<IAttestParams>
 ) => {
   serverLogger.info(`[validatePaymentSig] ${JSON.stringify(attestParams)}`)
