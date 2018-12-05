@@ -77,7 +77,11 @@ export const handlePongMessages = async (wf: WhisperFilters, web3: Web3) => {
   try {
     wPings = await shh.getFilterMessages(wf.filterId)
   } catch (err) {
-    alertWhisperError(err)
+    if (err.message.indexOf('filter not found') !== -1) {
+      wf.destroy()
+    } else {
+      alertWhisperError(err)
+    }
     return
   }
   let pings = await Ping.findAll({
