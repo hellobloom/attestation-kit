@@ -123,21 +123,3 @@ export const validateAttestParams = genValidateFn([
     ['tokenEscrowMarketplaceAddress', isValidAddress, false],
     ['tokenEscrowMarketplaceAddress', isValidAddress, false],
 ])
-
-export const validateAttestParamsLegacy = genValidateFn([
-    ['subjectSig', U.isValidSignatureString, false],
-    ['subjectSig', validateSignedAgreement, true],
-    ['subject', U.isNotEmptyString, false],
-    ['subject', isValidAddress, false],
-    ['attester', U.isNotEmptyString, false],
-    ['attester', isValidAddress, false],
-    ['requester', U.isNotEmptyString, false],
-    ['requester', isValidAddress, false],
-    ['reward', U.isZeroReward, false],
-    ['dataHash', U.isNotEmptyString, false],
-    ['requestNonce', U.isNotEmptyString, false],
-    ['attestationLogicAddress', U.isNotEmptyString, false],
-    ['attestationLogicAddress', U.isNotEmptyString, false],
-    ['tokenEscrowMarketplaceAddress', isValidAddress, false],
-    ['tokenEscrowMarketplaceAddress', isValidAddress, false],
-])

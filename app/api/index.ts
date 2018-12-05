@@ -49,7 +49,6 @@ app.post('/api/v2/requests', reqCtrl.create)
 
 app.post('/api/v2/submit-data', attCtrl.receiveSubjectData)
 app.post('/api/v2/submit-signed-agreement', attCtrl.receiveSignedAgreement)
-app.post('/api/v1/submit-signed-agreement', attCtrl.receiveSignedAgreement)
 
 app.get('/api/attestations', attCtrl.show)
 app.post('/api/attestations', attCtrl.perform)
