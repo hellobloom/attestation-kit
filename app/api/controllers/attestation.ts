@@ -111,7 +111,10 @@ export const receiveSubjectData: express.RequestHandler = async (req, res) => {
   return res.status(200).json({merkleTreeComponents})
 }
 
-export const receiveSignedAgreementSC: express.RequestHandler = async (req, res) => {
+export const receiveSignedAgreementSolo: express.RequestHandler = async (
+  req,
+  res
+) => {
   if (
     typeof req.body.subject !== 'string' ||
     typeof req.body.requester !== 'string' ||
