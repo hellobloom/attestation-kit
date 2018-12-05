@@ -1,4 +1,5 @@
 import * as newrelic from 'newrelic'
+
 import * as Raven from 'raven'
 import {env} from '@shared/environment'
 import {serverLogger} from '@shared/logger'
@@ -76,7 +77,7 @@ export const handlePongMessages = async (wf: WhisperFilters, web3: Web3) => {
   try {
     wPings = await shh.getFilterMessages(wf.filterId)
   } catch (err) {
-    alertWhisperError()
+    alertWhisperError(err)
     return
   }
   let pings = await Ping.findAll({
@@ -120,13 +121,13 @@ export const handlePongMessages = async (wf: WhisperFilters, web3: Web3) => {
   }
 }
 
-const alertWhisperError = () => {
-  const alertMessage = `Connection to Whisper failed`
+const alertWhisperError = (err: any) => {
+  const alertMessage = err || new Error(`Connection to Whisper failed`)
   newrelic.recordCustomEvent('', {
     Action: 'WhisperConnectionFailed',
     AppID: env.appId,
   })
-  Raven.captureException(new Error(alertMessage), {
+  Raven.captureException(alertMessage, {
     tags: {logger: 'whisper', appId: env.appId},
   })
   serverLogger.error(alertMessage)
