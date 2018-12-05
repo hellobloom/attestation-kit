@@ -59,7 +59,7 @@ export const submitAttestation = async (job: any) => {
         }
       } catch (err) {
         newrelic.recordCustomEvent('ContractError', {
-          Action: 'VoteForFailed',
+          Action: 'SubmitAttestationFailed',
           error: JSON.stringify(err),
         })
       }

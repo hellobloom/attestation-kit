@@ -1,7 +1,7 @@
 const ethSigUtil = require('eth-sig-util')
 import {HashingLogic} from '@bloomprotocol/attestations-lib'
 import { IAttestParams } from '@shared/attestations/validateAttestParams'
-import { toBuffer } from 'ethereumjs-util';
+import { toBuffer } from 'ethereumjs-util'
 
 interface ITypedDataParam {
   type: string

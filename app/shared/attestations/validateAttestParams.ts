@@ -1,14 +1,13 @@
 import {isValidAddress, bufferToHex} from 'ethereumjs-util'
-import {uniq} from 'lodash'
 
 import {TUnvalidated} from '@shared/params/validation'
 import * as U from '@shared/utils'
 import {HashingLogic} from '@bloomprotocol/attestations-lib'
 import BigNumber from 'bignumber.js'
-import {requiredField} from '@shared/requiredField'
 import {serverLogger} from '@shared/logger'
 const ethSigUtil = require('eth-sig-util')
 import { getFormattedTypedDataPayTokens } from '@shared/ethereum/signingLogic'
+import { genValidateFn } from '@shared/validator'
 
 interface IInvalidParamError {
   kind: 'invalid_param'
@@ -40,11 +39,9 @@ export interface IAttestForParams extends IAttestParams {
   delegationSig: string
 }
 
-type TReject = (error: string) => void
-
 export const validateSignedAgreement = (
   attestParams: TUnvalidated<IAttestParams>
-) => (subjectSig: string): boolean => {
+) => {
   serverLogger.info(`[validateSignedAgreement] ${JSON.stringify(attestParams)}`)
   const recoveredEthAddress = ethSigUtil.recoverTypedSignature({
     data: 
@@ -92,7 +89,7 @@ export const validatePaymentSig = (
 
 export const validateRequesterSig = (
   attestParams: TUnvalidated<IAttestParams>
-) => (requesterSig: string): boolean => {
+) => {
   serverLogger.info(`[validatePaymentSig] ${JSON.stringify(attestParams)}`)
   return validatePaymentSig(
       attestParams.tokenEscrowMarketplaceAddress,
@@ -104,67 +101,41 @@ export const validateRequesterSig = (
   )
 }
 
-const validateParamsType = (
-  data: TUnvalidated<IAttestParams>,
-  reject: TReject
-): data is IAttestParams => {
-  type TValidation = [keyof typeof data, (value: any) => boolean]
+export const validateAttestParams = genValidateFn([
+    ['subjectSig', U.isValidSignatureString, false],
+    ['subjectSig', validateSignedAgreement, true],
+    ['subject', U.isNotEmptyString, false],
+    ['subject', isValidAddress, false],
+    ['attester', U.isNotEmptyString, false],
+    ['attester', isValidAddress, false],
+    ['requester', U.isNotEmptyString, false],
+    ['requester', isValidAddress, false],
+    ['reward', U.isValidReward, false],
+    ['requesterSig', U.isNotEmptyString, false],
+    ['requesterSig', U.isValidSignatureString, false],
+    ['requesterSig', validateRequesterSig, true],
+    ['dataHash', U.isNotEmptyString, false],
+    ['requestNonce', U.isNotEmptyString, false],
+    ['attestationLogicAddress', U.isNotEmptyString, false],
+    ['attestationLogicAddress', U.isNotEmptyString, false],
+    ['tokenEscrowMarketplaceAddress', isValidAddress, false],
+    ['tokenEscrowMarketplaceAddress', isValidAddress, false],
+])
 
-  const validations: TValidation[] = [
-    ['subjectSig', U.isValidSignatureString],
-    ['subjectSig', validateSignedAgreement(data)],
-    ['subject', U.isNotEmptyString],
-    ['subject', isValidAddress],
-    ['attester', U.isNotEmptyString],
-    ['attester', isValidAddress],
-    ['requester', U.isNotEmptyString],
-    ['requester', isValidAddress],
-    ['reward', U.isValidReward],
-    ['requesterSig', U.isNotEmptyString],
-    ['requesterSig', U.isValidSignatureString],
-    ['requesterSig', validateRequesterSig(data)],
-    ['dataHash', U.isNotEmptyString],
-    ['requestNonce', U.isNotEmptyString],
-    ['attestationLogicAddress', U.isNotEmptyString],
-    ['attestationLogicAddress', U.isNotEmptyString],
-    ['tokenEscrowMarketplaceAddress', isValidAddress],
-    ['tokenEscrowMarketplaceAddress', isValidAddress],
-  ]
-
-  const requiredFields = uniq(validations.map(([first]) => first))
-
-  if (!requiredFields.every(requiredField(reject, data))) return false
-
-  const allValidationsPassed = validations.every(([fieldName, validation]) => {
-    if (validation(data[fieldName])) {
-      return true
-    }
-    reject(`Invalid ${fieldName}`)
-    return false
-  })
-
-  return allValidationsPassed
-}
-
-const validateAttestationData = async (
-  data: TUnvalidated<IAttestParams>
-): Promise<IAttestParams> =>
-  new Promise<IAttestParams>(async (resolve, reject) => {
-    if (!validateParamsType(data, reject)) {
-      return
-    }
-    resolve(data)
-  })
-
-export const validateAttestParams = async (
-  input: TUnvalidated<IAttestParams>
-): Promise<IInvalidParamError | {kind: 'validated'; data: IAttestParams}> => {
-  try {
-    serverLogger.debug(`Validating attestation params...${JSON.stringify(input)}`)
-    const validated = await validateAttestationData(input)
-    return {kind: 'validated', data: validated}
-  } catch (error) {
-    serverLogger.debug(`invalid param ${error}`)
-    return {kind: 'invalid_param', message: error}
-  }
-}
+export const validateAttestParamsLegacy = genValidateFn([
+    ['subjectSig', U.isValidSignatureString, false],
+    ['subjectSig', validateSignedAgreement, true],
+    ['subject', U.isNotEmptyString, false],
+    ['subject', isValidAddress, false],
+    ['attester', U.isNotEmptyString, false],
+    ['attester', isValidAddress, false],
+    ['requester', U.isNotEmptyString, false],
+    ['requester', isValidAddress, false],
+    ['reward', U.isZeroReward, false],
+    ['dataHash', U.isNotEmptyString, false],
+    ['requestNonce', U.isNotEmptyString, false],
+    ['attestationLogicAddress', U.isNotEmptyString, false],
+    ['attestationLogicAddress', U.isNotEmptyString, false],
+    ['tokenEscrowMarketplaceAddress', isValidAddress, false],
+    ['tokenEscrowMarketplaceAddress', isValidAddress, false],
+])
