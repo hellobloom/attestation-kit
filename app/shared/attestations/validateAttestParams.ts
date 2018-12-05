@@ -93,6 +93,8 @@ export const validateRequesterSig = (
   attestParams: TUnvalidated<IAttestParams>
 ) => {
   serverLogger.info(`[validatePaymentSig] ${JSON.stringify(attestParams)}`)
+  // if no reward requesterSig does not need to be checked
+  if (attestParams.reward.toString() === '0') return true
   return validatePaymentSig(
       attestParams.tokenEscrowMarketplaceAddress,
       attestParams.requester,
@@ -114,7 +116,7 @@ export const validateAttestParams = genValidateFn([
     ['requester', isValidAddress, false],
     ['reward', U.isValidReward, false],
     ['requesterSig', U.isNotEmptyString, false],
-    ['requesterSig', U.isValidSignatureString, false],
+    ['requesterSig', U.isValidEthHexString, false],
     ['requesterSig', validateRequesterSig, true],
     ['dataHash', U.isNotEmptyString, false],
     ['requestNonce', U.isNotEmptyString, false],

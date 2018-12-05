@@ -143,3 +143,7 @@ export const requiredField = <T>(
   }
   return true
 }
+
+export const isValidEthHexString = (hexString: string): boolean => {
+  return hexString.slice(0, 2) === '0x'
+}
