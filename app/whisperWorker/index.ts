@@ -30,7 +30,7 @@ const toTopic = (ascii: string) => web3.sha3(ascii).slice(0, 10)
 const password = env.whisper.password
 
 const getPingFilter = async () => {
-  let existing = WhisperFilters.findOne({
+  let existing = await WhisperFilters.findOne({
     where: {entity: 'ping'},
     logging: env.logs.whisper.sql,
   })
