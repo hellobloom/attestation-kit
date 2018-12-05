@@ -3,7 +3,6 @@ import * as Web3 from 'web3'
 import * as Raven from 'raven'
 import {env} from '@shared/environment'
 import {
-  shh,
   resetShh,
   newBroadcastSession,
   TWhisperEntity,
