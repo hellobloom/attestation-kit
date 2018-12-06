@@ -8,6 +8,7 @@ import {getAttestationTypeStr} from '@bloomprotocol/attestations-lib'
 import {toBuffer} from 'ethereumjs-util'
 import {toTopic, getTopic} from '@shared/whisper'
 const uuid = require('uuidv4')
+const v = require('validator')
 import * as Web3 from 'web3'
 
 // list all requests
@@ -32,12 +33,14 @@ export const create = async (req: any, res: any) => {
   const attestation_type =
     req.body.attestation_type || getAttestationTypeStr(req.body.attestation_type_id)
 
-  const attestation = await m.Attestation.create({
+  const att: any = {
     subject: toBuffer(req.body.subject_eth_address),
     type: attestation_type,
     types: [req.body.attestation_type_id],
     role: 'requester',
-  })
+  }
+  if (req.body.id && v.isUUID(req.body.id)) att.id = req.body.id
+  const attestation = await m.Attestation.create(att)
 
   if (typeof getTopic(attestation_type) === 'undefined') {
     res.status(422).json({
