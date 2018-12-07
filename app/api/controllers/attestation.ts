@@ -10,7 +10,6 @@ import {
 } from '@bloomprotocol/attestations-lib'
 import {env} from '@shared/environment'
 import {toBuffer, bufferToHex} from 'ethereumjs-util'
-import {validateDateNodes} from '@shared/attestations/validations'
 import {Attestation} from '@shared/models'
 import {
   IAttestParams,
@@ -89,14 +88,6 @@ export const receiveSubjectData: express.RequestHandler = async (req, res) => {
   }
 
   const dataNodes: HashingLogic.IAttestation[] = req.body.dataNodes
-  const validationResult = validateDateNodes(dataNodes)
-  if (validationResult.length) {
-    return res.status(400).json({
-      success: false,
-      message: `Errors: ${validationResult.join('\n')}`,
-    })
-  }
-
   const attesterPrivateKey = toBuffer(env.owner.ethPrivKey)
   const merkleTreeComponents = HashingLogic.getSignedMerkleTreeComponents(
     dataNodes,
@@ -174,12 +165,6 @@ export const receiveSignedAgreementSolo: express.RequestHandler = async (
     })
   }
 }
-export interface ITxAttempt {
-  id: number
-  nonce: number
-  txHash: Buffer
-  tx_id: string
-}
 
 export const receiveSignedAgreement: express.RequestHandler = async (req, res) => {
   if (
@@ -243,10 +228,4 @@ export const receiveSignedAgreement: express.RequestHandler = async (req, res) =
       message: validationResult.message,
     })
   }
-}
-export interface ITxAttempt {
-  id: number
-  nonce: number
-  txHash: Buffer
-  tx_id: string
 }
