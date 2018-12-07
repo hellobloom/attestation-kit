@@ -92,7 +92,7 @@ export const confirmRequesterFunds = async (
   serverLogger.debug(
     `Got requester balance for ${requesterAddress}: ${balance.toString()}`
   )
-  if (balance.comparedTo(new BigNumber(data.rewardAsk)) === 1) {
+  if (balance.greaterThanOrEqualTo(new BigNumber(data.rewardAsk))) {
     return true
   } else {
     return false
