@@ -29,27 +29,22 @@ const toTopic = (ascii: string) => web3.sha3(ascii).slice(0, 10)
 
 const password = env.whisper.password
 
-if (env.whisper.ping.enabled) {
-  var pingFilterPromise = WhisperFilters.findOne({
+const getPingFilter = async () => {
+  let existing = await WhisperFilters.findOne({
     where: {entity: 'ping'},
     logging: env.logs.whisper.sql,
-  }).then((existing: WhisperFilters) => {
-    return (
-      existing ||
-      newBroadcastSession(
-        toTopic(getTopic('ping')),
-        env.whisper.ping.password,
-        'ping'
-      )
-    )
   })
+  return (
+    existing ||
+    newBroadcastSession(toTopic(getTopic('ping')), env.whisper.ping.password, 'ping')
+  )
 }
 
 const main = async () => {
   try {
     if (env.whisper.ping.enabled) {
       try {
-        const wf = await pingFilterPromise
+        const wf = await getPingFilter()
         if (wf) {
           console.log('Working with WhisperFilter', wf.filterId)
           try {

@@ -1,7 +1,7 @@
 import {env} from '@shared/environment'
 import fetch from 'node-fetch'
 import {serverLogger} from '@shared/logger'
-import { AttestationStatus } from '@bloomprotocol/attestations-lib'
+import {AttestationStatus} from '@bloomprotocol/attestations-lib'
 
 export const genHeaders = async (headers: any, str: string) => {
   return Object.assign({}, headers, {
@@ -34,8 +34,10 @@ interface INotifyCollect {
   negotiationId: string
 }
 
-export const notifyCollectData = async (attestation: INotifyCollect, version: string) => {
-  // EH TODO Decide if the endpoint name `prepare_attestation_sig` is still proper...
+export const notifyCollectData = async (
+  attestation: INotifyCollect,
+  version: string
+) => {
   await webhookRequest(`/api/${version}/webhooks/prepare_attestation_sig`, {
     attestation,
   })
