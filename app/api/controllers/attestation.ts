@@ -113,7 +113,8 @@ export const receiveSignedAgreementSolo: express.RequestHandler = async (
     typeof req.body.dataHash !== 'string' ||
     typeof req.body.nonce !== 'string' ||
     typeof req.body.signature !== 'string' ||
-    typeof req.body.gasPrice !== 'string'
+    typeof req.body.gasPrice !== 'string' ||
+    typeof req.body.network !== 'string'
   ) {
     return res.status(400).json({
       success: false,
@@ -153,7 +154,7 @@ export const receiveSignedAgreementSolo: express.RequestHandler = async (
   if (validationResult.kind === 'validated') {
     // Call attestation logic `attest` and webhook bloom-web with tx and more
     const bossInstance = await boss
-    Object.assign(attestParams, {gasPrice: req.body.gasPrice})
+    Object.assign(attestParams, {gasPrice: req.body.gasPrice, network: req.body.network})
     bossInstance.publish('submit-attestation', attestParams)
 
     return res.status(200).json({success: true})
@@ -174,7 +175,8 @@ export const receiveSignedAgreement: express.RequestHandler = async (req, res) =
     typeof req.body.dataHash !== 'string' ||
     typeof req.body.nonce !== 'string' ||
     typeof req.body.signature !== 'string' ||
-    typeof req.body.gasPrice !== 'string'
+    typeof req.body.gasPrice !== 'string' ||
+    typeof req.body.network !== 'string'
   ) {
     return res.status(400).json({
       success: false,
@@ -216,7 +218,7 @@ export const receiveSignedAgreement: express.RequestHandler = async (req, res) =
   if (validationResult.kind === 'validated') {
     // Call attestation logic `attest` and webhook bloom-web with tx and more
     const bossInstance = await boss
-    Object.assign(attestParams, {gasPrice: req.body.gasPrice})
+    Object.assign(attestParams, {gasPrice: req.body.gasPrice, network: req.body.network})
     bossInstance.publish('submit-attestation', attestParams)
 
     return res.status(200).json({success: true})
