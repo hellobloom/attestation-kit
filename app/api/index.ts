@@ -30,8 +30,8 @@ app.use(
 
 // kick out unauthenticated requests
 app.use((req, res, next) => {
-  var token_hash = sha256(req.headers.api_token as string).toString('hex')
-  if (token_hash !== env.apiKey) {
+  var tokenHash = sha256(req.headers.api_token as string).toString('hex')
+  if (tokenHash !== env.apiKey) {
     res.status(403).send('{"success":false,"message":"Unauthorized"}')
   } else {
     next()
@@ -44,10 +44,17 @@ app.get('/', (req, res) => {
 
 app.get('/api/requests', reqCtrl.show)
 app.post('/api/requests', reqCtrl.create)
-app.post('/api/requests/send', reqCtrl.sendjob)
+app.post('/api/v1/requests', reqCtrl.create)
+app.post('/api/v2/requests', reqCtrl.create)
+
+app.post('/api/v2/submit-data', attCtrl.receiveSubjectData)
+app.post('/api/v2/submit-signed-agreement', attCtrl.receiveSignedAgreement)
+app.post('/api/v2/submit-signed-agreement-solo', attCtrl.receiveSignedAgreementSolo)
 
 app.get('/api/attestations', attCtrl.show)
 app.post('/api/attestations', attCtrl.perform)
+
+// IP todo tx_mined and tx_failed?
 
 app.listen(13000, () => console.log('App listening on port 13000'))
 

@@ -7,7 +7,7 @@ import {recoverSessionIDSig} from '@shared/ethereum/signingLogic'
 import {
   IAttestationBid,
   ISolicitation,
-  ISendJobDetails,
+  IPaymentAuthorization,
 } from '@shared/whisper/msgTypes'
 import {checkEscrowBalance} from '@shared/attestations/attestationMarketplace'
 import {PersistDataTypes} from '@shared/whisper/persistDataHandler'
@@ -24,6 +24,8 @@ export const isApprovedAttester = async (
 
   const attesterAddress = recoverSessionIDSig(data.reSession, data.reSessionSigned)
 
+  console.log(`DEBUG IAA recovered: ${attesterAddress}`)
+
   return allowEntity(
     bufferToHex(attesterAddress),
     bufferToHex(negotiation.attestationTopic),
@@ -32,7 +34,7 @@ export const isApprovedAttester = async (
 }
 
 export const isApprovedRequester = async (
-  data: ISendJobDetails
+  data: IPaymentAuthorization
 ): Promise<boolean> => {
   const negotiation = await Negotiation.findOne({
     where: {id: data.negotiationSession},
@@ -63,7 +65,9 @@ export const bidMatchesAsk = async (data: IAttestationBid): Promise<boolean> => 
   }
 }
 
-export const rewardMatchesBid = async (data: ISendJobDetails): Promise<boolean> => {
+export const rewardMatchesBid = async (
+  data: IPaymentAuthorization
+): Promise<boolean> => {
   const bidMessage = await NegotiationMsg.findOne({
     where: {
       negotiationId: data.negotiationSession,
@@ -88,7 +92,7 @@ export const confirmRequesterFunds = async (
   serverLogger.debug(
     `Got requester balance for ${requesterAddress}: ${balance.toString()}`
   )
-  if (balance.comparedTo(new BigNumber(data.rewardAsk)) === 1) {
+  if (balance.greaterThanOrEqualTo(new BigNumber(data.rewardAsk))) {
     return true
   } else {
     return false

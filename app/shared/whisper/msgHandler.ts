@@ -3,10 +3,8 @@ import {
   TPersistData,
   storeSolicitation,
   storeAttestationBid,
-  storeAwaitSubjectData,
-  storeSendJobDetails,
-  storeStartAttestation,
   PersistDataTypes,
+  storeSendPaymentAuthorization,
 } from '@shared/whisper/persistDataHandler'
 import {
   TBloomMessage,
@@ -17,8 +15,11 @@ import * as Shh from 'web3-shh'
 import * as Web3 from 'web3'
 import * as Wallet from 'ethereumjs-wallet'
 import {env} from '@shared/environment'
-import {fetchAllMessages} from '@shared/whisper'
-import {handleSolicitation, handleJobDetails} from '@shared/whisper/attesterActions'
+import {fetchAllMessages, TWhisperEntity} from '@shared/whisper'
+import {
+  handleSolicitation,
+  handlePaymentAuthorization,
+} from '@shared/whisper/attesterActions'
 import {handleAttestationBid} from '@shared/whisper/requesterActions'
 import {
   MessageSubscriber,
@@ -28,71 +29,7 @@ import {
 } from '@shared/whisper/subscriptionHandler'
 import {serverLogger} from '@shared/logger'
 import {boss} from '@shared/jobs/boss'
-import {
-  TExternalAction,
-  ExternalActionTypes,
-  collectSubjectData,
-  performAttestation,
-} from '@shared/whisper/externalActionHandler'
 import {confirmRequesterFunds} from '@shared/whisper/validateMsg'
-
-export enum Entities {
-  // Non-attestation entities
-  ping = 'Ping',
-  requester = 'Requester',
-
-  // Actual attestation types
-  phoneAttester = 'PhoneAttester',
-  emailAttester = 'EmailAttester',
-  sanctionAttester = 'SanctionAttester',
-  facebookAttester = 'FacebookAttester',
-  pepAttester = 'PEPAttester',
-  idAttester = 'IDAttester',
-  linkedinAttester = 'LinkedinAttester',
-  googleAttester = 'GoogleAttester',
-  twitterAttester = 'TwitterAttester',
-  payrollAttester = 'PayrollAttester',
-  ssnAttester = 'SSNAttester',
-  criminalAttester = 'CriminalAttester',
-  offenseAttester = 'OffenseAttester',
-  drivingAttester = 'DrivingAttester',
-  employmentAttester = 'EmploymentAttester',
-  educationAttester = 'EducationAttester',
-  drugAttester = 'DrugAttester',
-  bankAttester = 'BankAttester',
-  utilityAttester = 'UtilityAttester',
-  incomeAttester = 'IncomeAttester',
-  assetsAttester = 'AssetsAttester',
-}
-
-export const AttestationTypeToEntity = {
-  // Non-attestation entities
-  ping: Entities.ping,
-  requester: Entities.requester,
-
-  // Actual attestation types
-  phone: Entities.phoneAttester,
-  email: Entities.emailAttester,
-  'sanction-screen': Entities.sanctionAttester,
-  facebook: Entities.facebookAttester,
-  'pep-screen': Entities.pepAttester,
-  'id-document': Entities.idAttester,
-  google: Entities.googleAttester,
-  linkedin: Entities.linkedinAttester,
-  twitter: Entities.twitterAttester,
-  payroll: Entities.payrollAttester,
-  ssn: Entities.ssnAttester,
-  criminal: Entities.criminalAttester,
-  offense: Entities.offenseAttester,
-  driving: Entities.drivingAttester,
-  employment: Entities.employmentAttester,
-  education: Entities.educationAttester,
-  drug: Entities.drugAttester,
-  bank: Entities.bankAttester,
-  utility: Entities.utilityAttester,
-  income: Entities.incomeAttester,
-  assets: Entities.assetsAttester,
-}
 
 export type TMsgHandler = (...args: any[]) => Promise<IMessageDecision | false>
 
@@ -102,7 +39,6 @@ export interface IMessageDecision {
   respondTo: MessageSubscriber | null
   respondWith: TBloomMessage | null
   persist: TPersistData | null
-  externalAction: TExternalAction | null
 }
 
 const handleUnknownMessageType: TMsgHandler = async (
@@ -115,7 +51,6 @@ const handleUnknownMessageType: TMsgHandler = async (
     respondTo: null,
     respondWith: null,
     persist: null,
-    externalAction: null,
   }
   newrelic.recordCustomEvent('WhisperEvent', {
     Action: 'EncounteredUnknownMessageType',
@@ -130,7 +65,9 @@ const handleMessage = async (
   entity: string,
   wallet: Wallet.Wallet
 ) => {
-  serverLogger.debug('Handling message', body)
+  const date = new Date()
+  serverLogger.debug(`${date}[handleMessage]`, JSON.stringify(body))
+  serverLogger.debug(`${date}[handleMessage] body.messageType = ${body.messageType}`)
   let messageDecision: IMessageDecision | false
   if (body.hasOwnProperty('messageType')) {
     switch (body.messageType) {
@@ -153,9 +90,13 @@ const handleMessage = async (
         serverLogger.debug('Handling attestation message')
         messageDecision = await handleAttestationBid(body, messageTopic, wallet)
         break
-      case EMsgTypes.sendJobDetails:
-        serverLogger.debug('Handling sendJobDetails message')
-        messageDecision = await handleJobDetails(body, messageTopic, wallet)
+      case EMsgTypes.paymentAuthorization:
+        serverLogger.info('Handling handlePaymentAuthorization message')
+        messageDecision = await handlePaymentAuthorization(
+          body,
+          messageTopic,
+          wallet
+        )
         break
       default:
         serverLogger.debug('Handling unknown message')
@@ -173,6 +114,9 @@ export const actOnMessage = async (
   messageDecision: IMessageDecision,
   entity: string
 ) => {
+  serverLogger.info(
+    'DEBUG [actOnMessage] ' + JSON.stringify({messageDecision, entity})
+  )
   if (messageDecision.persist !== null) {
     switch (messageDecision.persist.messageType) {
       case PersistDataTypes.storeSolicitation:
@@ -183,17 +127,9 @@ export const actOnMessage = async (
         serverLogger.debug('Acting on message, storeAttestationBid')
         await storeAttestationBid(messageDecision.persist)
         break
-      case PersistDataTypes.storeAwaitSubjectData:
-        serverLogger.debug('Acting on message, storeAwaitSubjectData')
-        await storeAwaitSubjectData(messageDecision.persist)
-        break
-      case PersistDataTypes.storeSendJobDetails:
-        serverLogger.debug('Acting on message, storeSendJobDetails')
-        await storeSendJobDetails(messageDecision.persist)
-        break
-      case PersistDataTypes.storeStartAttestation:
-        serverLogger.debug('Acting on message, storeStartAttestation')
-        await storeStartAttestation(messageDecision.persist)
+      case PersistDataTypes.storeSendPaymentAuthorization:
+        serverLogger.debug('Acting on message, storeSendPaymentAuthorization')
+        await storeSendPaymentAuthorization(messageDecision.persist)
         break
       default:
         break
@@ -270,19 +206,6 @@ export const actOnMessage = async (
     }
     // The situation does not currently exist where you subscribe to a broadcast and also send a message
   }
-
-  if (messageDecision.externalAction !== null) {
-    switch (messageDecision.externalAction.actionType) {
-      case ExternalActionTypes.awaitSubjectData:
-        await collectSubjectData(messageDecision.externalAction)
-        break
-      case ExternalActionTypes.performAttestation:
-        await performAttestation(messageDecision.externalAction)
-        break
-      default:
-        break
-    }
-  }
 }
 
 const actOnMessages = (messageDecisions: IMessageDecision[], entity: string) => {
@@ -296,13 +219,18 @@ const actOnMessages = (messageDecisions: IMessageDecision[], entity: string) => 
         Entity: entity,
       })
       serverLogger.warn('Encountered an error while acting on whisper messages', {
+        item,
+        entity,
         error,
       })
     }
   })
 }
 
-export const handleMessages = async (entity: string, wallet: Wallet.Wallet) => {
+export const handleMessages = async (
+  entity: TWhisperEntity,
+  wallet: Wallet.Wallet
+) => {
   // Make sure attester is listening for solicitations
   let newMessages: Shh.Message[] = await fetchAllMessages(entity)
   let messageDecisions: IMessageDecision[] = []
@@ -312,7 +240,9 @@ export const handleMessages = async (entity: string, wallet: Wallet.Wallet) => {
       try {
         serverLogger.info('Attempting to handle Whisper message', message.payload)
         serverLogger.info('Decoding Whisper message', web3.toAscii(message.payload))
-      } catch {}
+      } catch {
+        serverLogger.info('Failed to decode payload')
+      }
       const body: TBloomMessage = JSON.parse(web3.toAscii(message.payload))
       serverLogger.info('Decoded Whisper message...', body)
       const messageTopic: string = message.topic

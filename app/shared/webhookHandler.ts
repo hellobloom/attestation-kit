@@ -1,8 +1,7 @@
 import {env} from '@shared/environment'
 import fetch from 'node-fetch'
 import {serverLogger} from '@shared/logger'
-
-// import {primaryWallet} from '@shared/attestations/attestationWallets'
+import {AttestationStatus} from '@bloomprotocol/attestations-lib'
 
 export const genHeaders = async (headers: any, str: string) => {
   return Object.assign({}, headers, {
@@ -27,8 +26,21 @@ export const webhookRequest = async (action: string, params: any) => {
   return true
 }
 
-export const notifyCollectData = async (attestation: any) => {
-  await webhookRequest('/api/webhooks/prepare_attestation_sig', {attestation})
+interface INotifyCollect {
+  status: AttestationStatus
+  attester: string
+  requester: string
+  nonce: string
+  negotiationId: string
+}
+
+export const notifyCollectData = async (
+  attestation: INotifyCollect,
+  version: string
+) => {
+  await webhookRequest(`/api/${version}/webhooks/prepare_attestation_sig`, {
+    attestation,
+  })
 }
 
 export const notifyDoAttestation = async (
@@ -38,19 +50,5 @@ export const notifyDoAttestation = async (
   await webhookRequest('/api/webhooks/perform_attestation', {
     job_details: JSON.stringify(job_details),
     id: attestationId,
-  })
-}
-
-export const notifyAttestationCompleted = async (
-  attestation_id: string,
-  transaction_hash: string,
-  data_hash: string,
-  result: string
-) => {
-  await webhookRequest('/api/webhooks/attestation_completed', {
-    attestation_id,
-    transaction_hash,
-    data_hash,
-    result,
   })
 }

@@ -1,5 +1,3 @@
-import {IAttestationDataJSONB} from '@shared/models/Attestations/Attestation'
-
 export enum EMsgTypes {
   ping = 'ping',
   pong = 'pong',
@@ -17,7 +15,6 @@ export type TBloomMessage =
   | IPong
   | ISolicitation
   | IAttestationBid
-  | ISendJobDetails
   | IRequestPayment
   | IPaymentAuthorization
   | IAttestationSubmitted
@@ -60,25 +57,6 @@ export interface IAttestationBid extends IBloomWhisperResponse {
   rewardBid: string
 }
 
-// Message #3, accepting the bid and revealing subject information
-export interface ISubmitSubjectData extends IBloomWhisperResponse {
-  messageType: EMsgTypes.sendJobDetails
-  reward: string
-}
-
-// Message #3, accepting the bid and revealing subject information
-export interface ISendJobDetails extends IBloomWhisperResponse {
-  messageType: EMsgTypes.sendJobDetails
-  reward: string
-  subjectData: IAttestationDataJSONB
-  subjectRequestNonce: string
-  typeIds: number[]
-  subjectAddress: string
-  subjectSignature: string
-  paymentSignature: string
-  paymentNonce: string
-}
-
 // Message #4, notify requester the job has been completed and request payment
 export interface IRequestPayment extends IBloomWhisperResponse {
   messageType: EMsgTypes.requestPayment
@@ -88,9 +66,11 @@ export interface IRequestPayment extends IBloomWhisperResponse {
 // Message #5, send payment authorization to attester
 export interface IPaymentAuthorization extends IBloomWhisperResponse {
   messageType: EMsgTypes.paymentAuthorization
-  reward: string
+  attester: string
+  requester: string
   paymentNonce: string
   paymentSig: string
+  reward: string
 }
 
 // Message #6, Notify attestation is complete

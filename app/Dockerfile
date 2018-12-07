@@ -2,7 +2,7 @@ FROM ubuntu:16.04
 
 # BASE 
 RUN useradd -ms /bin/bash ubuntu
-RUN apt update && apt-get install -y software-properties-common apt-utils curl apt-transport-https openssh-server git
+RUN apt update && apt-get install -y software-properties-common apt-utils curl apt-transport-https openssh-server git nmap
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
@@ -33,11 +33,13 @@ ADD . /app
 USER root
 RUN rm -f /app/build/api.js /app/build/worker.js /app/build/whisperWorker.js
 RUN cp /app/supervisord.conf /etc/supervisord.conf
+RUN chown -R ubuntu /vol/app-logs /app
 
 # INITIALIZE APP
 USER ubuntu
 WORKDIR /app
 RUN /app/bin/docker-cleanup-env
+RUN ls -la yarn.lock
 RUN yarn
 RUN /app/bin/build
 

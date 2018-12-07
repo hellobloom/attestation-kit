@@ -4,18 +4,11 @@ import {toBuffer, bufferToHex} from 'ethereumjs-util'
 import {sequelize, Negotiation, NegotiationMsg} from '@shared/models'
 import {CognitoSMSStatus} from '@shared/attestations/CognitoSMSStatus'
 import {EmailAttestationStatus} from '@shared/attestations/EmailAttestationStatus'
-import {AttestationStatus, HashingLogic, AttestationTypeID} from '@bloomprotocol/attestations-lib'
+import {
+  AttestationStatus,
+  HashingLogic
+} from '@bloomprotocol/attestations-lib'
 import {PersistDataTypes} from '@shared/whisper/persistDataHandler'
-import {
-  TValidateJobDetailsOutput,
-  validateJobDetails,
-  IJobDetails,
-} from '@shared/attestations/validateJobDetails'
-import {
-  validateAttestParams,
-  TValidateAttestParamsOutput,
-  IUnvalidatedAttestParams,
-} from '@shared/attestations/validateAttestParams'
 
 export interface IEmailAttestationJSONB {
   data: Array<HashingLogic.IAttestationData>
@@ -25,16 +18,11 @@ export interface IEmailAttestationJSONB {
 
 export interface IPhoneAttestationJSONB {
   data: Array<HashingLogic.IAttestationData>
-  verificationCode?: string
-  verificationStatus?: CognitoSMSStatus
+  verificatiotatus?: CognitoSMSStatus
   cognitoProfile?: string
 }
 
-export interface IAttestationResult {
-  attestationId: number
-  decision?: number
-  certainty?: number
-}
+interface IAttestationResult {}
 
 export type AttestationRole = 'attester' | 'requester'
 
@@ -66,6 +54,12 @@ export default class Attestation extends Sequelize.Model<Attestation> {
 
   @Sequelize.Column({
     allowNull: true,
+    type: Sequelize.DataType.INTEGER,
+  })
+  tx_id: number
+
+  @Sequelize.Column({
+    allowNull: true,
     type: Sequelize.DataType.STRING,
   })
   type: string
@@ -94,6 +88,7 @@ export default class Attestation extends Sequelize.Model<Attestation> {
     this.setDataValue('data', value)
   }
 
+  // IP todo remove this column
   @Sequelize.Column({type: Sequelize.DataType.JSONB})
   get result() {
     return this.getDataValue('result')
@@ -160,52 +155,6 @@ export default class Attestation extends Sequelize.Model<Attestation> {
     )
   }
 
-  validateJobDetailsView(): IJobDetails {
-    return {
-      // Making sure the data prop only contains what the validate job details cares about
-      data: {
-        // Making sure the order of properties matches client side
-        data: this.data.data.map((d: HashingLogic.IAttestationData) => {
-          return {
-            type: d.type,
-            provider: d.provider,
-            data: d.data,
-            nonce: d.nonce,
-            version: d.version,
-          }
-        }),
-      },
-      requestNonce: this.requestNonce,
-      types: this.data.data.map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]),
-      subject: bufferToHex(this.subject),
-      subjectSig: bufferToHex(this.subjectSig),
-      attester: bufferToHex(this.attester),
-      requester: bufferToHex(this.requester),
-    }
-  }
-
-  /**
-   * Given (negotiationId), returns an Attestation model
-   * @param negotiationId Foreign key referencing Negotiations
-   */
-  static async findAndValidateJobDetails(
-    negotiationId: string,
-    role?: string
-  ): Promise<TValidateJobDetailsOutput> {
-    const where: any = {
-      negotiationId: negotiationId,
-    }
-    if (role) {
-      where.role = role
-    }
-    const attestation = await this.findOne({where})
-    if (attestation === null) {
-      return {kind: 'invalid_param', message: 'attestation null'}
-    }
-    const jobDetails = attestation.validateJobDetailsView()
-    return validateJobDetails(jobDetails)
-  }
-
   async reward(): Promise<BigNumber.BigNumber> {
     const negotiationId = this.negotiationId
     const bid = await NegotiationMsg.findOne({
@@ -220,40 +169,4 @@ export default class Attestation extends Sequelize.Model<Attestation> {
     return bid.bid
   }
 
-  attestParamsView = async (): Promise<IUnvalidatedAttestParams> => {
-    return {
-      subject: bufferToHex(this.subject),
-      attester: bufferToHex(this.attester),
-      requester: bufferToHex(this.requester),
-      reward: await this.reward(),
-      paymentNonce: this.paymentNonce,
-      requesterSig: bufferToHex(this.paymentSig),
-      data: {
-        // Making sure the order of properties matches client side
-        data: this.data.data.map((d: HashingLogic.IAttestationData) => {
-          return {
-            type: d.type,
-            provider: d.provider,
-            data: d.data,
-            nonce: d.nonce,
-            version: d.version,
-          }
-        }),
-      },
-      types: this.data.data.map((a: HashingLogic.IAttestationData) => AttestationTypeID[a.type]),
-      requestNonce: this.requestNonce,
-      subjectSig: bufferToHex(this.subjectSig),
-    }
-  }
-
-  /**
-   * Given (negotiationId), returns an Attestation model
-   * @param negotiationId Foreign key referencing Negotiations
-   */
-  async findAndValidateAttestParams(
-    negotiationId: string
-  ): Promise<TValidateAttestParamsOutput> {
-    const attestParams = await this.attestParamsView()
-    return validateAttestParams(attestParams)
-  }
 }

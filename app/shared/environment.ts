@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv'
 import {BigNumber as bn} from 'bignumber.js'
 import {toBuffer} from 'ethereumjs-util'
+import {AttestationTypeID} from '@bloomprotocol/attestations-lib'
 
 dotenv.config()
 
@@ -8,13 +9,12 @@ interface IEnvironmentConfig {
   apiKey: string
   appId: string
   appPort: number
-  approved_attesters?: IAttestationTypesToArr
-  approved_requesters?: IAttestationTypesToArr
-  attester_rewards?: IAttestationTypesToStr
+  approved_attesters?: IAttestationTypesToArrAnyAll
+  approved_requesters?: IAttestationTypesToArrAnyAll
+  attester_rewards?: IAttestationTypesToStrAll
   bltAddress: string
   dbUrl: string
   nodeEnv: string
-  rinkebyAccountRegistryAddress: string
   rinkebyWeb3Provider: string
   sentryDSN: string
   skipValidations: boolean
@@ -23,7 +23,6 @@ interface IEnvironmentConfig {
   webhook_key: string
   whisperPollInterval?: number
   attestationContracts: {
-    repoAddress: string
     logicAddress: string
   }
   tokenEscrowMarketplace: {
@@ -36,7 +35,7 @@ interface IEnvironmentConfig {
   whisper: {
     provider: string
     password: string
-    topics: IWhisperTopics
+    topicPrefix: string
     ping: {
       enabled: boolean
       interval: number
@@ -51,76 +50,29 @@ interface IEnvironmentConfig {
     }
     level?: string
   }
+  log_level?: string
+  txService?: {
+    address: string
+    key: string
+    webhookKeySha: string
+  }
 }
 
-export interface IAttestationTypesToArr {
-  any?: string
+export type TAtTypeAll = keyof typeof AttestationTypeID | 'all'
+
+export type TAttestationTypesToArr = {
+  [P in keyof typeof AttestationTypeID]?: Array<string>
+}
+
+export interface IAttestationTypesToArrAnyAll extends TAttestationTypesToArr {
+  any?: boolean
   all?: string[]
-  phone?: string[]
-  email?: string[]
-  'sanction-screen'?: string[]
-  facebook?: string[]
-  'pep-screen'?: string[]
-  'id-document'?: string[]
-  google?: string[]
-  linkedin?: string[]
-  twitter?: string[]
-  payroll?: string[]
-  ssn?: string[]
-  criminal?: string[]
-  offense?: string[]
-  driving?: string[]
-  employment?: string[]
-  education?: string[]
-  drug?: string[]
-  bank?: string[]
-  utility?: string[]
 }
 
-export interface IAttestationTypesToStr {
+export type TAttestationTypesToStr = {[P in keyof typeof AttestationTypeID]?: string}
+
+export interface IAttestationTypesToStrAll {
   all?: string
-  phone?: string
-  email?: string
-  'sanction-screen'?: string
-  facebook?: string
-  'pep-screen'?: string
-  'id-document'?: string
-  google?: string
-  linkedin?: string
-  twitter?: string
-  payroll?: string
-  ssn?: string
-  criminal?: string
-  offense?: string
-  driving?: string
-  employment?: string
-  education?: string
-  drug?: string
-  bank?: string
-  utility?: string
-}
-
-interface IWhisperTopics {
-  ping: string
-  phone: string
-  email: string
-  'sanction-screen': string
-  facebook: string
-  'pep-screen': string
-  'id-document': string
-  google: string
-  linkedin: string
-  twitter: string
-  payroll: string
-  ssn: string
-  criminal: string
-  offense: string
-  driving: string
-  employment: string
-  education: string
-  drug: string
-  bank: string
-  utility: string
 }
 
 type TEnvType = 'string' | 'json' | 'int' | 'float' | 'bool' | 'buffer' | 'bn'
@@ -158,6 +110,8 @@ const envVar = (
         return toBuffer(value)
       case 'bn':
         return new bn(value)
+      default:
+        throw new Error(`Unhandled type ${type}`)
     }
   } else {
     if (!value && typeof defaultVal !== 'undefined') return defaultVal
@@ -174,19 +128,23 @@ const envVar = (
         return value && toBuffer(value)
       case 'bn':
         return value && new bn(value)
+      default:
+        throw new Error(`Unhandled type ${type}`)
     }
   }
 }
 
 // Topics shouldn't be number but string
-const topics: any = envVar('WHISPER_TOPICS', 'json')
+/* 
+ * const topics: any = envVar('WHISPER_TOPICS', 'json')
 ;(Object as any).keys(topics).forEach((k: string) => {
   topics[k] = topics[k].toString()
 })
+*/
 
 export const env: IEnvironmentConfig = {
   apiKey: envVar('API_KEY_SHA256'),
-  appId: envVar('APP_ID', 'string', true), // Mark with something meaningful to indicate which environment, e.g., attestation-kit_dev_bob
+  appId: envVar('APP_ID', 'string', true), // e.g., attestation-kit_dev_bob
   appPort: envVar('PORT', 'int', false, 3000),
   approved_attesters: envVar('APPROVED_ATTESTERS', 'json', false),
   approved_requesters: envVar('APPROVED_REQUESTERS', 'json', false),
@@ -194,14 +152,12 @@ export const env: IEnvironmentConfig = {
   bltAddress: envVar('BLT_ADDRESS'),
   dbUrl: envVar('PG_URL'),
   nodeEnv: envVar('NODE_ENV'),
-  rinkebyAccountRegistryAddress: envVar('RINKEBY_ACCOUNT_REGISTRY_ADDRESS'),
   rinkebyWeb3Provider: envVar('RINKEBY_WEB3_PROVIDER'),
   sentryDSN: envVar('SENTRY_DSN'),
   web3Provider: envVar('WEB3_PROVIDER'),
   webhook_host: envVar('WEBHOOK_HOST'),
   webhook_key: envVar('WEBHOOK_KEY'),
   attestationContracts: {
-    repoAddress: envVar('ATTESTATION_REPO_ADDRESS'),
     logicAddress: envVar('ATTESTATION_LOGIC_ADDRESS'),
   },
   logs: {
@@ -222,7 +178,7 @@ export const env: IEnvironmentConfig = {
   whisper: {
     provider: envVar('WHISPER_PROVIDER'),
     password: envVar('WHISPER_PASSWORD'),
-    topics: topics,
+    topicPrefix: envVar('WHISPER_TOPIC_PREFIX'),
     ping: {
       enabled: envVar('WHISPER_PING_ENABLED', 'bool', false), // Defaults to false if not specified
       interval: envVar('WHISPER_PING_INTERVAL', 'string', false, '1 minute'), // PostgreSQL interval - Defaults to 1 min if not specified
@@ -240,4 +196,11 @@ export const env: IEnvironmentConfig = {
     },
   },
   whisperPollInterval: envVar('WHISPER_POLL_INTERVAL', 'int', false, 5000),
+  txService: process.env['TX_SERVICE_ADDRESS']
+    ? {
+        address: envVar('TX_SERVICE_ADDRESS'),
+        key: envVar('TX_SERVICE_KEY'),
+        webhookKeySha: envVar('TX_SERVICE_KEY_SHA256'),
+      }
+    : undefined,
 }

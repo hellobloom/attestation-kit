@@ -1,9 +1,13 @@
 import * as newrelic from 'newrelic'
 import * as Web3 from 'web3'
 import * as Raven from 'raven'
-// import BigNumber from 'bignumber.js'
 import {env} from '@shared/environment'
-import {resetShh, newBroadcastSession} from '@shared/whisper'
+import {
+  resetShh,
+  newBroadcastSession,
+  TWhisperEntity,
+  getTopic,
+} from '@shared/whisper'
 import {
   attesterWallet,
   requesterWallet,
@@ -11,7 +15,7 @@ import {
 
 import {serverLogger} from '@shared/logger'
 
-import {handleMessages, AttestationTypeToEntity} from '@shared/whisper/msgHandler'
+import {handleMessages} from '@shared/whisper/msgHandler'
 
 import {listenForSolicitations} from '@shared/whisper/attesterActions'
 import {sendPings, handlePongMessages} from '@shared/whisper/ping'
@@ -25,18 +29,14 @@ const toTopic = (ascii: string) => web3.sha3(ascii).slice(0, 10)
 
 const password = env.whisper.password
 
-if (env.whisper.ping.enabled) {
-  var pingFilterPromise = WhisperFilters.findOne({where: {entity: 'ping'}}).then(
-    (existing: WhisperFilters) => {
-      return (
-        existing ||
-        newBroadcastSession(
-          toTopic(env.whisper.topics.ping),
-          env.whisper.ping.password,
-          AttestationTypeToEntity.ping
-        )
-      )
-    }
+const getPingFilter = async () => {
+  let existing = await WhisperFilters.findOne({
+    where: {entity: 'ping'},
+    logging: env.logs.whisper.sql,
+  })
+  return (
+    existing ||
+    newBroadcastSession(toTopic(getTopic('ping')), env.whisper.ping.password, 'ping')
   )
 }
 
@@ -44,7 +44,7 @@ const main = async () => {
   try {
     if (env.whisper.ping.enabled) {
       try {
-        const wf = await pingFilterPromise
+        const wf = await getPingFilter()
         if (wf) {
           console.log('Working with WhisperFilter', wf.filterId)
           try {
@@ -66,15 +66,16 @@ const main = async () => {
     }
 
     if (env.attester_rewards) {
-      Object.keys(env.attester_rewards).forEach(async (topic_name: string) => {
-        let hashed_topic = toTopic(env.whisper.topics[topic_name])
-        let entity: string = AttestationTypeToEntity[topic_name]
-        await listenForSolicitations(hashed_topic, password, entity)
-        await handleMessages(entity as string, attesterWallet)
-      })
+      Object.keys(env.attester_rewards).forEach(
+        async (topic_name: TWhisperEntity) => {
+          let hashed_topic = toTopic(getTopic(topic_name))
+          await listenForSolicitations(hashed_topic, password, topic_name)
+          await handleMessages(topic_name, attesterWallet)
+        }
+      )
     }
 
-    await handleMessages(AttestationTypeToEntity['requester'], requesterWallet)
+    await handleMessages('requester', requesterWallet)
   } catch (error) {
     Raven.captureException(error, {
       tags: {logger: 'whisper'},
@@ -84,8 +85,8 @@ const main = async () => {
     console.log(error, error.stack)
     resetShh()
   }
-  // setTimeout(main, 500) // twice per second
-  setTimeout(main, env.whisperPollInterval) // once per five seconds
+
+  setTimeout(main, env.whisperPollInterval)
 }
 
 main()

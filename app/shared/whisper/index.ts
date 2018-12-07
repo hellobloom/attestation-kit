@@ -5,9 +5,19 @@ import {WhisperFilters} from '@shared/models'
 import {toBuffer} from 'ethereumjs-util'
 import {IBloomWhisperMessage} from '@shared/whisper/msgTypes'
 import {serverLogger} from '@shared/logger'
+import {AttestationTypeManifest} from '@bloomprotocol/attestations-lib'
+
+export type TWhisperEntity = keyof AttestationTypeManifest | 'ping' | 'requester'
 
 export const web3 = new Web3(new Web3.providers.HttpProvider(env.web3Provider))
 export const toTopic = (ascii: string) => web3.sha3(ascii).slice(0, 10)
+export const getTopic = (at: TWhisperEntity) => {
+  var name = `${env.whisper.topicPrefix}-${at}`
+  var camelName = name.replace(/-([a-z])/g, function(g) {
+    return g[1].toUpperCase()
+  })
+  return camelName
+}
 export var shh = new Shh(env.whisper.provider)
 
 export const resetShh = () => {
@@ -48,6 +58,7 @@ export const broadcastMessage = async (
     if (replyToTopic !== null) {
       const filter = await WhisperFilters.findOne({
         where: {topic: toBuffer(replyToTopic)},
+        logging: env.logs.whisper.sql,
       })
       if (filter !== null) {
         const keypairId = filter.keypairId
@@ -81,6 +92,7 @@ export const directMessage = async (
     if (replyToTopic !== null) {
       const filter = await WhisperFilters.findOne({
         where: {topic: toBuffer(replyToTopic)},
+        logging: env.logs.whisper.sql,
       })
       if (filter !== null) {
         const keypairId = filter.keypairId
@@ -114,6 +126,7 @@ export const newBroadcastSession = async (
     // Don't create duplicate filters for the same entity
     const filter = await WhisperFilters.findOne({
       where: {topic: toBuffer(newTopic), entity: entity},
+      logging: env.logs.whisper.sql,
     })
     if (filter !== null) {
       try {
@@ -136,7 +149,9 @@ export const newBroadcastSession = async (
     })
     return wf
   } catch (e) {
-    throw new Error(`Broadcast filter message addition failed: ${e}`)
+    throw new Error(
+      `Broadcast filter message addition failed for ${newTopic}, ${entity}: ${e}`
+    )
   }
 }
 
@@ -146,6 +161,7 @@ export const newDirectMessageSession = async (newTopic: string, entity: string) 
     // Don't create duplicate filters for the same entity
     const filter = await WhisperFilters.findOne({
       where: {topic: toBuffer(newTopic), entity: entity},
+      logging: env.logs.whisper.sql,
     })
     if (filter !== null) {
       // Try to delete the filter. No way to just check if it works
@@ -174,6 +190,7 @@ export const endSession = async (filterId: string, keypairId: string) => {
   try {
     const filter = await WhisperFilters.findOne({
       where: {filterId: filterId},
+      logging: env.logs.whisper.sql,
     })
     if (filter !== null) {
       const filterIdToRemove = filter.filterId

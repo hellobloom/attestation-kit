@@ -1,0 +1,36 @@
+version: '3'
+services:
+  pgdb: 
+    restart: always
+    image: postgres:10.4
+    expose:
+      - "5432"
+    volumes:
+      - pgvol:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=bloomwhisper
+      - POSTGRES_PASSWORD=bloomwhisperpw
+      - POSTGRES_DB=bloom-whisper
+    ports:
+      - "127.0.0.1:5433:5432"
+    logging:
+      options:
+        max-size: 100m
+  app:
+    restart: always
+    build: ./app
+    ports:
+      - "6000:13000"
+    depends_on: 
+      - pgdb
+    volumes:
+      - appvol:/vol
+    env_file:
+      - .env
+    command: ["./wait-for-it.sh", "attestation-kit_pgdb_1:5432", "--", "/app/bin/start-supervisor"]
+    logging:
+      options:
+        max-size: 100m
+volumes:
+  pgvol: {}
+  appvol: {}

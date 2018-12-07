@@ -3,6 +3,7 @@ import {isString} from 'lodash'
 import * as EthU from 'ethereumjs-util'
 import * as wallet from 'ethereumjs-wallet'
 import {isNumber} from 'util'
+import BigNumber from 'bignumber.js'
 
 export const trimEmailInData = (data: {email?: any}): {email?: any} => {
   if (typeof data.email === 'string') {
@@ -39,6 +40,10 @@ export const isValidEmail = (email: string): boolean =>
 
 const isNotEmpty = (value: string) => value.replace(/\s+/g, '') !== ''
 export const isNotEmptyString = (value: any) => isString(value) && isNotEmpty(value)
+
+export const isValidReward = (value: BigNumber) => isString(value.toString()) && isNotEmpty(value.toString())
+
+export const isZeroReward = (value: BigNumber) => (new BigNumber(0)).comparedTo(value) === 0
 
 export const isValidTimestamp = (value: any) =>
   isNumber(value) && value >= 0 && value <= new Date().getTime()
@@ -126,4 +131,19 @@ export const isValidSignatureString = (signatureString: string): boolean => {
   }
   const {v, r, s} = signature
   return EthU.isValidSignature(v, r, s, true)
+}
+
+export const requiredField = <T>(
+  reject: (reason: Error | string) => any,
+  data: T
+) => (field: string) => {
+  if (data[field] === undefined) {
+    reject(new Error(`Missing ${field}`))
+    return false
+  }
+  return true
+}
+
+export const isValidEthHexString = (hexString: string): boolean => {
+  return hexString.slice(0, 2) === '0x'
 }

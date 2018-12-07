@@ -2,11 +2,13 @@ import * as m from '@shared/models'
 import * as dc from 'deepcopy'
 import {env} from '@shared/environment'
 import BigNumber from 'bignumber.js'
-import {initiateSolicitation, sendJobDetails} from '@shared/whisper/requesterActions'
+import {initiateSolicitation} from '@shared/whisper/requesterActions'
 import {requesterWallet} from '@shared/attestations/attestationWallets'
 import {getAttestationTypeStr} from '@bloomprotocol/attestations-lib'
 import {toBuffer} from 'ethereumjs-util'
-import {toTopic} from '@shared/whisper'
+import {toTopic, getTopic} from '@shared/whisper'
+const uuid = require('uuidv4')
+const v = require('validator')
 import * as Web3 from 'web3'
 
 // list all requests
@@ -31,14 +33,16 @@ export const create = async (req: any, res: any) => {
   const attestation_type =
     req.body.attestation_type || getAttestationTypeStr(req.body.attestation_type_id)
 
-  const attestation = await m.Attestation.create({
+  const att: any = {
     subject: toBuffer(req.body.subject_eth_address),
     type: attestation_type,
     types: [req.body.attestation_type_id],
     role: 'requester',
-  })
+  }
+  if (req.body.id && v.isUUID(req.body.id)) att.id = req.body.id
+  const attestation = await m.Attestation.create(att)
 
-  if (typeof env.whisper.topics[attestation_type] === 'undefined') {
+  if (typeof getTopic(attestation_type) === 'undefined') {
     res.status(422).json({
       success: false,
       error: 'No topic configured for attestation type',
@@ -47,30 +51,21 @@ export const create = async (req: any, res: any) => {
     return
   }
 
+  const sessionId = uuid()
   const reward = new BigNumber(
-    Web3.prototype.toWei(req.body.reward, 'ether') // Note that the reward parameter is measured in whole BLT, >>> NOT in wei or gwei !!! <<<
+    // Note that the reward parameter is measured in whole BLT, >>> NOT in wei or gwei !!! <<<
+    Web3.prototype.toWei(req.body.reward, 'ether')
   )
 
   await initiateSolicitation(
     attestation.id,
     reward,
-    toTopic(env.whisper.topics[attestation_type].toString()),
+    toTopic(getTopic(attestation_type)),
     env.whisper.password,
-    requesterWallet
+    requesterWallet,
+    sessionId
   )
 
   // tie in - initiate whisper interactions
-  res.json({success: true, attestation: attestation})
-}
-
-// send job
-export const sendjob = async (req: any, res: any) => {
-  try {
-    await sendJobDetails(req.body.message, requesterWallet)
-
-    // tie in - initiate whisper interactions
-    res.json({success: true})
-  } catch {
-    res.json({success: false})
-  }
+  res.json({success: true, sessionId})
 }
