@@ -79,8 +79,16 @@ const handleMessage = async (
         serverLogger.info('Requester funds?', confirmed)
         if (confirmed) {
           messageDecision = await handleSolicitation(body, messageTopic, wallet)
+          serverLogger.info(
+            'Requester funds check succeeded.  Message decision:',
+            messageDecision
+          )
         } else {
           messageDecision = await handleUnknownMessageType(body, messageTopic)
+          serverLogger.info(
+            'Requester funds check failed.  Message decision:',
+            messageDecision
+          )
         }
         if (!messageDecision) {
           return false
