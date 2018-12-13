@@ -78,6 +78,9 @@ export const handleSolicitation: TMsgHandler = async (
 
   const askReward = new BigNumber(message.rewardAsk)
   if (acceptableReward.greaterThan(askReward)) {
+    serverLogger.info(
+      `Acceptable reward ${acceptableReward} greater than askReward ${askReward}`
+    )
     // future nice-to-have - Reply with acceptable bid
     return false
   }
