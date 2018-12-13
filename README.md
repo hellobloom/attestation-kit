@@ -8,11 +8,22 @@ Easily access Bloom's network of data verifiers to onboard users to your applica
 
 ### Create new host machine
 
-We'll be using Ubuntu 18.04 LTS for the purpose of this guide. On Google Cloud, an example configuration might be 20GB of hard disk space, 1 vCPU, and 6 GB of RAM.
+We'll be using Ubuntu 18.04 LTS for the purpose of this guide. On Google Cloud Ptatform, an example configuration might be as follows.
+
+- 20GB of hard disk space
+- 1 vCPU
+- 6 GB of RAM.
 
 ### System configuration
 
-SSH into your instance. Use `apt-get update; apt-get install git docker.io` to install basic prerequisites. The install script for docker.io should automatically create a "docker" system group - use `usermod -aG docker myuser` to add `myuser` (or whichever user you want to run docker as) to the `docker` group.
+SSH into your instance and install the basic prerequisites run these commands.
+
+```sh
+apt-get update
+apt-get install git docker.io
+```
+
+The install script for docker.io should automatically create a "docker" system group - use `usermod -aG docker myuser` to add `myuser` (or whichever user you want to run docker as) to the `docker` group.
 
 Visit https://docs.docker.com/compose/install/ to follow current instructions to install docker-compose.
 
@@ -21,7 +32,8 @@ Visit https://docs.docker.com/compose/install/ to follow current instructions to
 Clone the https://github.com/hellobloom/attestation-kit repository to your chosen location on your server:
 
 ```
-git clone https://github.com/hellobloom/attestation-kit /srv/attestation-kit
+git clone https://github.com/hellobloom/attestation-kit
+/srv/attestation-kit
 ```
 
 ### Configuration
@@ -30,7 +42,7 @@ See [Bloom Docker](https://bloom.co/docs/attestation-kit/env) docs for most up-t
 
 ### Networking
 
-If you'd like your docker instance to run on the public internet, it's a good idea to run something like nginx or Apache httpd in front of the docker image, and limit public access to your application to ports 80 and 443 (and probably port 22 for SSH access), doing an HTTPS redirect on requests to port 80 in order to ensure data sent to and from your application is always encrypted. We recommend LetsEncrypt/certbot for free certificates that deploy very easily with miscellaneous server configurations. Example configuration for nginx and Ubuntu 18.04:
+If you'd like your docker instance to run on the public internet, it's a good idea to run something like nginx or Apache httpd in front of the docker image, and limit public access to your application to ports 80 and 443 (and probably port 22 for SSH access), doing an HTTPS redirect on requests to port 80 in order to ensure data sent to and from your application is always encrypted. We recommend `LetsEncrypt/certbot` for free certificates that deploy very easily with miscellaneous server configurations. Example configuration for nginx and Ubuntu 18.04:
 
 https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-18-04
 
@@ -51,15 +63,15 @@ Please read the official PostgreSQL documentation for each of these files for mo
 
 ### Controlling your instance
 
-To spin up your docker-compose instance. Navigate to the application directory (e.g. /srv/bloom-whisper), and then...
+To spin up your docker-compose instance. Navigate to the application directory (e.g. /srv/bloom-whisper), and then proceed in the respective way as per your dev instance.
 
-For basic dev instances (assuming ganache-cli and postgresql running externally):
+#### Basic dev instances (assuming ganache-cli and postgresql running externally)
 
 ```
 ./bin/dev-docker
 ```
 
-For simple, production configurations without an external database:
+#### Simple, production configurations without an external database
 
 ```
 docker-compose down
@@ -67,7 +79,7 @@ docker-compose build
 docker-compose up -d
 ```
 
-For configurations with an external database:
+#### Configurations with an external database
 
 ```
 docker-compose -f docker-compose.nodb.yml down
@@ -75,7 +87,7 @@ docker-compose -f docker-compose.nodb.yml build
 docker-compose -f docker-compose.nodb.yml up -d
 ```
 
-For development environment configurations (with geth and postgresql running locally):
+#### Development environment configurations (with geth and postgresql running locally):
 
 ```
 docker-compose -f docker-compose.dev.yml down
