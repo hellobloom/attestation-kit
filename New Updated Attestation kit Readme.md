@@ -15,7 +15,7 @@ $ cd attestation-kit
 
 ### Environment Variables
 
-*** Configuring the Bloom Attestation Kit
+    Configuring the Bloom Attestation Kit
 
 Most of the installation of the Attestation Kit consists of setting environment variables. These variables should be set in the .env file at the top level of the Attestation Kit repository (not to be confused with the file at /app/.env.sample, which you should generally never have to edit).
 Variable 	Role 	Required 	Description
@@ -47,7 +47,7 @@ Lists all attester attestations (where "role" is equal to "attester"). Optional 
 
 ### Parameters
 
-Name 	Type 	Required 	Description
+Name | Type | Required |Description
 where 	object 	No 	An object describing parameters to match for attestations. Example values: {"id": "10f7a585-6aa8-4efb-b621-a3de956c2459"}, {"type":"phone"}, {"requester":"0xafbe892398bfbabcebfa92185918325abc19a"}
 per_page 	integer 	No 	Number of results to show per page (default value is 100)
 page 	integer 	No 	What page to display (default value is 0)
@@ -84,6 +84,7 @@ page 	integer 	No 	What page to display (default value is 0)
 
 ### POST /api/attestations
 
+
 Perform an attestation. Takes an existing attestation and commits it on-chain.
 Parameters
 Name 	Type 	Required 	Description
@@ -119,7 +120,8 @@ Response
   ]
 
 
-  ### Requester API
+### Requester API
+
 
   Attestation Kit requester API endpoints
   GET /api/requests
@@ -164,18 +166,18 @@ Response
 
 
 
-  ### Parameters
+### Parameters
 
 
-  Name 	Type 	Required 	Description
+  Name |Type | Required | Description
   attestation_type_id 	integer 	Either this or attestation_type 	Index of attesation type (0 to 4, in same order as below)
   attestation_type 	string 	Either this or attestation_type_id 	String of attestation type ("phone", "email", "facebook", "sanction-screen", or "pep-screen")
   subject_eth_address 	ETH address 	Yes 	ETH address of attestation subject
   reward 	integer (BLT in wei units) 	Yes 	Maximum acceptable reward for negotiation
 
 
+### Response
 
-  ### Response
 
   {
     "success":true,
@@ -209,7 +211,7 @@ Response
 
 
 
-  ### Parameters
+### Parameters
 
 
  | Name | Type | Required | Description |
@@ -219,7 +221,8 @@ Response
  |job_details 	string of JSON object 	Yes 	An object containing the job details necessary to submit the attestation, complete with the subject's signature (see below).
 
 
- ### Example of a job_details object:
+### Example of a job_details object:
+
 
   {
     "attestationId": "cabf8219-afb9-910f-bc12-abcdef8912349876",
@@ -240,7 +243,8 @@ Response
   See our [Signing Logic page] for more information on obtaining a subjectSig, and our [Attestation documentation] for more information on other related data structures.
 
 
-  ### Response
+### Response
+
 
   {
     "success":true,
@@ -269,8 +273,8 @@ Response
   }
 
 
+### Webhooks
 
-  ### Webhooks
 
   How the Attestation Kit communicates with your application
 
@@ -291,7 +295,8 @@ Response
   Webhook notifying attester that it should perform attestation, and when complete, submit the completed attestation to the POST /api/attestations API endpoint.
 
 
-  #### Parameters
+#### Parameters
+
 
  | Name | Type | Description |
 
