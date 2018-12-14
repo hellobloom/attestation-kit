@@ -1,6 +1,6 @@
-Overview
+﻿Overview
 
-Introduction to the Bloom Attestation Kit
+### Introduction to the Bloom Attestation Kit
 
 
 The Bloom Attestation Kit is a Docker Compose system, a set of Docker images, that allows you to deploy a service for your application to interact with the Bloom ecosystem, as both an attester and a requester.
@@ -13,9 +13,9 @@ $ git pull git@github.com:hellobloom/attestation-kit.git
 $ cd attestation-kit
 
 
-Environment Variables
+### Environment Variables
 
-Configuring the Bloom Attestation Kit
+*** Configuring the Bloom Attestation Kit
 
 Most of the installation of the Attestation Kit consists of setting environment variables. These variables should be set in the .env file at the top level of the Attestation Kit repository (not to be confused with the file at /app/.env.sample, which you should generally never have to edit).
 Variable 	Role 	Required 	Description
@@ -36,23 +36,29 @@ WEBHOOK_KEY 	All 	Yes 	Shared secret key (string) for authenticating your copy o
 APPROVED_ATTESTERS 	Attester 	No 	JSON object mapping attestation types (or string "all") to array of Ethereum addresses of attesters. Example: {"all": ["0x19859151..."], "email": ["0x54321..."]}. A universal whitelist can also be applied by assigning any value to the property "any": {"any":"x"}.
 APPROVED_REQUESTERS 	Attester 	No 	JSON object mapping attestation types (or string "all") to array of Ethereum addresses of requesters. Example: {"all": ["0x19859151..."], "email": ["0x54321..."]}. A universal whitelist can also be applied by assigning any value to the property "any": {"any":"x"}.
 
-Attester API
+
+### Attester API
 
 Attestation Kit attester API endpoints
 GET /api/attestations
 
 Lists all attester attestations (where "role" is equal to "attester"). Optional scoping via "where" parameter.
-Parameters
+
+
+### Parameters
+
 Name 	Type 	Required 	Description
 where 	object 	No 	An object describing parameters to match for attestations. Example values: {"id": "10f7a585-6aa8-4efb-b621-a3de956c2459"}, {"type":"phone"}, {"requester":"0xafbe892398bfbabcebfa92185918325abc19a"}
 per_page 	integer 	No 	Number of results to show per page (default value is 100)
 page 	integer 	No 	What page to display (default value is 0)
-Response
 
-{  
+
+### Response
+
+{
   "success":true,
-  "attestations":[  
-    {  
+  "attestations":[
+    {
       "result":null,
       "requestNonce":"0xbce098adbfeba8c0baefb80cab8c0ffbfcabfcabfcabfcabfcabfcabfcabfcaa",
       "paymentNonce":"0xfabcb9aefb32509fbaced19835dbf837d8fea0fb10afbefab9cbea081bf8af9c",
@@ -75,7 +81,8 @@ Response
   ]
 }
 
-POST /api/attestations
+
+### POST /api/attestations
 
 Perform an attestation. Takes an existing attestation and commits it on-chain.
 Parameters
@@ -85,10 +92,10 @@ negotiation_id 	UUID 	Sometimes 	ID of negotiation. If omitted, the attestation'
 gas_price 	integer (BLT in wei units) 	Yes 	Gas price to use for committing the attestation, as measured in "wei". Gas prices can be found at ETH Gas Station or via geth's gas price oracle feature.
 Response
 
-{  
+{
   "success":true,
-  "attestations":[  
-    {  
+  "attestations":[
+    {
       "result":null,
       "requestNonce":"0xbce098adbfeba8c0baefb80cab8c0ffbfcabfcabfcabfcabfcabfcabfcabfcaa",
       "paymentNonce":"0xfabcb9aefb32509fbaced19835dbf837d8fea0fb10afbefab9cbea081bf8af9c",
@@ -111,7 +118,8 @@ Response
     }
   ]
 
-  Requester API
+
+  ### Requester API
 
   Attestation Kit requester API endpoints
   GET /api/requests
@@ -124,10 +132,10 @@ Response
   page 	integer 	No 	What page to display (default value is 0)
   Response
 
-  {  
+  {
     "success":true,
-    "attestations":[  
-      {  
+    "attestations":[
+      {
         "result":null,
         "requestNonce":"0xbce098adbfeba8c0baefb80cab8c0ffbfcabfcabfcabfcabfcabfcabfcabfcaa",
         "paymentNonce":"0xfabcb9aefb32509fbaced19835dbf837d8fea0fb10afbefab9cbea081bf8af9c",
@@ -153,18 +161,26 @@ Response
   POST /api/requests
 
   Create new request. Creates a new attestation and begins the Whisper negotiation process.
-  Parameters
+
+
+
+  ### Parameters
+
+
   Name 	Type 	Required 	Description
   attestation_type_id 	integer 	Either this or attestation_type 	Index of attesation type (0 to 4, in same order as below)
   attestation_type 	string 	Either this or attestation_type_id 	String of attestation type ("phone", "email", "facebook", "sanction-screen", or "pep-screen")
   subject_eth_address 	ETH address 	Yes 	ETH address of attestation subject
   reward 	integer (BLT in wei units) 	Yes 	Maximum acceptable reward for negotiation
-  Response
 
-  {  
+
+
+  ### Response
+
+  {
     "success":true,
-    "attestations":[  
-      {  
+    "attestations":[
+      {
         "result":null,
         "requestNonce":"0x",
         "paymentNonce":"0x",
@@ -190,11 +206,20 @@ Response
   POST /api/requests/send
 
   Send job details to an attester to allow them to perform the attestation.
-  Parameters
-  Name 	Type 	Required 	Description
-  job_details 	string of JSON object 	Yes 	An object containing the job details necessary to submit the attestation, complete with the subject's signature (see below).
 
-  Example of a job_details object:
+
+
+  ### Parameters
+
+
+ | Name | Type | Required | Description |
+
+ |------|------|----|-----|
+
+ |job_details 	string of JSON object 	Yes 	An object containing the job details necessary to submit the attestation, complete with the subject's signature (see below).
+
+
+ ### Example of a job_details object:
 
   {
     "attestationId": "cabf8219-afb9-910f-bc12-abcdef8912349876",
@@ -212,13 +237,15 @@ Response
     }
   }
 
-  See our Signing Logic page for more information on obtaining a subjectSig, and our Attestation documentation for more information on other related data structures.
-  Response
+  See our [Signing Logic page] for more information on obtaining a subjectSig, and our [Attestation documentation] for more information on other related data structures.
 
-  {  
+
+  ### Response
+
+  {
     "success":true,
-    "attestations":[  
-      {  
+    "attestations":[
+      {
         "result":null,
         "requestNonce":"0x",
         "paymentNonce":"0x",
@@ -242,7 +269,8 @@ Response
   }
 
 
-  Webhooks
+
+  ### Webhooks
 
   How the Attestation Kit communicates with your application
 
@@ -253,19 +281,30 @@ Response
 
   Webhook notifying requester that it should collect subject data and submit a request to the POST /api/requests/send API endpoint.
   Parameters
-  Name 	Type 	Description
-  attestation 	attestation 	An attestation object - see our Requester documentation for examples.
+  | Name | Type |	Description |
+
+  |------|------|----|
+
+  |attestation | attestation | An attestation object - see our Requester  documentation for examples.|
   POST /api/webhooks/perform_attestation
 
   Webhook notifying attester that it should perform attestation, and when complete, submit the completed attestation to the POST /api/attestations API endpoint.
-  Parameters
-  Name 	Type 	Description
-  job_details 	job_details 	A job details - see our Attester documentation for examples.
+
+
+  #### Parameters
+
+ | Name | Type | Description |
+
+ | job_details | job_details 	A job details |- see our [Attester documentation] for examples.
   POST /api/webhooks/attestation_completed
 
   Notification that attestation has been completed (triggered by attester).
   Parameters
-  Name 	Type 	Description
+
+ | Name | Type | Description |
+
+ |------|------|----|
+
   attestation_id 	uuid 	The ID of the attestation in question.
   transaction_hash 	txhash 	The Ethereum transaction ID of the attestation.
   result 	string 	The result of the attestation.
