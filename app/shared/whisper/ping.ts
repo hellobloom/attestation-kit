@@ -78,6 +78,8 @@ export const handlePongMessages = async (wf: WhisperFilters, web3: Web3) => {
     wPings = await shh.getFilterMessages(wf.filterId)
   } catch (err) {
     if (err.message.indexOf('filter not found') !== -1) {
+      if (env.logs.whisper.pings)
+        serverLogger.info('Trying to delete old ping WF filter')
       wf.destroy()
     } else {
       alertWhisperError(err)
