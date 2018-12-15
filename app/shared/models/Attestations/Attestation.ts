@@ -4,10 +4,7 @@ import {toBuffer, bufferToHex} from 'ethereumjs-util'
 import {sequelize, Negotiation} from '@shared/models'
 import {CognitoSMSStatus} from '@shared/attestations/CognitoSMSStatus'
 import {EmailAttestationStatus} from '@shared/attestations/EmailAttestationStatus'
-import {
-  AttestationStatus,
-  HashingLogic
-} from '@bloomprotocol/attestations-lib'
+import {AttestationStatus, HashingLogic} from '@bloomprotocol/attestations-lib'
 
 export interface IEmailAttestationJSONB {
   data: Array<HashingLogic.IAttestationData>
@@ -156,7 +153,7 @@ export default class Attestation extends Sequelize.Model<Attestation> {
 
   @Sequelize.Column({
     type: Sequelize.DataType.NUMERIC(28, 18),
-    allowNull: false, // defaults to 'unknown'
+    allowNull: true, // defaults to 'unknown'
   })
   get reward() {
     return new BigNumber.BigNumber(this.getDataValue('reward')).mul('1e18')
@@ -165,5 +162,4 @@ export default class Attestation extends Sequelize.Model<Attestation> {
   set reward(value: BigNumber.BigNumber) {
     this.setDataValue('reward', value.div('1e18').toString(10))
   }
-
 }

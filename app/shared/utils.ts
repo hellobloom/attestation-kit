@@ -41,9 +41,11 @@ export const isValidEmail = (email: string): boolean =>
 const isNotEmpty = (value: string) => value.replace(/\s+/g, '') !== ''
 export const isNotEmptyString = (value: any) => isString(value) && isNotEmpty(value)
 
-export const isValidReward = (value: BigNumber) => isString(value.toString()) && isNotEmpty(value.toString())
+export const isValidReward = (value: BigNumber) =>
+  isString(value.toString()) && isNotEmpty(value.toString())
 
-export const isZeroReward = (value: BigNumber) => (new BigNumber(0)).comparedTo(value) === 0
+export const isZeroReward = (value: BigNumber) =>
+  new BigNumber(0).comparedTo(value) === 0
 
 export const isValidTimestamp = (value: any) =>
   isNumber(value) && value >= 0 && value <= new Date().getTime()

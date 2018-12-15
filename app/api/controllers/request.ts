@@ -3,15 +3,21 @@ import * as dc from 'deepcopy'
 import {env} from '@shared/environment'
 import BigNumber from 'bignumber.js'
 import {initiateSolicitation} from '@shared/whisper/requesterActions'
-import {requesterWallet, attesterWallet} from '@shared/attestations/attestationWallets'
-import {getAttestationTypeStr, HashingLogic, AttestationStatus} from '@bloomprotocol/attestations-lib'
+import {
+  requesterWallet,
+  attesterWallet,
+} from '@shared/attestations/attestationWallets'
+import {
+  getAttestationTypeStr,
+  HashingLogic,
+  AttestationStatus,
+} from '@bloomprotocol/attestations-lib'
 import {toBuffer, bufferToHex} from 'ethereumjs-util'
 import {toTopic, getTopic} from '@shared/whisper'
-const uuid = require('uuidv4')
 const v = require('validator')
 import * as Web3 from 'web3'
-import { signPaymentAuthorization } from '@shared/ethereum/signingLogic'
-import { notifyCollectData } from '@shared/webhookHandler'
+import {signPaymentAuthorization} from '@shared/ethereum/signingLogic'
+import {notifyCollectData} from '@shared/webhookHandler'
 
 // list all requests
 export const show = (req: any, res: any) => {
@@ -32,10 +38,18 @@ export const show = (req: any, res: any) => {
 
 // create request
 export const create = async (req: any, res: any) => {
+  if (!(req.body.id && v.isUUID(req.body.id))) {
+    res.status(400).json({
+      success: false,
+      error: 'uuid formatted id missing in body',
+    })
+    return
+  }
   const attestation_type =
     req.body.attestation_type || getAttestationTypeStr(req.body.attestation_type_id)
 
   const att: any = {
+    id: req.body.id,
     subject: toBuffer(req.body.subject_eth_address),
     type: attestation_type,
     types: [req.body.attestation_type_id],
@@ -53,7 +67,6 @@ export const create = async (req: any, res: any) => {
     return
   }
 
-  const sessionId = uuid()
   const reward = new BigNumber(
     // Note that the reward parameter is measured in whole BLT, >>> NOT in wei or gwei !!! <<<
     Web3.prototype.toWei(req.body.reward, 'ether')
@@ -65,14 +78,21 @@ export const create = async (req: any, res: any) => {
     toTopic(getTopic(attestation_type)),
     env.whisper.password,
     requesterWallet,
-    sessionId
+    attestation.id
   )
 
-  // tie in - initiate whisper interactions
-  res.json({success: true, sessionId})
+  res.json({success: true, sessionId: attestation.id})
 }
 
 export const createBypass = async (req: any, res: any) => {
+  if (!(req.body.id && v.isUUID(req.body.id))) {
+    res.status(400).json({
+      success: false,
+      error: 'uuid formatted id missing in body',
+    })
+    return
+  }
+
   const attestation_type =
     req.body.attestation_type || getAttestationTypeStr(req.body.attestation_type_id)
 
@@ -91,9 +111,8 @@ export const createBypass = async (req: any, res: any) => {
     requesterWallet.getPrivateKey()
   )
 
-  const sessionId = uuid()
-
   const att: Partial<m.Attestation> = {
+    id: req.body.id,
     subject: toBuffer(req.body.subject_eth_address),
     attester: attesterWallet.getAddress(),
     requester: requesterWallet.getAddress(),
@@ -103,23 +122,24 @@ export const createBypass = async (req: any, res: any) => {
     role: 'attester',
     reward: reward,
     paymentNonce: paymentNonce,
-    paymentSig: paymentSig,
-    negotiationId: sessionId,
+    paymentSig: toBuffer(paymentSig),
+    negotiationId: req.body.id,
   }
 
-  if (req.body.id && v.isUUID(req.body.id)) att.id = req.body.id
+  console.log(JSON.stringify(att))
+
   const attestation = await m.Attestation.create(att)
 
-    await notifyCollectData(
-      {
-        status: attestation.status,
-        attester: bufferToHex(attestation.attester),
-        requester: bufferToHex(attestation.requester),
-        nonce: attestation.paymentNonce,
-        negotiationId: attestation.negotiationId,
-      },
-      'v2'
-    )
+  await notifyCollectData(
+    {
+      status: attestation.status,
+      attester: bufferToHex(attestation.attester),
+      requester: bufferToHex(attestation.requester),
+      nonce: attestation.paymentNonce,
+      id: attestation.negotiationId,
+    },
+    'v2'
+  )
 
-  res.json({success: true, sessionId})
+  res.json({success: true, sessionId: attestation.id})
 }
