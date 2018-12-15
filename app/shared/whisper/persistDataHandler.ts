@@ -89,6 +89,7 @@ export const storeAttestationBid = async (persistData: IAttestationBidStore) => 
     role: 'attester',
     type: persistData.type,
     negotiationId: persistData.negotiationSession,
+    reward: persistData.reward,
   })
   serverLogger.debug('Created attestation...', attestation.id)
   const existingNegotiation = await Negotiation.findById(

@@ -46,6 +46,7 @@ app.get('/api/requests', reqCtrl.show)
 app.post('/api/requests', reqCtrl.create)
 app.post('/api/v1/requests', reqCtrl.create)
 app.post('/api/v2/requests', reqCtrl.create)
+app.post('/api/v2/requestsBypass', reqCtrl.createBypass)
 
 app.post('/api/v2/submit-data', attCtrl.receiveSubjectData)
 app.post('/api/v2/submit-signed-agreement', attCtrl.receiveSignedAgreement)

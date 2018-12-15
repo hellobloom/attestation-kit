@@ -198,14 +198,12 @@ export const receiveSignedAgreement: express.RequestHandler = async (req, res) =
     })
   }
 
-  const reward = await attestation.reward()
-
   const attestParams: IAttestParams = {
     attestationId: attestation.id,
     subject: req.body.subject,
     attester: req.body.attester,
     requester: req.body.requester,
-    reward: reward,
+    reward: attestation.reward,
     requesterSig: bufferToHex(attestation.paymentSig),
     dataHash: req.body.dataHash,
     requestNonce: req.body.nonce,

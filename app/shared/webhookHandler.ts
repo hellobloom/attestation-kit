@@ -42,13 +42,3 @@ export const notifyCollectData = async (
     attestation,
   })
 }
-
-export const notifyDoAttestation = async (
-  job_details: any,
-  attestationId: string
-) => {
-  await webhookRequest('/api/webhooks/perform_attestation', {
-    job_details: JSON.stringify(job_details),
-    id: attestationId,
-  })
-}
