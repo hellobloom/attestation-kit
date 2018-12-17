@@ -153,7 +153,7 @@ export default class Attestation extends Sequelize.Model<Attestation> {
 
   @Sequelize.Column({
     type: Sequelize.DataType.NUMERIC(28, 18),
-    allowNull: true, // defaults to 'unknown'
+    allowNull: true,
   })
   get reward() {
     return new BigNumber.BigNumber(this.getDataValue('reward')).mul('1e18')
