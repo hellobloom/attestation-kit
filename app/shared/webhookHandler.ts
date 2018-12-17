@@ -32,6 +32,7 @@ interface INotifyCollect {
   requester: string
   nonce: string
   id: string
+  negotiationId: string
 }
 
 export const notifyCollectData = async (
