@@ -18,6 +18,7 @@ const v = require('validator')
 import * as Web3 from 'web3'
 import {signPaymentAuthorization} from '@shared/ethereum/signingLogic'
 import {notifyCollectData} from '@shared/webhookHandler'
+const uuid = require('uuidv4')
 
 // list all requests
 export const show = (req: any, res: any) => {
@@ -38,24 +39,27 @@ export const show = (req: any, res: any) => {
 
 // create request
 export const create = async (req: any, res: any) => {
-  if (!(req.body.id && v.isUUID(req.body.id))) {
-    res.status(400).json({
-      success: false,
-      error: 'uuid formatted id missing in body',
-    })
-    return
+  let attestationId: string
+  if (req.body.id && v.isUUID(req.body.id)) {
+    attestationId = req.body.id
+  } else {
+    attestationId = uuid()
+    // res.status(400).json({
+    //   success: false,
+    //   error: 'uuid formatted id missing in body',
+    // })
+    // return
   }
   const attestation_type =
     req.body.attestation_type || getAttestationTypeStr(req.body.attestation_type_id)
 
   const att: any = {
-    id: req.body.id,
+    id: attestationId,
     subject: toBuffer(req.body.subject_eth_address),
     type: attestation_type,
     types: [req.body.attestation_type_id],
     role: 'requester',
   }
-  if (req.body.id && v.isUUID(req.body.id)) att.id = req.body.id
   const attestation = await m.Attestation.create(att)
 
   if (typeof getTopic(attestation_type) === 'undefined') {
