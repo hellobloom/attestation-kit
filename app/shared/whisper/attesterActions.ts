@@ -185,6 +185,7 @@ export const handlePaymentAuthorization: TMsgHandler = async (
         attester: bufferToHex(attestation.attester),
         requester: bufferToHex(attestation.requester),
         nonce: attestation.paymentNonce,
+        id: attestation.negotiationId,
         negotiationId: attestation.negotiationId,
       },
       'v2'

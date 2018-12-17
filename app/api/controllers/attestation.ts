@@ -15,7 +15,6 @@ import {
   IAttestParams,
   validateAttestParams,
 } from '@shared/attestations/validateAttestParams'
-import BigNumber from 'bignumber.js'
 
 // list all attestations
 export const show = (req: any, res: any) => {
@@ -102,70 +101,6 @@ export const receiveSubjectData: express.RequestHandler = async (req, res) => {
   return res.status(200).json({merkleTreeComponents})
 }
 
-export const receiveSignedAgreementSolo: express.RequestHandler = async (
-  req,
-  res
-) => {
-  if (
-    typeof req.body.subject !== 'string' ||
-    typeof req.body.requester !== 'string' ||
-    typeof req.body.attester !== 'string' ||
-    typeof req.body.dataHash !== 'string' ||
-    typeof req.body.nonce !== 'string' ||
-    typeof req.body.signature !== 'string' ||
-    typeof req.body.gasPrice !== 'string' ||
-    typeof req.body.network !== 'string'
-  ) {
-    return res.status(400).json({
-      success: false,
-      message:
-        'Request body must contain the fields of an attestation agreement,' +
-        ' an negotiationId, a signature, and a gasPrice.',
-    })
-  }
-
-  const reward = new BigNumber(0)
-
-  const attestation = await Attestation.create({
-    status: AttestationStatus.ready,
-    attester: toBuffer(req.body.attester),
-    requester: toBuffer(req.body.requester),
-    subject: req.body.subject,
-    role: 'attester',
-    subjectSig: toBuffer(req.body.signature),
-    requestNonce: req.body.nonce,
-  })
-
-  const attestParams: IAttestParams = {
-    attestationId: attestation.id,
-    subject: req.body.subject,
-    attester: req.body.attester,
-    requester: req.body.requester,
-    reward: reward,
-    requesterSig: '0x0',
-    dataHash: req.body.dataHash,
-    requestNonce: req.body.nonce,
-    subjectSig: req.body.signature,
-    attestationLogicAddress: env.attestationContracts.logicAddress,
-    tokenEscrowMarketplaceAddress: env.tokenEscrowMarketplace.address,
-  }
-
-  const validationResult = await validateAttestParams(attestParams)
-  if (validationResult.kind === 'validated') {
-    // Call attestation logic `attest` and webhook bloom-web with tx and more
-    const bossInstance = await boss
-    Object.assign(attestParams, {gasPrice: req.body.gasPrice, network: req.body.network})
-    bossInstance.publish('submit-attestation', attestParams)
-
-    return res.status(200).json({success: true})
-  } else {
-    return res.status(400).json({
-      success: false,
-      message: validationResult.message,
-    })
-  }
-}
-
 export const receiveSignedAgreement: express.RequestHandler = async (req, res) => {
   if (
     typeof req.body.negotiationId !== 'string' ||
@@ -188,6 +123,8 @@ export const receiveSignedAgreement: express.RequestHandler = async (req, res) =
   const attestation = await Attestation.findOne({
     where: {
       negotiationId: req.body.negotiationId,
+      role: 'attester',
+      status: AttestationStatus.ready,
     },
   })
 
@@ -198,14 +135,12 @@ export const receiveSignedAgreement: express.RequestHandler = async (req, res) =
     })
   }
 
-  const reward = await attestation.reward()
-
   const attestParams: IAttestParams = {
     attestationId: attestation.id,
     subject: req.body.subject,
     attester: req.body.attester,
     requester: req.body.requester,
-    reward: reward,
+    reward: attestation.reward,
     requesterSig: bufferToHex(attestation.paymentSig),
     dataHash: req.body.dataHash,
     requestNonce: req.body.nonce,
@@ -218,7 +153,10 @@ export const receiveSignedAgreement: express.RequestHandler = async (req, res) =
   if (validationResult.kind === 'validated') {
     // Call attestation logic `attest` and webhook bloom-web with tx and more
     const bossInstance = await boss
-    Object.assign(attestParams, {gasPrice: req.body.gasPrice, network: req.body.network})
+    Object.assign(attestParams, {
+      gasPrice: req.body.gasPrice,
+      network: req.body.network,
+    })
     bossInstance.publish('submit-attestation', attestParams)
 
     return res.status(200).json({success: true})

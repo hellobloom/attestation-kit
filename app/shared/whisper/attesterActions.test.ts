@@ -1,13 +1,8 @@
 import * as newrelic from 'newrelic'
 const uuid = require('uuidv4')
 import BigNumber from 'bignumber.js'
-import {
-  handleSolicitation,
-} from '@shared/whisper/attesterActions'
-import {
-  ISolicitation,
-  EMsgTypes,
-} from '@shared/whisper/msgTypes'
+import {handleSolicitation} from '@shared/whisper/attesterActions'
+import {ISolicitation, EMsgTypes} from '@shared/whisper/msgTypes'
 import {MessageSubscribers} from '@shared/whisper/subscriptionHandler'
 import {signSessionID} from '@shared/ethereum/signingLogic'
 import {PersistDataTypes} from '@shared/whisper/persistDataHandler'
@@ -15,7 +10,6 @@ import {
   attesterWallet,
   requesterWallet,
 } from '@shared/attestations/attestationWallets'
-
 
 jest.mock('newrelic', () => ({recordCustomEvent: jest.fn()}))
 

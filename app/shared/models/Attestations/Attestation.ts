@@ -1,14 +1,10 @@
 import * as Sequelize from 'sequelize-typescript'
 import * as BigNumber from 'bignumber.js'
 import {toBuffer, bufferToHex} from 'ethereumjs-util'
-import {sequelize, Negotiation, NegotiationMsg} from '@shared/models'
+import {sequelize, Negotiation} from '@shared/models'
 import {CognitoSMSStatus} from '@shared/attestations/CognitoSMSStatus'
 import {EmailAttestationStatus} from '@shared/attestations/EmailAttestationStatus'
-import {
-  AttestationStatus,
-  HashingLogic
-} from '@bloomprotocol/attestations-lib'
-import {PersistDataTypes} from '@shared/whisper/persistDataHandler'
+import {AttestationStatus, HashingLogic} from '@bloomprotocol/attestations-lib'
 
 export interface IEmailAttestationJSONB {
   data: Array<HashingLogic.IAttestationData>
@@ -155,18 +151,15 @@ export default class Attestation extends Sequelize.Model<Attestation> {
     )
   }
 
-  async reward(): Promise<BigNumber.BigNumber> {
-    const negotiationId = this.negotiationId
-    const bid = await NegotiationMsg.findOne({
-      where: {
-        negotiationId: negotiationId,
-        messageType: PersistDataTypes.storeAttestationBid,
-      },
-    })
-    if (bid === null) {
-      throw new Error(`No bid found for ${negotiationId}`)
-    }
-    return bid.bid
+  @Sequelize.Column({
+    type: Sequelize.DataType.NUMERIC(28, 18),
+    allowNull: true,
+  })
+  get reward() {
+    return new BigNumber.BigNumber(this.getDataValue('reward')).mul('1e18')
   }
 
+  set reward(value: BigNumber.BigNumber) {
+    this.setDataValue('reward', value.div('1e18').toString(10))
+  }
 }

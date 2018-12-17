@@ -6,8 +6,8 @@ import {HashingLogic} from '@bloomprotocol/attestations-lib'
 import BigNumber from 'bignumber.js'
 import {serverLogger} from '@shared/logger'
 const ethSigUtil = require('eth-sig-util')
-import { getFormattedTypedDataPayTokens } from '@shared/ethereum/signingLogic'
-import { genValidateFn } from '@shared/validator'
+import {getFormattedTypedDataPayTokens} from '@shared/ethereum/signingLogic'
+import {genValidateFn} from '@shared/validator'
 
 interface IInvalidParamError {
   kind: 'invalid_param'
@@ -45,14 +45,13 @@ export const validateSignedAgreement = (
 ) => {
   serverLogger.info(`[validateSignedAgreement] ${JSON.stringify(attestParams)}`)
   const recoveredEthAddress = ethSigUtil.recoverTypedSignature({
-    data: 
-    HashingLogic.getAttestationAgreement(
+    data: HashingLogic.getAttestationAgreement(
       attestParams.attestationLogicAddress,
       1,
       attestParams.dataHash,
-      attestParams.requestNonce,
+      attestParams.requestNonce
     ),
-    sig: attestParams.subjectSig
+    sig: attestParams.subjectSig,
   })
   serverLogger.info(
     `[validateSignedAgreement] recoveredEthAddress '${recoveredEthAddress}'`
@@ -67,7 +66,6 @@ export const validatePaymentSig = (
   reward: string,
   requestNonce: string,
   requesterSig: string
-
 ): boolean => {
   const recoveredEthAddress = ethSigUtil.recoverTypedSignature({
     data: getFormattedTypedDataPayTokens(
@@ -78,12 +76,10 @@ export const validatePaymentSig = (
       reward,
       requestNonce
     ),
-    sig: requesterSig
+    sig: requesterSig,
   })
   serverLogger.info(
-    `[validatePaymentSig] recoveredEthAddress '${bufferToHex(
-      recoveredEthAddress
-    )}'`
+    `[validatePaymentSig] recoveredEthAddress '${bufferToHex(recoveredEthAddress)}'`
   )
   return recoveredEthAddress.toLowerCase() === payer.toLowerCase()
 }
@@ -96,32 +92,32 @@ export const validateRequesterSig = (
   // if no reward requesterSig does not need to be checked
   if (attestParams.reward.toString() === '0') return true
   return validatePaymentSig(
-      attestParams.tokenEscrowMarketplaceAddress,
-      attestParams.requester,
-      attestParams.attester,
-      attestParams.reward.toString(10),
-      attestParams.requestNonce,
-      attestParams.requesterSig,
+    attestParams.tokenEscrowMarketplaceAddress,
+    attestParams.requester,
+    attestParams.attester,
+    attestParams.reward.toString(10),
+    attestParams.requestNonce,
+    attestParams.requesterSig
   )
 }
 
 export const validateAttestParams = genValidateFn([
-    ['subjectSig', U.isValidSignatureString, false],
-    ['subjectSig', validateSignedAgreement, true],
-    ['subject', U.isNotEmptyString, false],
-    ['subject', isValidAddress, false],
-    ['attester', U.isNotEmptyString, false],
-    ['attester', isValidAddress, false],
-    ['requester', U.isNotEmptyString, false],
-    ['requester', isValidAddress, false],
-    ['reward', U.isValidReward, false],
-    ['requesterSig', U.isNotEmptyString, false],
-    ['requesterSig', U.isValidEthHexString, false],
-    ['requesterSig', validateRequesterSig, true],
-    ['dataHash', U.isNotEmptyString, false],
-    ['requestNonce', U.isNotEmptyString, false],
-    ['attestationLogicAddress', U.isNotEmptyString, false],
-    ['attestationLogicAddress', U.isNotEmptyString, false],
-    ['tokenEscrowMarketplaceAddress', isValidAddress, false],
-    ['tokenEscrowMarketplaceAddress', isValidAddress, false],
+  ['subjectSig', U.isValidSignatureString, false],
+  ['subjectSig', validateSignedAgreement, true],
+  ['subject', U.isNotEmptyString, false],
+  ['subject', isValidAddress, false],
+  ['attester', U.isNotEmptyString, false],
+  ['attester', isValidAddress, false],
+  ['requester', U.isNotEmptyString, false],
+  ['requester', isValidAddress, false],
+  ['reward', U.isValidReward, false],
+  ['requesterSig', U.isNotEmptyString, false],
+  ['requesterSig', U.isValidEthHexString, false],
+  ['requesterSig', validateRequesterSig, true],
+  ['dataHash', U.isNotEmptyString, false],
+  ['requestNonce', U.isNotEmptyString, false],
+  ['attestationLogicAddress', U.isNotEmptyString, false],
+  ['attestationLogicAddress', U.isNotEmptyString, false],
+  ['tokenEscrowMarketplaceAddress', isValidAddress, false],
+  ['tokenEscrowMarketplaceAddress', isValidAddress, false],
 ])

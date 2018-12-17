@@ -4,7 +4,7 @@ import {serverLogger} from '@shared/logger'
 import {IAttestParams} from '@shared/attestations/validateAttestParams'
 import * as account from '@shared/ethereum/account'
 import BigNumber from 'bignumber.js'
-import { privateEngine } from '@shared/ethereum/customWeb3Provider'
+import {privateEngine} from '@shared/ethereum/customWeb3Provider'
 
 const attestationLogic = loadAttestationLogic(
   env.attestationContracts.logicAddress
@@ -18,9 +18,7 @@ export const sendAttestTx = async (
   serverLogger.debug(
     `[sendAttestTx] attestationParams: ${JSON.stringify(attestationParams)}`
   )
-  serverLogger.debug(
-    `[sendAttestTx] gasPrice: ${gasPrice}`
-  )
+  serverLogger.debug(`[sendAttestTx] gasPrice: ${gasPrice}`)
   serverLogger.debug(
     `[sendAttestTx] attest transaction options: ${JSON.stringify({
       from: account.address,
@@ -43,9 +41,7 @@ export const sendAttestTx = async (
       gas: 1000000,
     }
   )
-  serverLogger.debug(
-    `[sendAttestTx] txHash: ${txHash}`
-  )
+  serverLogger.debug(`[sendAttestTx] txHash: ${txHash}`)
   return txHash
 }
 

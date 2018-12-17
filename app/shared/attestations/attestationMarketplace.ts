@@ -1,7 +1,5 @@
 import {env} from '@shared/environment'
-import {
-  loadTokenEscrowMarketplace,
-} from '@shared/contracts/load'
+import {loadTokenEscrowMarketplace} from '@shared/contracts/load'
 import {serverLogger} from '@shared/logger'
 
 import BigNumber from 'bignumber.js'

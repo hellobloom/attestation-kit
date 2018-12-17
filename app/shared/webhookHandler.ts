@@ -31,7 +31,8 @@ interface INotifyCollect {
   attester: string
   requester: string
   nonce: string
-  negotiationId: string
+  id: string
+  negotiationId?: string
 }
 
 export const notifyCollectData = async (
@@ -40,15 +41,5 @@ export const notifyCollectData = async (
 ) => {
   await webhookRequest(`/api/${version}/webhooks/prepare_attestation_sig`, {
     attestation,
-  })
-}
-
-export const notifyDoAttestation = async (
-  job_details: any,
-  attestationId: string
-) => {
-  await webhookRequest('/api/webhooks/perform_attestation', {
-    job_details: JSON.stringify(job_details),
-    id: attestationId,
   })
 }
