@@ -78,6 +78,7 @@
     "truffle": "^4.1.11",
     "truffle-contract": "^3.0.1",
     "ts-jest": "^22.0.0",
+    "typedarray-to-buffer": "^3.1.5",
     "typescript": "~2.8.3",
     "underscore": "^1.8.3",
     "urijs": "^1.19.1",
