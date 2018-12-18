@@ -47,7 +47,7 @@ module.exports = {
   // In root dir
   dotenv: resolveApp('.env'),
   appPackageJson: resolveApp('package.json'),
-  yarnLockFile: resolveApp('yarn.lock'),
+  npmLockFile: resolveApp('package-lock.json'),
   appNodeModules: resolveApp('node_modules'),
   publicUrl: getPublicUrl(resolveApp('package.json')),
   servedPath: getServedPath(resolveApp('package.json')),

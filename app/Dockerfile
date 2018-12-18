@@ -4,15 +4,12 @@ FROM ubuntu:16.04
 RUN useradd -ms /bin/bash ubuntu
 RUN apt update && apt-get install -y software-properties-common apt-utils curl apt-transport-https openssh-server git nmap
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 
 RUN apt-get update && apt-get install -y \
     curl \
     nodejs \
     python-pip \
     supervisor \
-    yarn \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -39,8 +36,7 @@ RUN chown -R ubuntu /vol/app-logs /app
 USER ubuntu
 WORKDIR /app
 RUN /app/bin/docker-cleanup-env
-RUN ls -la yarn.lock
-RUN yarn
+RUN npm install
 RUN /app/bin/build
 
 # EXPOSE PORT
