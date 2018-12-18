@@ -1,13 +1,12 @@
 {
-  "name": "bloom-web-client",
+  "name": "bloom-attestation-kit",
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": "^8.9.4",
-    "yarn": "^1.3.2"
+    "node": "^8.9.4"
   },
   "dependencies": {
-    "@bloomprotocol/attestations-lib": "^3.0.0",
+    "@bloomprotocol/attestations-lib": "^3.0.3",
     "@types/async": "^2.0.47",
     "@types/bignumber.js": "^4.0.3",
     "@types/chalk": "^2.2.0",
@@ -78,8 +77,8 @@
     "supertest": "^3.0.0",
     "truffle": "^4.1.11",
     "truffle-contract": "^3.0.1",
-    "truffle-hdwallet-provider": "^0.0.3",
     "ts-jest": "^22.0.0",
+    "typedarray-to-buffer": "^3.1.5",
     "typescript": "~2.8.3",
     "underscore": "^1.8.3",
     "urijs": "^1.19.1",
@@ -97,9 +96,9 @@
     ]
   },
   "scripts": {
-    "preinstall": "./bin/require-yarn",
+    "preinstall": "./bin/preinstall",
     "start:dev": "./bin/start-dev",
-    "heroku-postbuild": "yarn build",
+    "heroku-postbuild": "npm run build",
     "start": "./bin/start-prod",
     "build": "./bin/build",
     "build-contracts": "./bin/compile-contracts",
