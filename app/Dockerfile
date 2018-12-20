@@ -36,7 +36,7 @@ RUN chown -R ubuntu /vol/app-logs /app
 USER ubuntu
 WORKDIR /app
 RUN /app/bin/docker-cleanup-env
-RUN npm install 
+RUN npm ci
 RUN /app/bin/build
 
 # EXPOSE PORT
