@@ -1,3 +1,4 @@
+import * as newrelic from 'newrelic'
 import * as m from '@shared/models'
 import {serverLogger} from '@shared/logger'
 import {boss} from '@shared/jobs/boss'
@@ -158,6 +159,11 @@ export const receiveSignedAgreement: express.RequestHandler = async (req, res) =
       network: req.body.network,
     })
     bossInstance.publish('submit-attestation', attestParams)
+
+    newrelic.recordCustomEvent('AttestationEvent', {
+      Action: 'EnqueueAttest',
+      AttestationId: attestParams.attestationId,
+    })
 
     return res.status(200).json({success: true})
   } else {
