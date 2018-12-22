@@ -156,7 +156,7 @@ export const createBypass = async (req: any, res: any) => {
   newrelic.recordCustomEvent('AttestationEvent', {
     Action: 'Solicit',
     AttestationId: attestation.id,
-    BypassNegotiation: false,
+    BypassNegotiation: true,
     Type: attestation_type,
   })
 
