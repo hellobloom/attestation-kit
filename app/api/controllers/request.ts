@@ -1,3 +1,4 @@
+import * as newrelic from 'newrelic'
 import * as m from '@shared/models'
 import * as dc from 'deepcopy'
 import {env} from '@shared/environment'
@@ -85,6 +86,13 @@ export const create = async (req: any, res: any) => {
     attestation.id
   )
 
+  newrelic.recordCustomEvent('AttestationEvent', {
+    Action: 'Solicit',
+    AttestationId: attestation.id,
+    BypassNegotiation: false,
+    Type: attestation_type,
+  })
+
   res.json({success: true, sessionId: attestation.id})
 }
 
@@ -144,6 +152,13 @@ export const createBypass = async (req: any, res: any) => {
     },
     'v2'
   )
+
+  newrelic.recordCustomEvent('AttestationEvent', {
+    Action: 'Solicit',
+    AttestationId: attestation.id,
+    BypassNegotiation: true,
+    Type: attestation_type,
+  })
 
   res.json({success: true, sessionId: attestation.id})
 }
