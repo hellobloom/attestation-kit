@@ -21,6 +21,7 @@ export const submitAttestation = async (job: any) => {
   })
   if (!attestation) {
     serverLogger.error(`Attestation not found for id ${attestParams.attestationId}`)
+    return
   }
 
   if (env.txService) {
