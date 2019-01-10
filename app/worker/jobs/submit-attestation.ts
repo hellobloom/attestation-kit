@@ -20,7 +20,7 @@ export const submitAttestation = async (job: any) => {
     },
   })
   if (!attestation) {
-    throw new Error(`Attestation not found for id ${attestParams.attestationId}`)
+    serverLogger.error(`Attestation not found for id ${attestParams.attestationId}`)
   }
 
   if (env.txService) {
@@ -65,6 +65,9 @@ export const submitAttestation = async (job: any) => {
         Action: 'SubmitAttestationFailed',
         error: JSON.stringify(err),
       })
+      throw new Error(
+        `SendTx failed. Retryable error: ${JSON.stringify(err)}`
+      )
     }
   } else {
     serverLogger.info(
