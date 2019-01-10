@@ -1,0 +1,6 @@
+#!/bin/bash
+
+echo "Refreshing attestations-lib..."
+
+rm -rf ./node_modules/@bloomprotocol/attestations-lib
+npm install --save "@bloomprotocol/attestations-lib"

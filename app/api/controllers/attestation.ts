@@ -58,6 +58,19 @@ export const perform = async (req: any, res: any) => {
   }
 }
 
+let dataNodeTests = {
+  defined: (dataNode: any) => typeof dataNode !== 'undefined',
+  dataDefined: (dataNode: any) => typeof dataNode.data !== 'undefined',
+  dataDataDefined: (dataNode: any) => typeof dataNode.data.data === 'string',
+  dataNonceDefined: (dataNode: any) => typeof dataNode.data.nonce === 'string',
+  dataVersionDefined: (dataNode: any) => typeof dataNode.data.version === 'string',
+  typeDefined: (dataNode: any) => typeof dataNode.type !== 'undefined',
+  validType: (dataNode: any) =>
+    AttestationTypeNames.indexOf(dataNode.type.type) > -1,
+  typeNonceDefined: (dataNode: any) => typeof dataNode.type.nonce === 'string',
+  auxDefined: (dataNode: any) => typeof dataNode.aux === 'string',
+}
+
 export const receiveSubjectData: express.RequestHandler = async (req, res) => {
   if (!Array.isArray(req.body.dataNodes) || !req.body.dataNodes.length) {
     return res.status(400).json({
@@ -65,25 +78,30 @@ export const receiveSubjectData: express.RequestHandler = async (req, res) => {
       message: 'Request body must contain a non-empty dataNodes array.',
     })
   }
-  if (
-    !(req.body.dataNodes as Array<any>).every(dataNode => {
-      return (
-        typeof dataNode !== 'undefined' &&
-        typeof dataNode.data !== 'undefined' &&
-        typeof dataNode.data.data === 'string' &&
-        typeof dataNode.data.nonce === 'string' &&
-        typeof dataNode.data.version === 'string' &&
-        typeof dataNode.type !== 'undefined' &&
-        AttestationTypeNames.indexOf(dataNode.type.type) > -1 &&
-        typeof dataNode.type.nonce === 'string' &&
-        typeof dataNode.aux === 'string'
-      )
+
+  let errors: Array<{error: string; index: number; testFailed?: boolean}> = []
+
+  let nodes = req.body.dataNodes as Array<any>
+  nodes.forEach((dataNode: any, i) => {
+    Object.keys(dataNodeTests).forEach(k => {
+      let test = dataNodeTests[k]
+      try {
+        let testResult = test(dataNode)
+        if (!testResult) {
+          errors.push({error: k, index: i})
+        }
+      } catch (err) {
+        errors.push({error: k, index: i, testFailed: true})
+      }
     })
-  ) {
+  })
+
+  if (errors.length > 0) {
     return res.status(400).json({
       success: false,
       message:
         'Each data node in the dataNodes field must contain a properly structured IAttestation.',
+      errors: errors,
     })
   }
 
