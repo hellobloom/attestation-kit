@@ -6,7 +6,7 @@
     "node": "^8.9.4"
   },
   "dependencies": {
-    "@bloomprotocol/attestations-lib": "^3.0.3",
+    "@bloomprotocol/attestations-lib": "^3.0.4",
     "@types/async": "^2.0.47",
     "@types/bignumber.js": "^4.0.3",
     "@types/chalk": "^2.2.0",
