@@ -1,0 +1,10 @@
+# Log file path and user/group may need to be changed to reflect its location on your system
+/var/lib/docker/volumes/attestation-kit_gethvol/_data/logs/geth.out.log {
+  rotate 8
+  daily
+  compress
+  missingok
+  notifempty
+  create 0644 geth geth 
+  copytruncate
+}
