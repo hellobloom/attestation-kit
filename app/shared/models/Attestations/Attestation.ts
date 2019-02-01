@@ -14,7 +14,7 @@ export interface IEmailAttestationJSONB {
 
 export interface IPhoneAttestationJSONB {
   data: Array<HashingLogic.IAttestationData>
-  verificatiotatus?: CognitoSMSStatus
+  verificationStatus?: CognitoSMSStatus
   cognitoProfile?: string
 }
 
