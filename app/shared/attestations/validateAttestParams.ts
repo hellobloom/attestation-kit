@@ -4,7 +4,7 @@ import {TUnvalidated} from '@shared/params/validation'
 import * as U from '@shared/utils'
 import {HashingLogic} from '@bloomprotocol/attestations-lib'
 import BigNumber from 'bignumber.js'
-import {serverLogger} from '@shared/logger'
+import {log} from '@shared/logger'
 const ethSigUtil = require('eth-sig-util')
 import {getFormattedTypedDataPayTokens} from '@shared/ethereum/signingLogic'
 import {genValidateFn} from '@shared/validator'
@@ -43,7 +43,7 @@ export const validateSignedAgreement = (
   subjectSig: string,
   attestParams: TUnvalidated<IAttestParams>
 ) => {
-  serverLogger.info(`[validateSignedAgreement] ${JSON.stringify(attestParams)}`)
+  log.info(`[validateSignedAgreement] ${JSON.stringify(attestParams)}`)
   const recoveredEthAddress = ethSigUtil.recoverTypedSignature({
     data: HashingLogic.getAttestationAgreement(
       attestParams.attestationLogicAddress,
@@ -53,7 +53,7 @@ export const validateSignedAgreement = (
     ),
     sig: attestParams.subjectSig,
   })
-  serverLogger.info(
+  log.info(
     `[validateSignedAgreement] recoveredEthAddress '${recoveredEthAddress}'`
   )
   return recoveredEthAddress.toLowerCase() === attestParams.subject.toLowerCase()
@@ -78,7 +78,7 @@ export const validatePaymentSig = (
     ),
     sig: requesterSig,
   })
-  serverLogger.info(
+  log.info(
     `[validatePaymentSig] recoveredEthAddress '${bufferToHex(recoveredEthAddress)}'`
   )
   return recoveredEthAddress.toLowerCase() === payer.toLowerCase()
@@ -88,7 +88,7 @@ export const validateRequesterSig = (
   requesterSig: string,
   attestParams: TUnvalidated<IAttestParams>
 ) => {
-  serverLogger.info(`[validatePaymentSig] ${JSON.stringify(attestParams)}`)
+  log.info(`[validatePaymentSig] ${JSON.stringify(attestParams)}`)
   // if no reward requesterSig does not need to be checked
   if (attestParams.reward.toString() === '0') return true
   return validatePaymentSig(

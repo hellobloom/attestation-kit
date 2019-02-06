@@ -4,30 +4,41 @@ import {env} from '@shared/environment'
 import {WhisperFilters} from '@shared/models'
 import {toBuffer} from 'ethereumjs-util'
 import {IBloomWhisperMessage} from '@shared/whisper/msgTypes'
-import {serverLogger} from '@shared/logger'
+import {log} from '@shared/logger'
 import {AttestationTypeManifest} from '@bloomprotocol/attestations-lib'
+
+let envPr = env()
 
 export type TWhisperEntity = keyof AttestationTypeManifest | 'ping' | 'requester'
 
-export const web3 = new Web3(new Web3.providers.HttpProvider(env.web3Provider))
-export const toTopic = (ascii: string) => web3.sha3(ascii).slice(0, 10)
-export const getTopic = (at: TWhisperEntity) => {
-  var name = `${env.whisper.topicPrefix}-${at}`
-  var camelName = name.replace(/-([a-z])/g, function(g) {
-    return g[1].toUpperCase()
-  })
-  return camelName
-}
-export var shh = new Shh(env.whisper.provider)
+envPr.then(e => {
+  shh = new Shh(e.whisper.provider)
+})
 
-export const resetShh = () => {
-  shh = new Shh(env.whisper.provider)
+var shh: any, web3: any, toTopic: any, getTopic: any
+
+export const resetShh = async () => {
+  let e = await envPr
+
+  web3 = new Web3(new Web3.providers.HttpProvider(e.web3Provider))
+  toTopic = (ascii: string) => web3.sha3(ascii).slice(0, 10)
+  getTopic = (at: TWhisperEntity) => {
+    var name = `${e.whisper.topicPrefix}-${at}`
+    var camelName = name.replace(/-([a-z])/g, function(g) {
+      return g[1].toUpperCase()
+    })
+    return camelName
+  }
+  shh = new Shh(e.whisper.provider)
 }
+
+export {shh, web3, toTopic, getTopic}
 
 export const fetchAllMessages = async (entity: string) => {
+  let e = await envPr
   const filters = await WhisperFilters.findAll({
     where: {entity: entity},
-    logging: env.logs.whisper.sql,
+    logging: e.logs.whisper.sql,
   })
   let allMessages: Shh.Message[] = []
   for (let filter of filters) {
@@ -50,15 +61,16 @@ export const broadcastMessage = async (
   symKeyPassword: string,
   replyToTopic: string | null
 ) => {
+  let e = await envPr
   try {
-    serverLogger.debug('Broadcasting message on whisper:', message.messageType)
+    log(['Broadcasting message on whisper:', message.messageType], {level: 'debug'})
     // Generate symkey from password
     const symkeyId = await shh.generateSymKeyFromPassword(symKeyPassword)
     // Look up public key associated with this topic
     if (replyToTopic !== null) {
       const filter = await WhisperFilters.findOne({
         where: {topic: toBuffer(replyToTopic)},
-        logging: env.logs.whisper.sql,
+        logging: e.logs.whisper.sql,
       })
       if (filter !== null) {
         const keypairId = filter.keypairId
@@ -87,19 +99,20 @@ export const directMessage = async (
   recipientPublicKeyString: string,
   replyToTopic: string | null
 ) => {
+  let e = await envPr
   try {
     // Look up public key associated with this topic
     if (replyToTopic !== null) {
       const filter = await WhisperFilters.findOne({
         where: {topic: toBuffer(replyToTopic)},
-        logging: env.logs.whisper.sql,
+        logging: e.logs.whisper.sql,
       })
       if (filter !== null) {
         const keypairId = filter.keypairId
         message.replyTo = await shh.getPublicKey(keypairId)
       }
     }
-    serverLogger.info('Sending direct message', message)
+    log(`Sending direct message: ${message}`)
     const outcome = await shh.post({
       ttl: 7,
       topic: messageTopic,
@@ -121,12 +134,13 @@ export const newBroadcastSession = async (
   password: string,
   entity: string
 ) => {
+  let e = await envPr
   try {
     const symkeyId = await shh.generateSymKeyFromPassword(password)
     // Don't create duplicate filters for the same entity
     const filter = await WhisperFilters.findOne({
       where: {topic: toBuffer(newTopic), entity: entity},
-      logging: env.logs.whisper.sql,
+      logging: e.logs.whisper.sql,
     })
     if (filter !== null) {
       try {
@@ -135,7 +149,7 @@ export const newBroadcastSession = async (
         await filter.destroy()
         await shh.deleteMessageFilter(filterIdToRemove)
       } catch (err) {
-        serverLogger.info('Warning: filter removal failed (probably negligible)')
+        log('Warning: filter removal failed (probably negligible)')
       }
     }
     const broadcastMessageFilterID = await shh.newMessageFilter({
@@ -156,12 +170,13 @@ export const newBroadcastSession = async (
 }
 
 export const newDirectMessageSession = async (newTopic: string, entity: string) => {
+  let e = await envPr
   try {
     const newKeyID = await shh.newKeyPair()
     // Don't create duplicate filters for the same entity
     const filter = await WhisperFilters.findOne({
       where: {topic: toBuffer(newTopic), entity: entity},
-      logging: env.logs.whisper.sql,
+      logging: e.logs.whisper.sql,
     })
     if (filter !== null) {
       // Try to delete the filter. No way to just check if it works
@@ -187,10 +202,11 @@ export const newDirectMessageSession = async (newTopic: string, entity: string) 
 }
 
 export const endSession = async (filterId: string, keypairId: string) => {
+  let e = await envPr
   try {
     const filter = await WhisperFilters.findOne({
       where: {filterId: filterId},
-      logging: env.logs.whisper.sql,
+      logging: e.logs.whisper.sql,
     })
     if (filter !== null) {
       const filterIdToRemove = filter.filterId

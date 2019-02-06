@@ -10,6 +10,6 @@ jest.mock('@shared/logger', () => {
   return {
     pollTrackerLogger: silentLogger,
     delayedJobLogger: silentLogger,
-    serverLogger: silentLogger,
+    log: silentLogger,
   }
 })

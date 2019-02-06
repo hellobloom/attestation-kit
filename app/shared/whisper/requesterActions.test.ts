@@ -5,37 +5,43 @@ import {handleAttestationBid} from '@shared/whisper/requesterActions'
 import {IAttestationBid, EMsgTypes} from '@shared/whisper/msgTypes'
 import {Negotiation, WhisperFilters} from '@shared/models'
 import {signSessionID} from '@shared/ethereum/signingLogic'
-import {env} from '@shared/environment'
+import {env, IEnvironmentConfig} from '@shared/environment'
 import {toBuffer} from 'ethereumjs-util'
 // import {MessageSubscribers} from '@shared/whisper/subscriptionHandler'
 import {toTopic, getTopic} from '@shared/whisper'
 import * as Wallet from 'ethereumjs-wallet'
 
-const zeroReward = new BigNumber(0).toString(10)
+let envPr = env()
 
-const reSessionId = uuid()
-const reSessionSigned = signSessionID(reSessionId, toBuffer(env.owner.ethPrivKey))
-const negotiationSession = uuid()
-
-const attestationBid: IAttestationBid = {
-  messageType: EMsgTypes.attestationBid,
-  replyTo: 'testReplyTo',
-  session: uuid(),
-  reSession: reSessionId,
-  negotiationSession: negotiationSession,
-  reSessionSigned: reSessionSigned,
-  rewardBid: zeroReward,
+const getAttestationBid = (e: IEnvironmentConfig, invalid: boolean = false) => {
+  const zeroReward = new BigNumber(0).toString(10)
+  const reSessionId = uuid()
+  const reSessionSigned = signSessionID(reSessionId, toBuffer(e.owner.ethPrivKey))
+  const negotiationSession = uuid()
+  if (!invalid) {
+    const attestationBid: IAttestationBid = {
+      messageType: EMsgTypes.attestationBid,
+      replyTo: 'testReplyTo',
+      session: uuid(),
+      reSession: reSessionId,
+      negotiationSession: negotiationSession,
+      reSessionSigned: reSessionSigned,
+      rewardBid: zeroReward,
+    }
+    return attestationBid
+  } else {
+    const invalidAttestationBid: IAttestationBid = {
+      messageType: EMsgTypes.attestationBid,
+      replyTo: 'testReplyTo',
+      session: uuid(),
+      reSession: uuid(),
+      negotiationSession: negotiationSession,
+      reSessionSigned: reSessionSigned,
+      rewardBid: zeroReward,
+    }
+    return invalidAttestationBid
+  }
 }
-const invalidAttestationBid: IAttestationBid = {
-  messageType: EMsgTypes.attestationBid,
-  replyTo: 'testReplyTo',
-  session: uuid(),
-  reSession: uuid(),
-  negotiationSession: negotiationSession,
-  reSessionSigned: reSessionSigned,
-  rewardBid: zeroReward,
-}
-
 const requesterPrivKey =
   '0x96f3f9dfb9abc8e597669d9b7f9abe4c9b04b44fd7c897adbc95dad4060a4c06'
 
@@ -50,7 +56,10 @@ beforeEach(() => {
   jest.clearAllMocks()
 })
 
-describe('Handling bid', () => {
+describe('Handling bid', async () => {
+  let e = await envPr
+  let attestationBid = getAttestationBid(e)
+  let invalidAttestationBid = getAttestationBid(e, true)
   it('Accepts a valid sms bid', async () => {
     Negotiation.findOne = jest.fn(() => ({
       initialReward: new BigNumber(0),

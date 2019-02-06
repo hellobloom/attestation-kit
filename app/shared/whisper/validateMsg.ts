@@ -1,7 +1,7 @@
 import {Negotiation, NegotiationMsg} from '@shared/models'
 import BigNumber from 'bignumber.js'
 import {bufferToHex} from 'ethereumjs-util'
-import {serverLogger} from '@shared/logger'
+import {log} from '@shared/logger'
 
 import {recoverSessionIDSig} from '@shared/ethereum/signingLogic'
 import {
@@ -57,7 +57,7 @@ export const bidMatchesAsk = async (data: IAttestationBid): Promise<boolean> => 
   })
   if (negotiation === null) return false
   if (negotiation.initialReward === null) return false
-  serverLogger.debug('Checking if bid matches ask...')
+  log('Checking if bid matches ask...', {level: 'debug'})
   if (negotiation.initialReward.comparedTo(new BigNumber(data.rewardBid)) === 0) {
     return true
   } else {
@@ -86,12 +86,12 @@ export const rewardMatchesBid = async (
 export const confirmRequesterFunds = async (
   data: ISolicitation
 ): Promise<boolean> => {
-  serverLogger.debug('Confirming requester funds...')
+  log('Confirming requester funds...', {level: 'debug'})
   const requesterAddress = recoverSessionIDSig(data.session, data.sessionSigned)
   const balance = await checkEscrowBalance(requesterAddress)
-  serverLogger.debug(
-    `Got requester balance for ${requesterAddress}: ${balance.toString()}`
-  )
+  log(`Got requester balance for ${requesterAddress}: ${balance.toString()}`, {
+    level: 'debug',
+  })
   if (balance.greaterThanOrEqualTo(new BigNumber(data.rewardAsk))) {
     return true
   } else {

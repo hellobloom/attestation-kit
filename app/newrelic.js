@@ -9,7 +9,7 @@ exports.config = {
   /**
    * Array of application names.
    */
-  app_name: [process.env.NEWRELIC_APPNAME || 'bloom-docker'],
+  app_name: [process.env.NEWRELIC_APPNAME || 'bloom-attestation-kit'],
   /**
    * Your New Relic license key.
    */

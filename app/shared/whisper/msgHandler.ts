@@ -27,10 +27,11 @@ import {
   MessageSubscribers,
   subscribeToBroadcast,
 } from '@shared/whisper/subscriptionHandler'
-import {serverLogger} from '@shared/logger'
+import {log} from '@shared/logger'
 import {boss} from '@shared/jobs/boss'
 import {confirmRequesterFunds} from '@shared/whisper/validateMsg'
 
+let envPr = env()
 export type TMsgHandler = (...args: any[]) => Promise<IMessageDecision | false>
 
 export interface IMessageDecision {
@@ -66,40 +67,38 @@ const handleMessage = async (
   wallet: Wallet.Wallet
 ) => {
   const date = new Date()
-  serverLogger.debug(`${date}[handleMessage]`, JSON.stringify(body))
-  serverLogger.debug(`${date}[handleMessage] body.messageType = ${body.messageType}`)
+  log(`${date}[handleMessage] ${JSON.stringify(body)}`, {level: 'debug'})
+  log(`${date}[handleMessage] body.messageType = ${body.messageType}`, {
+    level: 'debug',
+  })
   let messageDecision: IMessageDecision | false
   if (body.hasOwnProperty('messageType')) {
     switch (body.messageType) {
       case EMsgTypes.solicitation:
         // this check is here to make handleSolicitation testable
         // confirmRequesterFunds performs a blockchain state read
-        serverLogger.debug('Handling solicitation message')
+        log('Handling solicitation message', {level: 'debug'})
         let confirmed = await confirmRequesterFunds(body)
-        serverLogger.info('Requester funds?', confirmed)
+        log(`Requester funds? ${confirmed}`)
         if (confirmed) {
           messageDecision = await handleSolicitation(body, messageTopic, wallet)
-          serverLogger.info(
-            'Requester funds check succeeded.  Message decision:',
-            messageDecision
+          log(
+            `Requester funds check succeeded.  Message decision: ${messageDecision}`
           )
         } else {
           messageDecision = await handleUnknownMessageType(body, messageTopic)
-          serverLogger.info(
-            'Requester funds check failed.  Message decision:',
-            messageDecision
-          )
+          log(`Requester funds check failed.  Message decision: ${messageDecision}`)
         }
         if (!messageDecision) {
           return false
         }
         break
       case EMsgTypes.attestationBid:
-        serverLogger.debug('Handling attestation message')
+        log('Handling attestation message', {level: 'debug'})
         messageDecision = await handleAttestationBid(body, messageTopic, wallet)
         break
       case EMsgTypes.paymentAuthorization:
-        serverLogger.info('Handling handlePaymentAuthorization message')
+        log('Handling handlePaymentAuthorization message')
         messageDecision = await handlePaymentAuthorization(
           body,
           messageTopic,
@@ -107,14 +106,14 @@ const handleMessage = async (
         )
         break
       default:
-        serverLogger.debug('Handling unknown message')
+        log('Handling unknown message', {level: 'debug'})
         messageDecision = await handleUnknownMessageType(body, messageTopic)
     }
   } else {
-    serverLogger.debug('Handling unknown message (no type specified)')
+    log('Handling unknown message (no type specified)', {level: 'debug'})
     messageDecision = await handleUnknownMessageType(body, messageTopic)
   }
-  serverLogger.debug('Message decision', messageDecision)
+  log(`Message decision: ${JSON.stringify(messageDecision)}`, {level: 'debug'})
   return messageDecision
 }
 
@@ -122,30 +121,28 @@ export const actOnMessage = async (
   messageDecision: IMessageDecision,
   entity: string
 ) => {
-  serverLogger.info(
-    'DEBUG [actOnMessage] ' + JSON.stringify({messageDecision, entity})
-  )
+  log('DEBUG [actOnMessage] ' + JSON.stringify({messageDecision, entity}))
   if (messageDecision.persist !== null) {
     switch (messageDecision.persist.messageType) {
       case PersistDataTypes.storeSolicitation:
-        serverLogger.debug('Acting on message, storeSolicitation')
+        log('Acting on message, storeSolicitation', {level: 'debug'})
         await storeSolicitation(messageDecision.persist)
         break
       case PersistDataTypes.storeAttestationBid:
-        serverLogger.debug('Acting on message, storeAttestationBid')
+        log('Acting on message, storeAttestationBid', {level: 'debug'})
         await storeAttestationBid(messageDecision.persist)
         break
       case PersistDataTypes.storeSendPaymentAuthorization:
-        serverLogger.debug('Acting on message, storeSendPaymentAuthorization')
+        log('Acting on message, storeSendPaymentAuthorization', {level: 'debug'})
         await storeSendPaymentAuthorization(messageDecision.persist)
         break
       default:
         break
     }
   }
-  serverLogger.debug('Message acted upon')
+  log('Message acted upon', {level: 'debug'})
   if (messageDecision.unsubscribeFrom !== null) {
-    serverLogger.debug('Unsubscribing from message.')
+    log('Unsubscribing from message.', {level: 'debug'})
     await unsubscribeFromTopic(messageDecision.unsubscribeFrom)
   }
 
@@ -154,7 +151,9 @@ export const actOnMessage = async (
     messageDecision.respondTo === null &&
     messageDecision.subscribeTo.messageType === MessageSubscribers.broadcastMessage
   ) {
-    serverLogger.debug('Subscribing to new topic', messageDecision.subscribeTo.topic)
+    log(['Subscribing to new topic', messageDecision.subscribeTo.topic], {
+      level: 'debug',
+    })
     await subscribeToBroadcast(
       messageDecision.subscribeTo.topic,
       messageDecision.subscribeTo.password,
@@ -226,11 +225,17 @@ const actOnMessages = (messageDecisions: IMessageDecision[], entity: string) => 
         Stage: 'ActOnMessages',
         Entity: entity,
       })
-      serverLogger.warn('Encountered an error while acting on whisper messages', {
-        item,
-        entity,
-        error,
-      })
+      log(
+        [
+          'Encountered an error while acting on whisper messages',
+          {
+            item,
+            entity,
+            error,
+          },
+        ],
+        {level: 'warn'}
+      )
     }
   })
 }
@@ -239,23 +244,24 @@ export const handleMessages = async (
   entity: TWhisperEntity,
   wallet: Wallet.Wallet
 ) => {
+  let e = await envPr
   // Make sure attester is listening for solicitations
   let newMessages: Shh.Message[] = await fetchAllMessages(entity)
   let messageDecisions: IMessageDecision[] = []
-  const web3 = new Web3(new Web3.providers.HttpProvider(env.web3Provider))
+  const web3 = new Web3(new Web3.providers.HttpProvider(e.web3Provider))
   for (let message of newMessages) {
     try {
       try {
-        serverLogger.info('Attempting to handle Whisper message', message.payload)
-        serverLogger.info('Decoding Whisper message', web3.toAscii(message.payload))
+        log(['Attempting to handle Whisper message', message.payload])
+        log(['Decoding Whisper message', web3.toAscii(message.payload)])
       } catch {
-        serverLogger.info('Failed to decode payload')
+        log('Failed to decode payload')
       }
       const body: TBloomMessage = JSON.parse(web3.toAscii(message.payload))
-      serverLogger.info('Decoded Whisper message...', body)
+      log(['Decoded Whisper message...', body])
       const messageTopic: string = message.topic
       const messageDecision = await handleMessage(body, messageTopic, entity, wallet)
-      serverLogger.info('Received message decision', messageDecision)
+      log(['Received message decision', messageDecision])
       if (messageDecision) {
         messageDecisions.push(messageDecision)
       }
@@ -264,10 +270,13 @@ export const handleMessages = async (
         Stage: 'HandleMessages',
         Entity: entity,
       })
-      serverLogger.warn(
-        'Encountered an error while handling whisper messages',
-        error.message,
-        error.stack
+      log(
+        [
+          'Encountered an error while handling whisper messages',
+          error.message,
+          error.stack,
+        ],
+        {level: 'warn'}
       )
     }
   }

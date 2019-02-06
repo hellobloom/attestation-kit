@@ -1,6 +1,5 @@
-import * as newrelic from 'newrelic'
 import {sendAttestTx} from '@shared/attestations/sendAttest'
-import {serverLogger} from '@shared/logger'
+import {log} from '@shared/logger'
 import {env} from '@shared/environment'
 import {sendTx} from '@shared/txService'
 import {signAttestForDelegation} from '@shared/ethereum/signingLogic'
@@ -11,8 +10,11 @@ import {
 import {attesterWallet} from '@shared/attestations/attestationWallets'
 import {Attestation} from '@shared/models'
 
+let envPr = env()
+
 export const submitAttestation = async (job: any) => {
-  serverLogger.info('Submitting attestation...')
+  let e = await envPr
+  log('Submitting attestation...')
   const attestParams: IAttestParams = job.data
   const attestation = await Attestation.findOne({
     where: {
@@ -20,16 +22,19 @@ export const submitAttestation = async (job: any) => {
     },
   })
   if (!attestation) {
-    serverLogger.error(`Attestation not found for id ${attestParams.attestationId}`)
+    log(`Attestation not found for id ${attestParams.attestationId}`, {
+      level: 'error',
+    })
     return
   }
 
-  if (env.txService) {
-    serverLogger.info(
-      '[submit-attestation.ts] Submitting delegated attestation via tx-service attestFor.'
+  if (e.txService) {
+    log(
+      '[submit-attestation.ts] Submitting delegated attestation via tx-service attestFor.',
+      {level: 'error'}
     )
     const delegationSig = signAttestForDelegation(
-      env.attestationContracts.logicAddress,
+      e.attestationContracts.logicAddress,
       attestParams,
       attesterWallet.getPrivateKey()
     )
@@ -62,26 +67,34 @@ export const submitAttestation = async (job: any) => {
         )
       }
     } catch (err) {
-      newrelic.recordCustomEvent('ContractError', {
-        Action: 'SubmitAttestationFailed',
-        error: JSON.stringify(err),
-      })
-      throw new Error(
-        `SendTx failed. Retryable error: ${JSON.stringify(err)}`
+      log(
+        {
+          name: 'ContractError',
+          event: {
+            Action: 'SubmitAttestationFailed',
+            error: JSON.stringify(err),
+          },
+        },
+        {event: true}
       )
+      throw new Error(`SendTx failed. Retryable error: ${JSON.stringify(err)}`)
     }
   } else {
-    serverLogger.info(
-      '[submit-attestation.ts] Submitting attestation directly using attest.'
-    )
+    log('[submit-attestation.ts] Submitting attestation directly using attest.')
     const txHash = await sendAttestTx(job.data, job.data.gasPrice)
 
-    serverLogger.debug('Sent attest tx...', txHash)
+    log(`Sent attest tx...${txHash}`, {level: 'debug'})
 
-    newrelic.recordCustomEvent('ContractEvent', {
-      Action: 'SendAttestation',
-      TxHash: txHash,
-    })
+    log(
+      {
+        name: 'ContractEvent',
+        event: {
+          Action: 'SendAttestation',
+          TxHash: txHash,
+        },
+      },
+      {event: true}
+    )
     await attestation.update({
       attestTx: txHash,
       data: null,

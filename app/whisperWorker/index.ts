@@ -1,6 +1,6 @@
-import * as newrelic from 'newrelic'
+import {log} from '@shared/logger'
 import * as Web3 from 'web3'
-import * as Raven from 'raven'
+import * as Sentry from '@sentry/node'
 import {env} from '@shared/environment'
 import {
   resetShh,
@@ -12,85 +12,96 @@ import {
   attesterWallet,
   requesterWallet,
 } from '@shared/attestations/attestationWallets'
-
-import {serverLogger} from '@shared/logger'
-
 import {handleMessages} from '@shared/whisper/msgHandler'
-
 import {listenForSolicitations} from '@shared/whisper/attesterActions'
 import {sendPings, handlePongMessages} from '@shared/whisper/ping'
-
 import {WhisperFilters} from '@shared/models'
 
-Raven.config(env.sentryDSN, {environment: env.nodeEnv}).install()
+let envPr = env()
 
-const web3 = new Web3(new Web3.providers.HttpProvider(env.web3Provider))
-const toTopic = (ascii: string) => web3.sha3(ascii).slice(0, 10)
-
-const password = env.whisper.password
-
-const getPingFilter = async () => {
-  if (env.logs.whisper.pings)
-    serverLogger.info('Ping filter needs refreshing, getting a new one')
-  let existing = await WhisperFilters.findOne({
-    where: {entity: 'ping'},
-    logging: env.logs.whisper.sql,
+envPr.then(env => {
+  Sentry.init({
+    dsn: env.sentryDSN,
+    environment: env.pipelineStage,
+    release: env.sourceVersion,
   })
-  return (
-    existing ||
-    newBroadcastSession(toTopic(getTopic('ping')), env.whisper.ping.password, 'ping')
-  )
-}
 
-const main = async () => {
-  try {
-    if (env.whisper.ping.enabled) {
-      try {
-        const wf = await getPingFilter()
-        if (wf) {
-          console.log('Working with WhisperFilter', wf.filterId)
-          try {
-            await sendPings(wf, web3)
-          } catch (err) {
-            console.log('Unhandled error sending whisper pings', err)
-          }
-          try {
-            await handlePongMessages(wf, web3)
-          } catch (err) {
-            console.log('Unhandled error handling whisper pongs', err)
-          }
-        } else {
-          console.log('pingFilterPromise returned nothing')
-        }
-      } catch (err) {
-        console.log('Unhandled error handling ping (general)', err)
-      }
+  const web3 = new Web3(new Web3.providers.HttpProvider(env.web3Provider))
+  const toTopic = (ascii: string) => web3.sha3(ascii).slice(0, 10)
+
+  const password = env.whisper.password
+
+  const getPingFilter = async () => {
+    if (env.logs.whisper.pings) {
+      log('Ping filter needs refreshing, getting a new one')
     }
-
-    if (env.attester_rewards) {
-      Object.keys(env.attester_rewards).forEach(
-        async (topic_name: TWhisperEntity) => {
-          let hashed_topic = toTopic(getTopic(topic_name))
-          await listenForSolicitations(hashed_topic, password, topic_name)
-          await handleMessages(topic_name, attesterWallet)
-        }
-      )
-    }
-
-    await handleMessages('requester', requesterWallet)
-  } catch (error) {
-    Raven.captureException(error, {
-      tags: {logger: 'whisper'},
+    let existing = await WhisperFilters.findOne({
+      where: {entity: 'ping'},
+      logging: env.logs.whisper.sql,
     })
-    newrelic.recordCustomEvent('WhisperError', {Entity: 'Attester'})
-    serverLogger.info(`Encountered error in Whisper worker! ${error}`)
-    console.log(error, error.stack)
-    resetShh()
+    return (
+      existing ||
+      newBroadcastSession(
+        toTopic(getTopic('ping')),
+        env.whisper.ping.password,
+        'ping'
+      )
+    )
   }
 
-  setTimeout(main, env.whisperPollInterval)
-}
+  const main = async () => {
+    let env = await envPr
+    try {
+      if (env.whisper.ping.enabled) {
+        try {
+          const wf = await getPingFilter()
+          if (wf) {
+            console.log('Working with WhisperFilter', wf.filterId)
+            try {
+              await sendPings(wf, web3)
+            } catch (err) {
+              console.log('Unhandled error sending whisper pings', err)
+            }
+            try {
+              await handlePongMessages(wf, web3)
+            } catch (err) {
+              console.log('Unhandled error handling whisper pongs', err)
+            }
+          } else {
+            console.log('pingFilterPromise returned nothing')
+          }
+        } catch (err) {
+          console.log('Unhandled error handling ping (general)', err)
+        }
+      }
 
-main()
-  .then(() => serverLogger.info('Finished Whisper worker!'))
-  .catch(error => serverLogger.warn('Whisper worker failed with error!', error))
+      if (env.attester_rewards) {
+        Object.keys(env.attester_rewards).forEach(
+          async (topic_name: TWhisperEntity) => {
+            let hashed_topic = toTopic(getTopic(topic_name))
+            await listenForSolicitations(hashed_topic, password, topic_name)
+            await handleMessages(topic_name, attesterWallet)
+          }
+        )
+      }
+
+      await handleMessages('requester', requesterWallet)
+    } catch (error) {
+      log(error, {full: true, tags: {logger: 'whisper'}})
+      log({name: 'WhisperError', event: {Entity: 'Attester'}}, {event: true})
+      log(`Encountered error in Whisper worker! ${error}`)
+      console.log(error, error.stack)
+      resetShh()
+    }
+
+    setTimeout(main, env.whisperPollInterval)
+  }
+
+  main()
+    .then(() => log('Finished Whisper worker!'))
+    .catch(error =>
+      log(`Whisper worker failed with error!: ${JSON.stringify(error)}`, {
+        level: 'warn',
+      })
+    )
+})

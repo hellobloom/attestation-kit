@@ -3,6 +3,8 @@ import {WhisperFilters} from '@shared/models'
 import {boss} from '@shared/jobs/boss'
 import {env} from '@shared/environment'
 
+let envPr = env()
+
 export type MessageSubscriber = IBroadcastSubscriber | IDirectMessageSubscriber
 
 export enum MessageSubscribers {
@@ -23,9 +25,10 @@ export interface IDirectMessageSubscriber {
 }
 
 export const unsubscribeFromTopic = async (topic: string) => {
+  let e = await envPr
   const filter = await WhisperFilters.findOne({
     where: {topic: toBuffer(topic)},
-    logging: env.logs.whisper.sql,
+    logging: e.logs.whisper.sql,
   })
   if (filter !== null) {
     const filterIDToRemove = filter.filterId

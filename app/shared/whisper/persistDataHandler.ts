@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js'
 import {Negotiation, NegotiationMsg, Attestation} from '@shared/models'
 import {toBuffer} from 'ethereumjs-util'
-import {serverLogger} from '@shared/logger'
+import {log} from '@shared/logger'
 
 export enum PersistDataTypes {
   storeSolicitation = 'storeSolicitation',
@@ -45,7 +45,7 @@ export interface ISendPaymentAuthorizationStore {
 }
 
 export const storeSolicitation = async (persistData: ISolicitationStore) => {
-  serverLogger.debug('Storing solicitation...')
+  log('Storing solicitation...', {level: 'debug'})
   await Negotiation.create({
     id: persistData.session,
     initialReward: persistData.reward,
@@ -53,7 +53,7 @@ export const storeSolicitation = async (persistData: ISolicitationStore) => {
     attestationId: persistData.attestationId,
   })
 
-  serverLogger.debug('Created negotiation...')
+  log('Created negotiation...', {level: 'debug'})
   const newAttestation = await Attestation.findOne({
     where: {
       id: persistData.attestationId,
@@ -62,7 +62,7 @@ export const storeSolicitation = async (persistData: ISolicitationStore) => {
   })
 
   if (newAttestation !== null) {
-    serverLogger.debug('Found attestation...')
+    log('Found attestation...', {level: 'debug'})
     await newAttestation.update({negotiationId: persistData.session})
     await NegotiationMsg.create({
       negotiationId: persistData.session,
@@ -76,7 +76,7 @@ export const storeSolicitation = async (persistData: ISolicitationStore) => {
 }
 
 export const storeAttestationBid = async (persistData: IAttestationBidStore) => {
-  serverLogger.debug('Storing attestation bid...')
+  log('Storing attestation bid...', {level: 'debug'})
   await NegotiationMsg.create({
     futureTopic: toBuffer(persistData.topic),
     messageType: persistData.messageType,
@@ -84,19 +84,21 @@ export const storeAttestationBid = async (persistData: IAttestationBidStore) => 
     bid: persistData.reward,
     regardingUuid: persistData.reSession,
   })
-  serverLogger.debug('Found negotiation message...')
+  log('Found negotiation message...', {level: 'debug'})
   const attestation = await Attestation.create({
     role: 'attester',
     type: persistData.type,
     negotiationId: persistData.negotiationSession,
     reward: persistData.reward,
   })
-  serverLogger.debug('Created attestation...', attestation.id)
+  log(`Created attestation with ID ${attestation.id}`, {level: 'debug'})
   const existingNegotiation = await Negotiation.findById(
     persistData.negotiationSession
   )
   if (!existingNegotiation) {
-    serverLogger.debug('Creating negotiation...', attestation.id)
+    log(`Creating negotiation for attestation ID ${attestation.id}`, {
+      level: 'debug',
+    })
     await Negotiation.create({
       id: persistData.negotiationSession,
       initialReward: persistData.reward,
@@ -104,16 +106,14 @@ export const storeAttestationBid = async (persistData: IAttestationBidStore) => 
       attestationTopic: toBuffer(persistData.topic),
     })
   }
-  serverLogger.debug('Finished storing attestation bid.')
+  log('Finished storing attestation bid.', {level: 'debug'})
 }
 
 export const storeSendPaymentAuthorization = async (
   persistData: ISendPaymentAuthorizationStore
 ) => {
   try {
-    serverLogger.info(
-      '[storeSendPaymentAuthorization] ' + JSON.stringify(persistData)
-    )
+    log('[storeSendPaymentAuthorization] ' + JSON.stringify(persistData))
     await NegotiationMsg.create({
       messageType: persistData.messageType,
       regardingUuid: persistData.reSession,
@@ -132,8 +132,8 @@ export const storeSendPaymentAuthorization = async (
       paymentSig: toBuffer(persistData.paymentSig),
       paymentNonce: persistData.paymentNonce,
     })
-    serverLogger.debug('Finished [storeSendPaymentAuthorization]')
+    log('Finished [storeSendPaymentAuthorization]', {level: 'debug'})
   } catch (err) {
-    serverLogger.error('ERROR [storeSendPaymentAuthorization]', err)
+    log(`ERROR [storeSendPaymentAuthorization]: ${JSON.stringify(err)}`)
   }
 }

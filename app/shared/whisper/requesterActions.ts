@@ -28,9 +28,11 @@ import {
   PersistDataTypes,
 } from '@shared/whisper/persistDataHandler'
 import {actOnMessage} from '@shared/whisper/msgHandler'
-import {serverLogger} from '@shared/logger'
+import {log} from '@shared/logger'
 import {bidMatchesAsk, isApprovedAttester} from '@shared/whisper/validateMsg'
 import {HashingLogic} from '@bloomprotocol/attestations-lib'
+
+let envPr = env()
 
 export const initiateSolicitation = async (
   attestationId: string,
@@ -40,7 +42,7 @@ export const initiateSolicitation = async (
   requesterWallet: Wallet.Wallet,
   newSession: string
 ) => {
-  serverLogger.debug('Initiating solicitation...')
+  log('Initiating solicitation...', {level: 'debug'})
   const newTopic = toTopic(newSession) // The topic attestation bids will come in on
   const newSubscription: IDirectMessageSubscriber = {
     messageType: MessageSubscribers.directMessage,
@@ -107,11 +109,12 @@ export const rejectAttestationBid = (
   return messageDecision
 }
 
-const sendPaymentAuthorization = (
+const sendPaymentAuthorization = async (
   message: IAttestationBid,
   messageTopic: string,
   requesterWallet: Wallet.Wallet
 ) => {
+  let e = await envPr
   const paymentNonce = HashingLogic.generateNonce()
   const attesterAddress = recoverSessionIDSig(
     message.reSession,
@@ -119,7 +122,7 @@ const sendPaymentAuthorization = (
   )
 
   const paymentSig = signPaymentAuthorization(
-    env.tokenEscrowMarketplace.address,
+    e.tokenEscrowMarketplace.address,
     requesterWallet.getAddressString(),
     attesterAddress,
     message.rewardBid,
@@ -178,22 +181,23 @@ export const handleAttestationBid: TMsgHandler = async (
   messageTopic: string,
   requesterWallet: Wallet.Wallet
 ) => {
-  serverLogger.info(
+  log(
     'DEBUG [handleAttestationBid] ' +
-      JSON.stringify({message, messageTopic, requesterWallet})
+      JSON.stringify({message, messageTopic, requesterWallet}),
+    {level: 'debug'}
   )
   let decision: IMessageDecision
   const approvedAttester = await isApprovedAttester(message)
   const bidMatch = await bidMatchesAsk(message)
   if (approvedAttester && bidMatch) {
-    decision = sendPaymentAuthorization(message, messageTopic, requesterWallet)
+    decision = await sendPaymentAuthorization(message, messageTopic, requesterWallet)
   } else {
-    serverLogger.info(
+    log([
       'Bid params failed validation.  Attester approved: ',
       approvedAttester,
       '; Bid match: ',
-      bidMatch
-    )
+      bidMatch,
+    ])
     decision = await rejectAttestationBid(message, messageTopic)
   }
   return decision

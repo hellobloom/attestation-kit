@@ -1,5 +1,4 @@
 import {Sequelize} from 'sequelize-typescript'
-import {env} from '@shared/environment'
 import * as config from '../../config/database'
 import Negotiation from '@shared/models/Attestations/Negotiation'
 import NegotiationMsg from '@shared/models/Attestations/NegotiationMsg'
@@ -7,8 +6,25 @@ import WhisperFilters from '@shared/models/Attestations/WhisperFilters'
 import Attestation from '@shared/models/Attestations/Attestation'
 import GasPrice from '@shared/models/GasPrice'
 import Ping from '@shared/models/Ping'
+import {log} from '@shared/logger'
+import {env} from '@shared/environment'
 
-const environmentConfig = config[env.nodeEnv]
+const environmentConfig = {
+  ...config[process.env.NODE_ENV as any],
+  logging: async (x: string[] | string) => {
+    if (typeof x === 'string') {
+      log(`DB. ${x}`)
+      return
+    }
+    if (((await env()).logs as any).sqlVerbose) {
+      // Not defined yet
+      log(`DB, ${JSON.stringify(x)}`)
+    } else {
+      log(`DB: ${x[0]}`)
+    }
+  },
+}
+
 let sequelize: Sequelize
 
 // Configure Sequelize using an environment variable or via JSON config depending on ENV
@@ -19,7 +35,7 @@ if (environmentConfig.use_env_variable) {
       `Expected to find a database URI at ${environmentConfig.use_env_variable}`
     )
   }
-  sequelize = new Sequelize(environmentUri)
+  sequelize = new Sequelize({url: environmentUri, ...environmentConfig})
 } else {
   sequelize = new Sequelize(environmentConfig)
 }

@@ -1,6 +1,6 @@
 import * as newrelic from 'newrelic'
 import * as m from '@shared/models'
-import {serverLogger} from '@shared/logger'
+import {log} from '@shared/logger'
 import {boss} from '@shared/jobs/boss'
 import * as dc from 'deepcopy'
 import * as express from 'express'
@@ -38,7 +38,7 @@ export const show = (req: any, res: any) => {
 export const perform = async (req: any, res: any) => {
   const attestation = await m.Attestation.findById(req.body.attestation_id)
   if (attestation) {
-    serverLogger.info('Received request to perform attestation...')
+    log.info('Received request to perform attestation...')
     attestation.update({
       result: {
         attestationId: attestation.id,
@@ -111,7 +111,7 @@ export const receiveSubjectData: express.RequestHandler = async (req, res) => {
     dataNodes,
     attesterPrivateKey
   )
-  serverLogger.info(
+  log.info(
     `[receiveSubjectData] merkleTreeComponents: ${JSON.stringify(
       merkleTreeComponents
     )}`

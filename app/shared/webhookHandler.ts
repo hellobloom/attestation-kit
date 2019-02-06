@@ -1,6 +1,6 @@
 import {env} from '@shared/environment'
 import fetch from 'node-fetch'
-import {serverLogger} from '@shared/logger'
+import {log} from '@shared/logger'
 import {AttestationStatus} from '@bloomprotocol/attestations-lib'
 
 export const genHeaders = async (headers: any, str: string) => {
@@ -13,7 +13,7 @@ export const genHeaders = async (headers: any, str: string) => {
 
 export const webhookRequest = async (action: string, params: any) => {
   const url = env.webhook_host + action
-  serverLogger.debug('Sending request to webhook', url)
+  log.debug('Sending request to webhook', url)
 
   const request_body = JSON.stringify(params)
   const headers = genHeaders({}, request_body)

@@ -1,6 +1,6 @@
 import {env} from '@shared/environment'
 import {loadAttestationLogic} from '@shared/contracts/load'
-import {serverLogger} from '@shared/logger'
+import {log} from '@shared/logger'
 import {IAttestParams} from '@shared/attestations/validateAttestParams'
 import * as account from '@shared/ethereum/account'
 import BigNumber from 'bignumber.js'
@@ -14,12 +14,12 @@ export const sendAttestTx = async (
   attestationParams: IAttestParams,
   gasPrice: string
 ) => {
-  serverLogger.info(`Sending attest transaction for ${attestationParams.subject}`)
-  serverLogger.debug(
+  log.info(`Sending attest transaction for ${attestationParams.subject}`)
+  log.debug(
     `[sendAttestTx] attestationParams: ${JSON.stringify(attestationParams)}`
   )
-  serverLogger.debug(`[sendAttestTx] gasPrice: ${gasPrice}`)
-  serverLogger.debug(
+  log.debug(`[sendAttestTx] gasPrice: ${gasPrice}`)
+  log.debug(
     `[sendAttestTx] attest transaction options: ${JSON.stringify({
       from: account.address,
       gasPrice: new BigNumber(gasPrice).toNumber(),
@@ -41,7 +41,7 @@ export const sendAttestTx = async (
       gas: 1000000,
     }
   )
-  serverLogger.debug(`[sendAttestTx] txHash: ${txHash}`)
+  log.debug(`[sendAttestTx] txHash: ${txHash}`)
   return txHash
 }
 
