@@ -21,19 +21,19 @@ const solicitationSessionId = uuid()
 const zeroReward = new BigNumber(0).toString(10)
 const solicitationReplyTo = 'testPublicKey'
 
-const solicitationMessage: ISolicitation = {
-  messageType: EMsgTypes.solicitation,
-  replyTo: solicitationReplyTo,
-  session: solicitationSessionId,
-  negotiationSession: solicitationSessionId,
-  sessionSigned: signSessionID(
-    solicitationSessionId,
-    requesterWallet.getPrivateKey()
-  ),
-  rewardAsk: zeroReward,
-}
+describe('Handling Solicitation', async () => {
+  const solicitationMessage: ISolicitation = {
+    messageType: EMsgTypes.solicitation,
+    replyTo: solicitationReplyTo,
+    session: solicitationSessionId,
+    negotiationSession: solicitationSessionId,
+    sessionSigned: signSessionID(
+      solicitationSessionId,
+      (await requesterWallet).getPrivateKey()
+    ),
+    rewardAsk: zeroReward,
+  }
 
-describe('Handling Solicitation', () => {
   it('Bids on a solicitation', async () => {
     const decision = await handleSolicitation(
       solicitationMessage,

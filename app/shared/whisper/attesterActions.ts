@@ -1,4 +1,3 @@
-import * as newrelic from 'newrelic'
 import {log} from '@shared/logger'
 const uuid = require('uuidv4')
 import * as Wallet from 'ethereumjs-wallet'
@@ -48,10 +47,16 @@ export const listenForSolicitations = async (
   })
   if (filter === null) {
     // This can't use a delayed job or tons will fill up the queue if redis is bogged down
-    newrelic.recordCustomEvent('WhisperEvent', {
-      Action: 'ListenForSolicitations',
-      Topic: listeningTopic,
-    })
+    log(
+      {
+        name: 'WhisperEvent',
+        event: {
+          Action: 'ListenForSolicitations',
+          Topic: listeningTopic,
+        },
+      },
+      {event: true}
+    )
     await newBroadcastSession(listeningTopic, password, attester)
   }
 }
@@ -127,10 +132,16 @@ export const handleSolicitation: TMsgHandler = async (
     respondWith: attestationBid,
     persist: persistData,
   }
-  newrelic.recordCustomEvent('WhisperEvent', {
-    Action: 'Bid',
-    NegotiationSession: message.session,
-  })
+  log(
+    {
+      name: 'WhisperEvent',
+      event: {
+        Action: 'Bid',
+        NegotiationSession: message.session,
+      },
+    },
+    {event: true}
+  )
   return decision
 }
 

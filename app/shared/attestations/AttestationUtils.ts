@@ -11,6 +11,8 @@ import {env} from '@shared/environment'
 import {getTopic, TWhisperEntity, toTopic} from '@shared/whisper'
 import {includes} from 'lodash'
 
+let envPr = env()
+
 export function getTypedPendingStatus(
   typeId: AttestationTypeID
 ): EmailAttestationStatus | CognitoSMSStatus | GenericAttestationStatus {
@@ -48,8 +50,9 @@ console.log('hashedToUnhashedTopics', JSON.stringify(hashedToUnhashedTopics))
 
 export const hashedTopicToAttestationType = invert(topicsHashed)
 
-export const allowEntity = (addr: string, type: string, entity: string) => {
-  var obj = entity === 'requester' ? env.approved_requesters : env.approved_attesters
+export const allowEntity = async (addr: string, type: string, entity: string) => {
+  let e = await envPr
+  var obj = entity === 'requester' ? e.approved_requesters : e.approved_attesters
   console.log(`DEBUG AE allowed: ${JSON.stringify(obj)}`)
 
   if (!obj) {

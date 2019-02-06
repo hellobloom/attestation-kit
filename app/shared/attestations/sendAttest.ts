@@ -6,28 +6,35 @@ import * as account from '@shared/ethereum/account'
 import BigNumber from 'bignumber.js'
 import {privateEngine} from '@shared/ethereum/customWeb3Provider'
 
-const attestationLogic = loadAttestationLogic(
-  env.attestationContracts.logicAddress
-).withProvider(privateEngine(env.owner.ethPrivKey, {stage: 'testnet'}))
+let envPr = env()
+
+const attestationLogic = envPr.then(async e =>
+  loadAttestationLogic(e.attestationContracts.logicAddress).withProvider(
+    await privateEngine(e.owner.ethPrivKey, {stage: 'testnet'})
+  )
+)
 
 export const sendAttestTx = async (
   attestationParams: IAttestParams,
   gasPrice: string
 ) => {
-  log.info(`Sending attest transaction for ${attestationParams.subject}`)
-  log.debug(
-    `[sendAttestTx] attestationParams: ${JSON.stringify(attestationParams)}`
-  )
-  log.debug(`[sendAttestTx] gasPrice: ${gasPrice}`)
-  log.debug(
+  log(`Sending attest transaction for ${attestationParams.subject}`)
+  log(`[sendAttestTx] attestationParams: ${JSON.stringify(attestationParams)}`, {
+    level: 'debug',
+  })
+  log(`[sendAttestTx] gasPrice: ${gasPrice}`, {level: 'debug'})
+  log(
     `[sendAttestTx] attest transaction options: ${JSON.stringify({
       from: account.address,
       gasPrice: new BigNumber(gasPrice).toNumber(),
       gas: 1000000,
-    })}`
+    })}`,
+    {level: 'debug'}
   )
 
-  const txHash = await attestationLogic.attest.sendTransaction(
+  const al = await attestationLogic
+  let ac = await account
+  const txHash = await al.attest.sendTransaction(
     attestationParams.subject,
     attestationParams.requester,
     attestationParams.reward,
@@ -36,12 +43,12 @@ export const sendAttestTx = async (
     attestationParams.requestNonce,
     attestationParams.subjectSig,
     {
-      from: account.address,
+      from: await ac.address,
       gasPrice: new BigNumber(gasPrice).toNumber(),
       gas: 1000000,
     }
   )
-  log.debug(`[sendAttestTx] txHash: ${txHash}`)
+  log(`[sendAttestTx] txHash: ${txHash}`, {level: 'debug'})
   return txHash
 }
 

@@ -5,8 +5,8 @@ const ProviderEngine = require('web3-provider-engine')
 const FiltersSubprovider = require('web3-provider-engine/subproviders/filters')
 const WalletSubprovider = require('web3-provider-engine/subproviders/wallet')
 const Web3Subprovider = require('web3-provider-engine/subproviders/web3')
-
 import {env} from '@shared/environment'
+let envPr = env()
 
 /**
  * Create an ethereumjs-wallet object from a hex encoded string private key
@@ -25,10 +25,11 @@ export const walletFor = (privateKey: string) =>
  * @see https://yohanes.gultom.me/configure-truffle-to-use-infura-io-and-existing-private-key/
  * @see https://git.io/vb5x3 Composable provider engines
  */
-export function privateEngine(
+export const privateEngine = async (
   privateKey: string,
   options: {stage: 'testnet' | 'mainnet'} = {stage: 'mainnet'}
-): Web3.Provider {
+): Promise<Web3.Provider> => {
+  let e = await envPr
   const engine = new ProviderEngine()
 
   /**
@@ -42,7 +43,7 @@ export function privateEngine(
    * creating, sending, and handling web requests
    */
   const httpProvider = new Web3.providers.HttpProvider(
-    options.stage === 'mainnet' ? env.web3Provider : env.rinkebyWeb3Provider
+    options.stage === 'mainnet' ? e.web3Provider : e.rinkebyWeb3Provider
   )
   engine.addProvider(new Web3Subprovider(httpProvider))
 
@@ -58,9 +59,10 @@ export function privateEngine(
   return engine
 }
 
-export function readOnlyEngine(
+export const readOnlyEngine = async (
   options: {stage: 'testnet' | 'mainnet'} = {stage: 'mainnet'}
-): Web3.Provider {
+): Promise<Web3.Provider> => {
+  let e = await envPr
   const engine = new ProviderEngine()
 
   /**
@@ -75,7 +77,7 @@ export function readOnlyEngine(
    * creating, sending, and handling web requests
    */
   const httpProvider = new Web3.providers.HttpProvider(
-    options.stage === 'mainnet' ? env.web3Provider : env.rinkebyWeb3Provider
+    options.stage === 'mainnet' ? e.web3Provider : e.rinkebyWeb3Provider
   )
   engine.addProvider(new Web3Subprovider(httpProvider))
 

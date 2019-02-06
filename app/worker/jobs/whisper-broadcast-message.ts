@@ -1,4 +1,3 @@
-import * as newrelic from 'newrelic'
 import {log} from '@shared/logger'
 
 import {resetShh, broadcastMessage} from '@shared/whisper'
@@ -17,10 +16,16 @@ export const whisperBroadcastMessage = async (job: any) => {
       job.data.replyToTopic
     )
   } catch (e) {
-    newrelic.recordCustomEvent('WhisperError', {
-      Action: 'BroadcastMessage',
-      Topic: job.data.topic,
-    })
+    log(
+      {
+        name: 'WhisperError',
+        event: {
+          Action: 'BroadcastMessage',
+          Topic: job.data.topic,
+        },
+      },
+      {event: true}
+    )
     log('Error broadcasting message', {level: 'error'})
     throw new Error(e)
   }

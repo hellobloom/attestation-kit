@@ -1,15 +1,21 @@
-import * as newrelic from 'newrelic'
 import {resetShh, newBroadcastSession} from '@shared/whisper'
+import {log} from '@shared/logger'
 
 export const whisperNewBroadcastSession = async (job: any) => {
   try {
     resetShh()
     await newBroadcastSession(job.data.newTopic, job.data.password, job.data.entity)
   } catch (e) {
-    newrelic.recordCustomEvent('WhisperError', {
-      Action: 'NewBroadcastSession',
-      Topic: job.data.newTopic,
-    })
+    log(
+      {
+        name: 'WhisperError',
+        event: {
+          Action: 'NewBroadcastSession',
+          Topic: job.data.newTopic,
+        },
+      },
+      {event: true}
+    )
     throw new Error(e)
   }
 }

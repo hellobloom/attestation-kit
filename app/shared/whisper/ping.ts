@@ -1,4 +1,3 @@
-import * as newrelic from 'newrelic'
 import {env} from '@shared/environment'
 import {log} from '@shared/logger'
 import * as Shh from 'web3-shh'
@@ -134,15 +133,20 @@ export const handlePongMessages = async (wf: WhisperFilters, web3: Web3) => {
 const alertWhisperError = async (err: any) => {
   let e = await envPr
   const alertMessage = err || new Error(`Connection to Whisper failed`)
-  newrelic.recordCustomEvent('', {
-    Action: 'WhisperConnectionFailed',
-    AppID: e.appId,
-  })
+  log(
+    {
+      name: 'WhisperError',
+      event: {
+        Action: 'WhisperConnectionFailed',
+        AppID: e.appId,
+      },
+    },
+    {event: true}
+  )
   log(alertMessage, {
     full: true,
     tags: {logger: 'whisper', appId: e.appId},
   })
-  log(alertMessage, {level: 'error'})
 }
 
 const alertNoPongs = async () => {

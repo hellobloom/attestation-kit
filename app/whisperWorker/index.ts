@@ -80,12 +80,12 @@ envPr.then(env => {
           async (topic_name: TWhisperEntity) => {
             let hashed_topic = toTopic(getTopic(topic_name))
             await listenForSolicitations(hashed_topic, password, topic_name)
-            await handleMessages(topic_name, attesterWallet)
+            await handleMessages(topic_name, await attesterWallet)
           }
         )
       }
 
-      await handleMessages('requester', requesterWallet)
+      await handleMessages('requester', await requesterWallet)
     } catch (error) {
       log(error, {full: true, tags: {logger: 'whisper'}})
       log({name: 'WhisperError', event: {Entity: 'Attester'}}, {event: true})

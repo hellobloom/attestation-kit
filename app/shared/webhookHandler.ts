@@ -3,17 +3,21 @@ import fetch from 'node-fetch'
 import {log} from '@shared/logger'
 import {AttestationStatus} from '@bloomprotocol/attestations-lib'
 
+let envPr = env()
+
 export const genHeaders = async (headers: any, str: string) => {
+  let e = await envPr
   return Object.assign({}, headers, {
     'content-type': 'application/vnd.api+json',
     accept: 'application/json',
-    api_token: env.webhook_key,
+    api_token: e.webhook_key,
   })
 }
 
 export const webhookRequest = async (action: string, params: any) => {
-  const url = env.webhook_host + action
-  log.debug('Sending request to webhook', url)
+  let e = await envPr
+  const url = e.webhook_host + action
+  log(['Sending request to webhook', url], {level: 'debug'})
 
   const request_body = JSON.stringify(params)
   const headers = genHeaders({}, request_body)

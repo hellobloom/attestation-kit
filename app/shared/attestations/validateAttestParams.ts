@@ -43,7 +43,7 @@ export const validateSignedAgreement = (
   subjectSig: string,
   attestParams: TUnvalidated<IAttestParams>
 ) => {
-  log.info(`[validateSignedAgreement] ${JSON.stringify(attestParams)}`)
+  log(`[validateSignedAgreement] ${JSON.stringify(attestParams)}`)
   const recoveredEthAddress = ethSigUtil.recoverTypedSignature({
     data: HashingLogic.getAttestationAgreement(
       attestParams.attestationLogicAddress,
@@ -53,9 +53,7 @@ export const validateSignedAgreement = (
     ),
     sig: attestParams.subjectSig,
   })
-  log.info(
-    `[validateSignedAgreement] recoveredEthAddress '${recoveredEthAddress}'`
-  )
+  log(`[validateSignedAgreement] recoveredEthAddress '${recoveredEthAddress}'`)
   return recoveredEthAddress.toLowerCase() === attestParams.subject.toLowerCase()
 }
 
@@ -78,7 +76,7 @@ export const validatePaymentSig = (
     ),
     sig: requesterSig,
   })
-  log.info(
+  log(
     `[validatePaymentSig] recoveredEthAddress '${bufferToHex(recoveredEthAddress)}'`
   )
   return recoveredEthAddress.toLowerCase() === payer.toLowerCase()
@@ -88,7 +86,7 @@ export const validateRequesterSig = (
   requesterSig: string,
   attestParams: TUnvalidated<IAttestParams>
 ) => {
-  log.info(`[validatePaymentSig] ${JSON.stringify(attestParams)}`)
+  log(`[validatePaymentSig] ${JSON.stringify(attestParams)}`)
   // if no reward requesterSig does not need to be checked
   if (attestParams.reward.toString() === '0') return true
   return validatePaymentSig(

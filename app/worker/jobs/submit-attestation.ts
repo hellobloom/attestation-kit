@@ -36,7 +36,7 @@ export const submitAttestation = async (job: any) => {
     const delegationSig = signAttestForDelegation(
       e.attestationContracts.logicAddress,
       attestParams,
-      attesterWallet.getPrivateKey()
+      (await attesterWallet).getPrivateKey()
     )
     const attestForParams: IAttestForParams = Object.assign(attestParams, {
       delegationSig: delegationSig,

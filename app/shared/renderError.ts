@@ -37,7 +37,7 @@ export const renderError = (
   status: number = HttpStatus.badRequest
 ) => (error?: string | Error) => {
   const errorToLog = error instanceof Sequelize.Error ? error.message : error
-  log.warn('Request failed!', {error: errorToLog, status})
+  log(['Request failed!', {error: errorToLog, status}], {level: 'warn'})
   const errorForClient =
     error instanceof ClientFacingError // Only display whitelisted errors
       ? error.message
