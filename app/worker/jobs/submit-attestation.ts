@@ -1,6 +1,6 @@
 import {sendAttestTx} from '@shared/attestations/sendAttest'
 import {log} from '@shared/logger'
-import {env} from '@shared/environment'
+import {env, getContractAddr} from '@shared/environment'
 import {sendTx} from '@shared/txService'
 import {signAttestForDelegation} from '@shared/ethereum/signingLogic'
 import {
@@ -34,7 +34,7 @@ export const submitAttestation = async (job: any) => {
       {level: 'error'}
     )
     const delegationSig = signAttestForDelegation(
-      e.attestationContracts.logicAddress,
+      await getContractAddr('AttestationLogic'),
       attestParams,
       (await attesterWallet).getPrivateKey()
     )

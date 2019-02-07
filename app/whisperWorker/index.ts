@@ -1,7 +1,7 @@
 import {log} from '@shared/logger'
 import * as Web3 from 'web3'
 import * as Sentry from '@sentry/node'
-import {env} from '@shared/environment'
+import {env, getProvider} from '@shared/environment'
 import {
   resetShh,
   newBroadcastSession,
@@ -19,14 +19,16 @@ import {WhisperFilters} from '@shared/models'
 
 let envPr = env()
 
-envPr.then(env => {
+envPr.then(async env => {
   Sentry.init({
     dsn: env.sentryDSN,
     environment: env.pipelineStage,
     release: env.sourceVersion,
   })
 
-  const web3 = new Web3(new Web3.providers.HttpProvider(env.web3Provider))
+  const web3 = new Web3(
+    new Web3.providers.HttpProvider(await getProvider('mainnet'))
+  )
   const toTopic = (ascii: string) => web3.sha3(ascii).slice(0, 10)
 
   const password = env.whisper.password

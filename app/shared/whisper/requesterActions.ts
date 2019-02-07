@@ -2,7 +2,7 @@ import * as newrelic from 'newrelic'
 const uuid = require('uuidv4')
 import BigNumber from 'bignumber.js'
 import * as Wallet from 'ethereumjs-wallet'
-import {env} from '@shared/environment'
+import {getContractAddr} from '@shared/environment'
 
 import {IMessageDecision, TMsgHandler} from '@shared/whisper/msgHandler'
 import {
@@ -31,8 +31,6 @@ import {actOnMessage} from '@shared/whisper/msgHandler'
 import {log} from '@shared/logger'
 import {bidMatchesAsk, isApprovedAttester} from '@shared/whisper/validateMsg'
 import {HashingLogic} from '@bloomprotocol/attestations-lib'
-
-let envPr = env()
 
 export const initiateSolicitation = async (
   attestationId: string,
@@ -114,7 +112,6 @@ const sendPaymentAuthorization = async (
   messageTopic: string,
   requesterWallet: Wallet.Wallet
 ) => {
-  let e = await envPr
   const paymentNonce = HashingLogic.generateNonce()
   const attesterAddress = recoverSessionIDSig(
     message.reSession,
@@ -122,7 +119,7 @@ const sendPaymentAuthorization = async (
   )
 
   const paymentSig = signPaymentAuthorization(
-    e.tokenEscrowMarketplace.address,
+    await getContractAddr('TokenEscrowMarketplace'),
     requesterWallet.getAddressString(),
     attesterAddress,
     message.rewardBid,

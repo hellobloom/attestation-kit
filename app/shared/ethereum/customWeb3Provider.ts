@@ -5,8 +5,7 @@ const ProviderEngine = require('web3-provider-engine')
 const FiltersSubprovider = require('web3-provider-engine/subproviders/filters')
 const WalletSubprovider = require('web3-provider-engine/subproviders/wallet')
 const Web3Subprovider = require('web3-provider-engine/subproviders/web3')
-import {env} from '@shared/environment'
-let envPr = env()
+import {getProvider} from '@shared/environment'
 
 /**
  * Create an ethereumjs-wallet object from a hex encoded string private key
@@ -27,9 +26,8 @@ export const walletFor = (privateKey: string) =>
  */
 export const privateEngine = async (
   privateKey: string,
-  options: {stage: 'testnet' | 'mainnet'} = {stage: 'mainnet'}
+  options: {stage: 'rinkeby' | 'mainnet'} = {stage: 'mainnet'}
 ): Promise<Web3.Provider> => {
-  let e = await envPr
   const engine = new ProviderEngine()
 
   /**
@@ -43,7 +41,7 @@ export const privateEngine = async (
    * creating, sending, and handling web requests
    */
   const httpProvider = new Web3.providers.HttpProvider(
-    options.stage === 'mainnet' ? e.web3Provider : e.rinkebyWeb3Provider
+    await getProvider(options.stage)
   )
   engine.addProvider(new Web3Subprovider(httpProvider))
 
@@ -60,9 +58,8 @@ export const privateEngine = async (
 }
 
 export const readOnlyEngine = async (
-  options: {stage: 'testnet' | 'mainnet'} = {stage: 'mainnet'}
+  options: {stage: 'rinkeby' | 'mainnet'} = {stage: 'mainnet'}
 ): Promise<Web3.Provider> => {
-  let e = await envPr
   const engine = new ProviderEngine()
 
   /**
@@ -77,7 +74,7 @@ export const readOnlyEngine = async (
    * creating, sending, and handling web requests
    */
   const httpProvider = new Web3.providers.HttpProvider(
-    options.stage === 'mainnet' ? e.web3Provider : e.rinkebyWeb3Provider
+    await getProvider(options.stage)
   )
   engine.addProvider(new Web3Subprovider(httpProvider))
 

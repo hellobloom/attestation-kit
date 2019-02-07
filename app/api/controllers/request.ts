@@ -1,6 +1,6 @@
 import * as m from '@shared/models'
 import * as dc from 'deepcopy'
-import {env} from '@shared/environment'
+import {env, getContractAddr} from '@shared/environment'
 import {log} from '@shared/logger'
 import BigNumber from 'bignumber.js'
 import {initiateSolicitation} from '@shared/whisper/requesterActions'
@@ -105,7 +105,6 @@ export const create = async (req: any, res: any) => {
 }
 
 export const createBypass = async (req: any, res: any) => {
-  let e = await envPr
   if (!(req.body.id && v.isUUID(req.body.id))) {
     res.status(400).json({
       success: false,
@@ -126,7 +125,7 @@ export const createBypass = async (req: any, res: any) => {
   let reqWallet = await requesterWallet
   let attWallet = await attesterWallet
   const paymentSig = signPaymentAuthorization(
-    e.tokenEscrowMarketplace.address,
+    await getContractAddr('TokenEscrowMarketplace'),
     reqWallet.getAddressString(),
     attWallet.getAddressString(),
     reward.toString(10),

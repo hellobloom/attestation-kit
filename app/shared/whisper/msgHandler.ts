@@ -14,7 +14,7 @@ import {
 import * as Shh from 'web3-shh'
 import * as Web3 from 'web3'
 import * as Wallet from 'ethereumjs-wallet'
-import {env} from '@shared/environment'
+import {getProvider} from '@shared/environment'
 import {fetchAllMessages, TWhisperEntity} from '@shared/whisper'
 import {
   handleSolicitation,
@@ -31,7 +31,6 @@ import {log} from '@shared/logger'
 import {boss} from '@shared/jobs/boss'
 import {confirmRequesterFunds} from '@shared/whisper/validateMsg'
 
-let envPr = env()
 export type TMsgHandler = (...args: any[]) => Promise<IMessageDecision | false>
 
 export interface IMessageDecision {
@@ -244,11 +243,12 @@ export const handleMessages = async (
   entity: TWhisperEntity,
   wallet: Wallet.Wallet
 ) => {
-  let e = await envPr
   // Make sure attester is listening for solicitations
   let newMessages: Shh.Message[] = await fetchAllMessages(entity)
   let messageDecisions: IMessageDecision[] = []
-  const web3 = new Web3(new Web3.providers.HttpProvider(e.web3Provider))
+  const web3 = new Web3(
+    new Web3.providers.HttpProvider(await getProvider('mainnet'))
+  )
   for (let message of newMessages) {
     try {
       try {

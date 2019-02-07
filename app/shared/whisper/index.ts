@@ -1,6 +1,6 @@
 import * as Web3 from 'web3'
 import * as Shh from 'web3-shh'
-import {env} from '@shared/environment'
+import {env, getProvider} from '@shared/environment'
 import {WhisperFilters} from '@shared/models'
 import {toBuffer} from 'ethereumjs-util'
 import {IBloomWhisperMessage} from '@shared/whisper/msgTypes'
@@ -20,7 +20,7 @@ var shh: any, web3: any, toTopic: any, getTopic: any
 export const resetShh = async () => {
   let e = await envPr
 
-  web3 = new Web3(new Web3.providers.HttpProvider(e.web3Provider))
+  web3 = new Web3(new Web3.providers.HttpProvider(await getProvider('mainnet')))
   toTopic = (ascii: string) => web3.sha3(ascii).slice(0, 10)
   getTopic = (at: TWhisperEntity) => {
     var name = `${e.whisper.topicPrefix}-${at}`

@@ -8,7 +8,7 @@ import {
   HashingLogic,
   AttestationStatus,
 } from '@bloomprotocol/attestations-lib'
-import {env} from '@shared/environment'
+import {env, getContractAddr} from '@shared/environment'
 import {toBuffer, bufferToHex} from 'ethereumjs-util'
 import {Attestation} from '@shared/models'
 import {
@@ -123,7 +123,6 @@ export const receiveSubjectData: express.RequestHandler = async (req, res) => {
 }
 
 export const receiveSignedAgreement: express.RequestHandler = async (req, res) => {
-  let e = await envPr
   if (
     typeof req.body.negotiationId !== 'string' ||
     typeof req.body.subject !== 'string' ||
@@ -167,8 +166,8 @@ export const receiveSignedAgreement: express.RequestHandler = async (req, res) =
     dataHash: req.body.dataHash,
     requestNonce: req.body.nonce,
     subjectSig: req.body.signature,
-    attestationLogicAddress: e.attestationContracts.logicAddress,
-    tokenEscrowMarketplaceAddress: e.tokenEscrowMarketplace.address,
+    attestationLogicAddress: await getContractAddr('AttestationLogic'),
+    tokenEscrowMarketplaceAddress: await getContractAddr('TokenEscrowMarketplace'),
   }
 
   const validationResult = await validateAttestParams(attestParams)

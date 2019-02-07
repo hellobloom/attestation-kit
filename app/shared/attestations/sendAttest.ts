@@ -1,4 +1,4 @@
-import {env} from '@shared/environment'
+import {env, getContractAddr} from '@shared/environment'
 import {loadAttestationLogic} from '@shared/contracts/load'
 import {log} from '@shared/logger'
 import {IAttestParams} from '@shared/attestations/validateAttestParams'
@@ -9,8 +9,8 @@ import {privateEngine} from '@shared/ethereum/customWeb3Provider'
 let envPr = env()
 
 const attestationLogic = envPr.then(async e =>
-  loadAttestationLogic(e.attestationContracts.logicAddress).withProvider(
-    await privateEngine(e.owner.ethPrivKey, {stage: 'testnet'})
+  loadAttestationLogic(await getContractAddr('AttestationLogic')).withProvider(
+    await privateEngine(e.owner.ethPrivKey, {stage: 'rinkeby'})
   )
 )
 

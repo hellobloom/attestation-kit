@@ -31,7 +31,7 @@ import * as Web3 from 'web3'
 import {AttestationStatus} from '@bloomprotocol/attestations-lib'
 import {notifyCollectData} from '@shared/webhookHandler'
 import {validatePaymentSig} from '@shared/attestations/validateAttestParams'
-import {env} from '@shared/environment'
+import {env, getContractAddr} from '@shared/environment'
 
 let envPr = env()
 
@@ -150,8 +150,6 @@ export const handlePaymentAuthorization: TMsgHandler = async (
   messageTopic: string,
   attesterWallet: Wallet.Wallet
 ) => {
-  let e = await envPr
-
   log(
     'DEBUG [handlePaymentAuthorization] ' +
       JSON.stringify({message, messageTopic, attesterWallet})
@@ -159,7 +157,7 @@ export const handlePaymentAuthorization: TMsgHandler = async (
   const _isApprovedRequester = await isApprovedRequester(message)
   const _rewardMatchesBid = await rewardMatchesBid(message)
   const _validatePaymentSig = await validatePaymentSig(
-    e.tokenEscrowMarketplace.address,
+    await getContractAddr('TokenEscrowMarketplace'),
     message.requester,
     message.attester,
     message.reward,

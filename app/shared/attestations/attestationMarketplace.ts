@@ -1,4 +1,4 @@
-import {env} from '@shared/environment'
+import {env, getContractAddr} from '@shared/environment'
 import {loadTokenEscrowMarketplace} from '@shared/contracts/load'
 import {log} from '@shared/logger'
 
@@ -7,9 +7,11 @@ import {privateEngine} from '@shared/ethereum/customWeb3Provider'
 
 let envPr = env()
 
-let marketplacePr = envPr.then(e => {
-  const Marketplace = loadTokenEscrowMarketplace(e.tokenEscrowMarketplace.address)
-  return privateEngine(e.owner.ethPrivKey, {stage: 'testnet'}).then(pe => {
+let marketplacePr = envPr.then(async e => {
+  const Marketplace = loadTokenEscrowMarketplace(
+    await getContractAddr('TokenEscrowMarketplace')
+  )
+  return privateEngine(e.owner.ethPrivKey, {stage: 'rinkeby'}).then(pe => {
     const marketplace = Marketplace.withProvider(pe)
     return marketplace
   })

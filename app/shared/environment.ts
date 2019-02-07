@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv'
 import {BigNumber as bn} from 'bignumber.js'
 import {toBuffer} from 'ethereumjs-util'
 import {AttestationTypeID} from '@bloomprotocol/attestations-lib'
-import * as MM from '@shared/method_manifest'
+import {EContractNames} from '@shared/method_manifest'
 
 dotenv.config()
 
@@ -30,7 +30,7 @@ export enum ENetworks {
 export type TProviders = {[P in keyof typeof ENetworks]?: string}
 
 export type TContracts = {
-  [CN in keyof typeof MM.EContractNames]: {
+  [CN in keyof typeof EContractNames]: {
     [NN in keyof typeof ENetworks]?: {
       address: string
     }
@@ -333,9 +333,38 @@ const getEnv = async (): Promise<IEnvironmentConfig> => {
   }
 }
 
+export const contractObjByContractAndNetwork = (
+  envConf: IEnvironmentConfig,
+  contract: keyof typeof EContractNames,
+  network: keyof typeof ENetworks = 'mainnet'
+) => {
+  let cmobj = envConf.contracts[contract]
+  let networkObj = cmobj['all'] || cmobj[network]
+  if (!networkObj) {
+    throw new Error(
+      `Couldn't find contract obj for ${contract}, ${network}: ${cmobj}`
+    )
+  }
+  return networkObj
+}
+
+export const getContractAddr = async (
+  contract: keyof typeof EContractNames,
+  network: keyof typeof ENetworks = 'mainnet'
+) => {
+  const allEnv = await envPr
+  var addr = contractObjByContractAndNetwork(allEnv, contract, network).address
+  return addr
+}
+
 var envPr: Promise<IEnvironmentConfig> = new Promise((res, rej) => {
   getEnv().then(res)
 })
+
+export const getProvider = async (network: keyof typeof ENetworks = 'mainnet') => {
+  let e = await env()
+  return e.providers.all || e.providers[network]
+}
 
 // Wrapper function
 export const env = async () => {
