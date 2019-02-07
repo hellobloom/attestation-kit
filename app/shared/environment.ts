@@ -2,45 +2,81 @@ import * as dotenv from 'dotenv'
 import {BigNumber as bn} from 'bignumber.js'
 import {toBuffer} from 'ethereumjs-util'
 import {AttestationTypeID} from '@bloomprotocol/attestations-lib'
+import * as MM from '@shared/method_manifest'
 
 dotenv.config()
 
 export type TNodeEnv = 'development' | 'production'
 
+export type TNetworks =
+  | 'mainnet'
+  | 'rinkeby'
+  | 'local'
+  | 'kovan'
+  | 'sokol'
+  | 'ropsten'
+  | 'all'
+
+export enum ENetworks {
+  'mainnet' = 'mainnet',
+  'rinkeby' = 'rinkeby',
+  'local' = 'local',
+  'kovan' = 'kovan',
+  'sokol' = 'sokol',
+  'ropsten' = 'ropsten',
+  'all' = 'all',
+}
+
+export type TProviders = {[P in keyof typeof ENetworks]?: string}
+
+export type TContracts = {
+  [CN in keyof typeof MM.EContractNames]: {
+    [NN in keyof typeof ENetworks]?: {
+      address: string
+    }
+  }
+}
+
 export interface IEnvironmentConfig {
-  sourceVersion?: string
-  pipelineStage?: string
-  apiKey: string
+  // Main config
   appId: string
   appPort: number
+  dbUrl: string
+
+  // Environment & version
+  nodeEnv: string
+  pipelineStage?: string
+  sourceVersion?: string
+  apiKey: string
+
+  // Logging
+  log_level?: string
+  logs: {
+    whisper: {
+      pings: boolean
+      sql: boolean
+    }
+    level?: string
+  }
+
+  // Attester/requester config
   approved_attesters?: IAttestationTypesToArrAnyAll
   approved_requesters?: IAttestationTypesToArrAnyAll
   attester_rewards?: IAttestationTypesToStrAll
-  bltAddress: string
-  dbUrl: string
-  nodeEnv: string
-  rinkebyWeb3Provider: string
+
+  // Network/contract config
+  providers: TProviders
+  contracts: TContracts
+
+  // Debugging
   sentryDSN: string
-  skipValidations: boolean
-  web3Provider: string
+
+  // Response webhooks config
   webhook_host: string
   webhook_key: string
+
+  // Whisper config
   whisperPollInterval?: number
-  attestationContracts: {
-    logicAddress: string
-  }
-  tokenEscrowMarketplace: {
-    address: string
-  }
-  owner: {
-    ethAddress: string
-    ethPrivKey: string
-  }
-  logstash: {
-    host: string
-    username: string
-    password: string
-  }
   whisper: {
     provider: string
     password: string
@@ -52,14 +88,21 @@ export interface IEnvironmentConfig {
       password: string
     }
   }
-  logs: {
-    whisper: {
-      pings: boolean
-      sql: boolean
-    }
-    level?: string
+
+  // Ethereum key config
+  owner: {
+    ethAddress: string
+    ethPrivKey: string
   }
-  log_level?: string
+
+  // (Optional) Logstash setup
+  logstash?: {
+    host: string
+    username: string
+    password: string
+  }
+
+  // (Optional) External service for transaction handling
   txService?: {
     address: string
     key: string
@@ -156,13 +199,13 @@ export const getEnvFromHttp = async (): Promise<IEnvironmentConfig> => {}
 export const getEnvFromDb = async (): Promise<IEnvironmentConfig> => {}
 export const getEnvFromEnv = async (): Promise<IEnvironmentConfig> => {
   return {
-    sourceVersion: await envVar(
-      process.env,
-      'SOURCE_VERSION',
-      'string',
-      false,
-      'Unspecified'
-    ),
+    // Main config
+    appId: await envVar(process.env, 'APP_ID', 'string', true), // e.g., attestation-kit_dev_bob
+    appPort: await envVar(process.env, 'PORT', 'int', false, 3000),
+    dbUrl: await envVar(process.env, 'PG_URL'),
+
+    // Environment & version
+    nodeEnv: await envVar(process.env, 'NODE_ENV'),
     pipelineStage: await envVar(
       process.env,
       'PIPELINE_STAGE',
@@ -170,9 +213,26 @@ export const getEnvFromEnv = async (): Promise<IEnvironmentConfig> => {
       false,
       'production'
     ),
+    sourceVersion: await envVar(
+      process.env,
+      'SOURCE_VERSION',
+      'string',
+      false,
+      'Unspecified'
+    ),
     apiKey: await envVar(process.env, 'API_KEY_SHA256'),
-    appId: await envVar(process.env, 'APP_ID', 'string', true), // e.g., attestation-kit_dev_bob
-    appPort: await envVar(process.env, 'PORT', 'int', false, 3000),
+
+    // Logging
+    log_level: await envVar(process.env, 'LOG_LEVEL', 'string', false, 'info'),
+    logs: {
+      whisper: {
+        sql: await envVar(process.env, 'LOG_WHISPER_SQL', 'bool', false),
+        pings: await envVar(process.env, 'LOG_WHISPER_PINGS', 'bool', false),
+      },
+      level: await envVar(process.env, 'LOG_LEVEL', 'string', false),
+    },
+
+    // Attester/requester config
     approved_attesters: await envVar(
       process.env,
       'APPROVED_ATTESTERS',
@@ -186,33 +246,19 @@ export const getEnvFromEnv = async (): Promise<IEnvironmentConfig> => {
       false
     ),
     attester_rewards: await envVar(process.env, 'ATTESTER_MIN_REWARDS', 'json'),
-    bltAddress: await envVar(process.env, 'BLT_ADDRESS'),
-    dbUrl: await envVar(process.env, 'PG_URL'),
-    nodeEnv: await envVar(process.env, 'NODE_ENV'),
-    rinkebyWeb3Provider: await envVar(process.env, 'RINKEBY_WEB3_PROVIDER'),
+
+    // Network/contract config
+    providers: await envVar(process.env, 'PROVIDERS', 'json'),
+    contracts: await envVar(process.env, 'CONTRACTS', 'json'),
+
+    // Debugging
     sentryDSN: await envVar(process.env, 'SENTRY_DSN'),
-    web3Provider: await envVar(process.env, 'WEB3_PROVIDER'),
+
+    // Response webhooks config
     webhook_host: await envVar(process.env, 'WEBHOOK_HOST'),
     webhook_key: await envVar(process.env, 'WEBHOOK_KEY'),
-    attestationContracts: {
-      logicAddress: await envVar(process.env, 'ATTESTATION_LOGIC_ADDRESS'),
-    },
-    logs: {
-      whisper: {
-        sql: await envVar(process.env, 'LOG_WHISPER_SQL', 'bool', false),
-        pings: await envVar(process.env, 'LOG_WHISPER_PINGS', 'bool', false),
-      },
-      level: await envVar(process.env, 'LOG_LEVEL', 'string', false),
-    },
-    owner: {
-      ethAddress: await envVar(process.env, 'PRIMARY_ETH_ADDRESS'),
-      ethPrivKey: await envVar(process.env, 'PRIMARY_ETH_PRIVKEY'),
-    },
-    skipValidations: await envVar(process.env, 'SKIP_VALIDATIONS', 'bool', false),
-    tokenEscrowMarketplace: {
-      address: await envVar(process.env, 'TOKEN_ESCROW_MARKETPLACE_ADDRESS'),
-    },
-    logstash: await envVar(process.env, 'LOGSTASH', 'json', false),
+
+    // Whisper config
     whisper: {
       provider: await envVar(process.env, 'WHISPER_PROVIDER'),
       password: await envVar(process.env, 'WHISPER_PASSWORD'),
@@ -248,6 +294,17 @@ export const getEnvFromEnv = async (): Promise<IEnvironmentConfig> => {
       false,
       5000
     ),
+
+    // Ethereum key config
+    owner: {
+      ethAddress: await envVar(process.env, 'PRIMARY_ETH_ADDRESS'),
+      ethPrivKey: await envVar(process.env, 'PRIMARY_ETH_PRIVKEY'),
+    },
+
+    // (Optional) Logstash setup
+    logstash: await envVar(process.env, 'LOGSTASH', 'json', false),
+
+    // (Optional) External service for transaction handling
     txService: process.env['TX_SERVICE_ADDRESS']
       ? {
           address: await envVar(process.env, 'TX_SERVICE_ADDRESS'),
