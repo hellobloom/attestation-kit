@@ -3,6 +3,7 @@ import {BigNumber as bn} from 'bignumber.js'
 import {toBuffer} from 'ethereumjs-util'
 import {AttestationTypeID} from '@bloomprotocol/attestations-lib'
 import {EContractNames} from '@shared/method_manifest'
+import axios from 'axios'
 
 dotenv.config()
 
@@ -197,8 +198,26 @@ const envVar = async (
 })
 */
 
-export const getEnvFromHttp = async (): Promise<IEnvironmentConfig> => {}
-export const getEnvFromDb = async (): Promise<IEnvironmentConfig> => {}
+export const getEnvFromHttp = async (): Promise<IEnvironmentConfig> => {
+  const conf = await envVar(process.env, 'ENV_SOURCE_HTTP', 'json')
+
+  let resp = await axios({
+    method: conf.method,
+    url: conf.url,
+    headers: conf.headers,
+    data: conf.data,
+    responseType: 'json',
+  })
+
+  if (resp.data.success === true) {
+    return resp.data.env
+  }
+
+  throw new Error(`Environment config retrieval from ${conf.url} failed`)
+}
+
+// export const getEnvFromDb = async (): Promise<IEnvironmentConfig> => {}
+
 export const getEnvFromEnv = async (): Promise<IEnvironmentConfig> => {
   return {
     // Main config
@@ -331,7 +350,8 @@ const getEnv = async (): Promise<IEnvironmentConfig> => {
     case 'http':
       return await getEnvFromHttp()
     case 'db':
-      return await getEnvFromDb()
+      throw new Error('Environment config from database not yet supported')
+    //return await getEnvFromDb()
     default:
       throw new Error('No enviroment source configured!  Aborting.')
   }
