@@ -11,28 +11,36 @@ let envPr = env()
 
 export type TWhisperEntity = keyof AttestationTypeManifest | 'ping' | 'requester'
 
+var shh: any
+
 envPr.then(e => {
   shh = new Shh(e.whisper.provider)
 })
 
-var shh: any, web3: any, toTopic: any, getTopic: any
+export const web3Pr = getProvider('mainnet').then(
+  p => new Web3(new Web3.providers.HttpProvider(p))
+)
+
+export const toTopic = async (ascii: string) => {
+  let web3 = await web3Pr
+  return web3.sha3(ascii).slice(0, 10)
+}
+
+export const getTopic = async (at: TWhisperEntity) => {
+  let e = await envPr
+  var name = `${e.whisper.topicPrefix}-${at}`
+  var camelName = name.replace(/-([a-z])/g, function(g) {
+    return g[1].toUpperCase()
+  })
+  return camelName
+}
 
 export const resetShh = async () => {
   let e = await envPr
-
-  web3 = new Web3(new Web3.providers.HttpProvider(await getProvider('mainnet')))
-  toTopic = (ascii: string) => web3.sha3(ascii).slice(0, 10)
-  getTopic = (at: TWhisperEntity) => {
-    var name = `${e.whisper.topicPrefix}-${at}`
-    var camelName = name.replace(/-([a-z])/g, function(g) {
-      return g[1].toUpperCase()
-    })
-    return camelName
-  }
   shh = new Shh(e.whisper.provider)
 }
 
-export {shh, web3, toTopic, getTopic}
+export {shh}
 
 export const fetchAllMessages = async (entity: string) => {
   let e = await envPr

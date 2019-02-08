@@ -10,13 +10,13 @@ export const genHeaders = async (headers: any, str: string) => {
   return Object.assign({}, headers, {
     'content-type': 'application/vnd.api+json',
     accept: 'application/json',
-    api_token: e.webhook_key,
+    api_token: e.webhook.key,
   })
 }
 
 export const webhookRequest = async (action: string, params: any) => {
   let e = await envPr
-  const url = e.webhook_host + action
+  const url = e.webhook.address + action
   log(['Sending request to webhook', url], {level: 'debug'})
 
   const request_body = JSON.stringify(params)

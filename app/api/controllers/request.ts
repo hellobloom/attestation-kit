@@ -82,7 +82,7 @@ export const create = async (req: any, res: any) => {
   await initiateSolicitation(
     attestation.id,
     reward,
-    toTopic(getTopic(attestation_type)),
+    await toTopic(await getTopic(attestation_type)),
     e.whisper.password,
     await requesterWallet,
     attestation.id

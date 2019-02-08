@@ -44,7 +44,7 @@ envPr.then(async env => {
     return (
       existing ||
       newBroadcastSession(
-        toTopic(getTopic('ping')),
+        await toTopic(await getTopic('ping')),
         env.whisper.ping.password,
         'ping'
       )
@@ -80,7 +80,7 @@ envPr.then(async env => {
       if (env.attester_rewards) {
         Object.keys(env.attester_rewards).forEach(
           async (topic_name: TWhisperEntity) => {
-            let hashed_topic = toTopic(getTopic(topic_name))
+            let hashed_topic = await toTopic(await getTopic(topic_name))
             await listenForSolicitations(hashed_topic, password, topic_name)
             await handleMessages(topic_name, await attesterWallet)
           }

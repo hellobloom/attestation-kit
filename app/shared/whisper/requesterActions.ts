@@ -41,7 +41,7 @@ export const initiateSolicitation = async (
   newSession: string
 ) => {
   log('Initiating solicitation...', {level: 'debug'})
-  const newTopic = toTopic(newSession) // The topic attestation bids will come in on
+  const newTopic = await toTopic(newSession) // The topic attestation bids will come in on
   const newSubscription: IDirectMessageSubscriber = {
     messageType: MessageSubscribers.directMessage,
     topic: newTopic,
@@ -140,7 +140,7 @@ const sendPaymentAuthorization = async (
 
   const recipient: IDirectMessageSubscriber = {
     messageType: MessageSubscribers.directMessage,
-    topic: toTopic(message.session),
+    topic: await toTopic(message.session),
     publicKey: message.replyTo,
   }
 

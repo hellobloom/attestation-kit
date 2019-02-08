@@ -26,7 +26,7 @@ import {
   PersistDataTypes,
 } from '@shared/whisper/persistDataHandler'
 import {rewardMatchesBid, isApprovedRequester} from '@shared/whisper/validateMsg'
-import {hashedTopicToAttestationType} from '@shared/attestations/AttestationUtils'
+import {hashedTopicToAttestationTypePr} from '@shared/attestations/AttestationUtils'
 import * as Web3 from 'web3'
 import {AttestationStatus} from '@bloomprotocol/attestations-lib'
 import {notifyCollectData} from '@shared/webhookHandler'
@@ -71,9 +71,9 @@ export const handleSolicitation: TMsgHandler = async (
   // replyTo: indicate that a new key should be generated
   const newSession = uuid()
   // Bid acceptance would come through channel based on new session and new privkey
-  const newTopic = toTopic(newSession)
+  const newTopic = await toTopic(newSession)
 
-  const attestationType = hashedTopicToAttestationType[messageTopic]
+  const attestationType = (await hashedTopicToAttestationTypePr)[messageTopic]
 
   if (!e.attester_rewards) {
     throw new Error(
@@ -110,7 +110,7 @@ export const handleSolicitation: TMsgHandler = async (
 
   const recipient: IDirectMessageSubscriber = {
     messageType: MessageSubscribers.directMessage,
-    topic: toTopic(message.session),
+    topic: await toTopic(message.session),
     publicKey: message.replyTo,
   }
 
