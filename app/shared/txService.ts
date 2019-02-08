@@ -1,15 +1,18 @@
 import fetch from 'node-fetch'
 import {env} from '@shared/environment'
 
+let envPr = env()
+
 export const txRequest = async (action: string, params: any) => {
-  if (!env.txService) return
-  const url = env.txService.address + action
+  let e = await envPr
+  if (!e.txService) return
+  const url = e.txService.address + action
 
   console.log('Initiating request to tx-service', url, params)
 
   const response = await fetch(url, {
     headers: {
-      API_TOKEN: env.txService.key,
+      API_TOKEN: e.txService.key,
       Accept: 'application/json',
       'Content-Type': 'application/json',
     },

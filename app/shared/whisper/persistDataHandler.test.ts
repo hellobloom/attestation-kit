@@ -8,18 +8,21 @@ import BigNumber from 'bignumber.js'
 import {toTopic, getTopic} from '@shared/whisper'
 
 const solicitationUuid = uuid()
-const solicitationStore: ISolicitationStore = {
-  messageType: PersistDataTypes.storeSolicitation,
-  session: solicitationUuid,
-  reward: new BigNumber(0),
-  topic: '0xa74846db',
-  attestationId: 'df990a7f-92a9-4a0f-8491-c333d37178b5',
-  negotiationSession: solicitationUuid,
-  attestationTopic: toTopic(getTopic('phone')),
+const getSolicitationStore = async () => {
+  const solicitationStore: ISolicitationStore = {
+    messageType: PersistDataTypes.storeSolicitation,
+    session: solicitationUuid,
+    reward: new BigNumber(0),
+    topic: '0xa74846db',
+    attestationId: 'df990a7f-92a9-4a0f-8491-c333d37178b5',
+    negotiationSession: solicitationUuid,
+    attestationTopic: await toTopic(await getTopic('phone')),
+  }
+  return solicitationStore
 }
 
 describe('Acting on solicitation', () => {
   it('does something', async () => {
-    storeSolicitation(solicitationStore)
+    storeSolicitation(await getSolicitationStore())
   })
 })

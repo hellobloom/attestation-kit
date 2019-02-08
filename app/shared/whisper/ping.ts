@@ -1,8 +1,5 @@
-import * as newrelic from 'newrelic'
-
-import * as Raven from 'raven'
 import {env} from '@shared/environment'
-import {serverLogger} from '@shared/logger'
+import {log} from '@shared/logger'
 import * as Shh from 'web3-shh'
 import * as Web3 from 'web3'
 
@@ -14,37 +11,43 @@ import {bufferToHex} from 'ethereumjs-util'
 import {shh} from '@shared/whisper'
 import {EMsgTypes, IPing, IPong, IPingPong} from '@shared/whisper/msgTypes'
 
+let envPr = env()
+
 // Outgoing
 export const sendPings = async (wf: WhisperFilters, web3: Web3) => {
+  let e = await envPr
   const existing = await Ping.findOne({
     where: {
       created: {
         [Op.gte]: S.literal(
-          `CURRENT_TIMESTAMP - INTERVAL '${env.whisper.ping.interval}'`
+          `CURRENT_TIMESTAMP - INTERVAL '${e.whisper.ping.interval}'`
         ),
       },
     },
-    logging: env.logs.whisper.pings,
+    logging: e.logs.whisper.pings,
   })
   if (existing) return
   sendPing(wf, web3)
 }
 
-const symkeyId = shh.generateSymKeyFromPassword(env.whisper.ping.password)
+const symkeyId = envPr.then(e =>
+  shh.generateSymKeyFromPassword(e.whisper.ping.password)
+)
 
 export const sendPing = async (wf: WhisperFilters, web3: Web3) => {
+  let e = await envPr
   try {
-    if (env.logs.whisper.pings) serverLogger.info('Sending ping')
+    if (e.logs.whisper.pings) log('Sending ping')
     // Generate symkey from password
 
     const ping = await Ping.create(
       {},
       {
-        logging: env.logs.whisper.pings,
+        logging: e.logs.whisper.pings,
       }
     )
 
-    if (env.logs.whisper.pings) serverLogger.info('Ping enqueued', ping.id)
+    if (e.logs.whisper.pings) log(`Ping enqueued: ${ping.id}`)
 
     const outcome = await shh.post({
       ttl: 10,
@@ -73,13 +76,13 @@ interface IPingTable {
 
 // Incoming
 export const handlePongMessages = async (wf: WhisperFilters, web3: Web3) => {
+  let e = await envPr
   var wPings
   try {
     wPings = await shh.getFilterMessages(wf.filterId)
   } catch (err) {
     if (err.message.indexOf('filter not found') !== -1) {
-      if (env.logs.whisper.pings)
-        serverLogger.info('Trying to delete old ping WF filter')
+      if (e.logs.whisper.pings) log('Trying to delete old ping WF filter')
       wf.destroy()
     } else {
       alertWhisperError(err)
@@ -90,15 +93,15 @@ export const handlePongMessages = async (wf: WhisperFilters, web3: Web3) => {
     where: {
       answered: false,
     },
-    logging: env.logs.whisper.pings,
+    logging: e.logs.whisper.pings,
   })
   const pingTable: IPingTable = {}
   pings.forEach((ping: Ping) => {
     pingTable[ping.id] = ping
   })
   wPings.map(async (wPing: Shh.Message) => {
-    if (env.logs.whisper.pings)
-      serverLogger.info('Processing message on ping channel', JSON.stringify(wPing))
+    if (e.logs.whisper.pings)
+      log(`Processing message on ping channel: ${JSON.stringify(wPing)}`)
     let body: IPingPong = JSON.parse(web3.toAscii(wPing.payload))
     if (body.messageType === EMsgTypes.pong) {
       await handlePong(body, wf, pingTable)
@@ -112,13 +115,13 @@ export const handlePongMessages = async (wf: WhisperFilters, web3: Web3) => {
       where: {
         created: {
           [Op.gte]: S.literal(
-            `CURRENT_TIMESTAMP - INTERVAL '${env.whisper.ping.alertInterval}'`
+            `CURRENT_TIMESTAMP - INTERVAL '${e.whisper.ping.alertInterval}'`
           ),
         },
         answered: true,
       },
       attributes: [[S.fn('COUNT', S.col('*')), 'count']],
-      logging: env.logs.whisper.pings,
+      logging: e.logs.whisper.pings,
     })) as any)[0].dataValues.count
   )
 
@@ -127,52 +130,67 @@ export const handlePongMessages = async (wf: WhisperFilters, web3: Web3) => {
   }
 }
 
-const alertWhisperError = (err: any) => {
+const alertWhisperError = async (err: any) => {
+  let e = await envPr
   const alertMessage = err || new Error(`Connection to Whisper failed`)
-  newrelic.recordCustomEvent('', {
-    Action: 'WhisperConnectionFailed',
-    AppID: env.appId,
+  log(
+    {
+      name: 'WhisperError',
+      event: {
+        Action: 'WhisperConnectionFailed',
+        AppID: e.appId,
+      },
+    },
+    {event: true}
+  )
+  log(alertMessage, {
+    full: true,
+    tags: {logger: 'whisper', appId: e.appId},
   })
-  Raven.captureException(alertMessage, {
-    tags: {logger: 'whisper', appId: env.appId},
-  })
-  serverLogger.error(alertMessage)
 }
 
-const alertNoPongs = () => {
-  const alertMessage = `No whisper pongs in last ${env.whisper.ping.alertInterval}`
-  newrelic.recordCustomEvent('', {
-    Action: 'NoWhisperPongs',
-    AppID: env.appId,
-    Interval: env.whisper.ping.alertInterval,
+const alertNoPongs = async () => {
+  let e = await envPr
+  const alertMessage = `No whisper pongs in last ${e.whisper.ping.alertInterval}`
+  log(
+    {
+      name: 'WhisperError',
+      event: {
+        Action: 'NoWhisperPongs',
+        AppID: e.appId,
+        Interval: e.whisper.ping.alertInterval,
+      },
+    },
+    {event: true}
+  )
+  log(new Error(alertMessage), {
+    full: true,
+    tags: {logger: 'whisper', appId: e.appId},
   })
-  Raven.captureException(new Error(alertMessage), {
-    tags: {logger: 'whisper', appId: env.appId},
-  })
-  serverLogger.error(alertMessage)
 }
 
-export const handlePong = (
+export const handlePong = async (
   body: IPong,
   wf: WhisperFilters,
   pingTable: IPingTable
 ) => {
-  if (env.logs.whisper.pings) serverLogger.info('Handling pong', body)
+  let e = await envPr
+  if (e.logs.whisper.pings) log(`Handling pong: ${JSON.stringify(body)}`)
   let correspondingPing = pingTable[body.session]
   if (correspondingPing) {
-    if (env.logs.whisper.pings)
-      serverLogger.info(
+    if (e.logs.whisper.pings)
+      log([
         'Handling pong',
         body,
         '; updating corresponding ping:',
-        correspondingPing.id
-      )
+        correspondingPing.id,
+      ])
     correspondingPing.update(
       {
         answered: true,
       },
       {
-        logging: env.logs.whisper.pings,
+        logging: e.logs.whisper.pings,
       }
     )
   }
@@ -183,17 +201,19 @@ export const maybeReplyToPing = async (
   wf: WhisperFilters,
   web3: Web3
 ) => {
-  if (env.logs.whisper.pings) serverLogger.info('Maybe replying to ping', body)
+  let e = await envPr
+  if (e.logs.whisper.pings) {
+    log(`Maybe replying to ping: ${JSON.stringify(body)}`)
+  }
 
   // Don't reply to your own messages
   let ping = await Ping.findOne({
     where: {id: body.session},
-    logging: env.logs.whisper.pings,
+    logging: e.logs.whisper.pings,
   })
   if (ping) return
 
-  if (env.logs.whisper.pings)
-    serverLogger.info(`Replying with pong to ping ${body.session}`)
+  if (e.logs.whisper.pings) log(`Replying with pong to ping ${body.session}`)
 
   await shh.post({
     ttl: 10,

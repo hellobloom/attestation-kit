@@ -6,6 +6,8 @@ import * as reqCtrl from '@api/controllers/request'
 import {sha256} from 'ethereumjs-util'
 import * as bodyParser from 'body-parser'
 
+let envPr = env()
+
 const app = express()
 
 interface IRequestWithRawBody extends express.Request {
@@ -29,9 +31,10 @@ app.use(
 )
 
 // kick out unauthenticated requests
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
+  let e = await envPr
   var tokenHash = sha256(req.headers.api_token as string).toString('hex')
-  if (tokenHash !== env.apiKey) {
+  if (tokenHash !== e.apiKey) {
     res.status(403).send('{"success":false,"message":"Unauthorized"}')
   } else {
     next()

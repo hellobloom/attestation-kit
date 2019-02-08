@@ -1,5 +1,5 @@
-import * as newrelic from 'newrelic'
 import {boss} from '@shared/jobs/boss'
+import {log} from '@shared/logger'
 
 import {resetShh, newDirectMessageSession} from '@shared/whisper'
 
@@ -18,10 +18,16 @@ export const whisperSubscribeThenBroadcast = async (job: any) => {
       replyToTopic: job.data.replyToTopic,
     })
   } catch (e) {
-    newrelic.recordCustomEvent('WhisperError', {
-      Action: 'SubscribeThenBroadcast',
-      Topic: job.data.topic,
-    })
+    log(
+      {
+        name: 'WhisperError',
+        event: {
+          Action: 'SubscribeThenBroadcast',
+          Topic: job.data.topic,
+        },
+      },
+      {event: true}
+    )
     throw new Error(e)
   }
 }

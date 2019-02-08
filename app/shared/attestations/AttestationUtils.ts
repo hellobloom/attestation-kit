@@ -10,6 +10,9 @@ import {invert} from 'lodash'
 import {env} from '@shared/environment'
 import {getTopic, TWhisperEntity, toTopic} from '@shared/whisper'
 import {includes} from 'lodash'
+import {log} from '@shared/logger'
+
+let envPr = env()
 
 export function getTypedPendingStatus(
   typeId: AttestationTypeID
@@ -33,23 +36,57 @@ const attestationTopicTypes: Array<TWhisperEntity> = Object.keys(
   AttestationTypes
 ) as Array<TWhisperEntity>
 
-var allTopicTypes: Array<TWhisperEntity> = extraTopicTypes.concat(
+export const allTopicTypes: Array<TWhisperEntity> = extraTopicTypes.concat(
   attestationTopicTypes
 )
 
+// resolves to topicType => getTopic[tt]
+export const allTopicsPr = Promise.all(allTopicTypes.map(getTopic)).then(ks => {
+  let topics = {}
+  allTopicTypes.forEach((k, i) => {
+    topics[k] = ks[i]
+  })
+  return topics
+})
+
+// resolves to topicType => toTopic(getTopic[tt])
+export const topicsHashedPr = allTopicsPr
+  .then(ats => {
+    return Promise.all(Object.values(ats).map(toTopic))
+  })
+  .then(ths => {
+    let topicsHashed = {}
+    allTopicTypes.forEach((k, i) => {
+      topicsHashed[k] = ths[i]
+    })
+    return topicsHashed
+  })
+
+// resolves to toTopic(getTopic[tt]) => topicType
+export const hashedTopicToAttestationTypePr = topicsHashedPr.then(th => invert(th))
+
+/* const hashedToUnhashedTopicsPr = Promise.all([allTopicsPr, topicsHashedPr]).then(
+  objs => {
+    let topics = objs[0]
+    let hashedTopics = objs[1]
+    let hashedToUnhashedTopics = {}
+    allTopicTypes.forEach((k, i) => {
+      hashedToUnhashedTopics[hashedTopics[k]] = topics[k]
+    })
+    return hashedToUnhashedTopics
+  }
+) 
 allTopicTypes.forEach(k => {
   let topic = getTopic(k)
   topicsHashed[k] = toTopic(topic)
   hashedToUnhashedTopics[topicsHashed[k]] = topic
-})
-
+}) 
 console.log('topicsHashed', JSON.stringify(topicsHashed))
-console.log('hashedToUnhashedTopics', JSON.stringify(hashedToUnhashedTopics))
+console.log('hashedToUnhashedTopics', JSON.stringify(hashedToUnhashedTopics)) */
 
-export const hashedTopicToAttestationType = invert(topicsHashed)
-
-export const allowEntity = (addr: string, type: string, entity: string) => {
-  var obj = entity === 'requester' ? env.approved_requesters : env.approved_attesters
+export const allowEntity = async (addr: string, type: string, entity: string) => {
+  let e = await envPr
+  var obj = entity === 'requester' ? e.approved_requesters : e.approved_attesters
   console.log(`DEBUG AE allowed: ${JSON.stringify(obj)}`)
 
   if (!obj) {
@@ -63,7 +100,11 @@ export const allowEntity = (addr: string, type: string, entity: string) => {
     return true
   }
 
-  const attestationType = hashedTopicToAttestationType[type]
+  let hashedTopicsToAT = await hashedTopicToAttestationTypePr
+  log(['debug hashedTopicsToAt', hashedTopicsToAT, hashedTopicsToAT[type]], {
+    level: 'debug',
+  })
+  const attestationType = hashedTopicsToAT[type]
 
   if (obj[attestationType] && includes(obj[attestationType], addr)) {
     return true

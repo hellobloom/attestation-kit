@@ -1,6 +1,6 @@
 import * as express from 'express'
 import * as Sequelize from 'sequelize'
-import {serverLogger} from '@shared/logger'
+import {log} from '@shared/logger'
 
 const DEFAULT_ERROR_MESSAGE = 'Looks like something went wrong.'
 
@@ -37,7 +37,7 @@ export const renderError = (
   status: number = HttpStatus.badRequest
 ) => (error?: string | Error) => {
   const errorToLog = error instanceof Sequelize.Error ? error.message : error
-  serverLogger.warn('Request failed!', {error: errorToLog, status})
+  log(['Request failed!', {error: errorToLog, status}], {level: 'warn'})
   const errorForClient =
     error instanceof ClientFacingError // Only display whitelisted errors
       ? error.message

@@ -1,7 +1,7 @@
-import * as newrelic from 'newrelic'
 import * as m from '@shared/models'
 import * as dc from 'deepcopy'
-import {env} from '@shared/environment'
+import {env, getContractAddr} from '@shared/environment'
+import {log} from '@shared/logger'
 import BigNumber from 'bignumber.js'
 import {initiateSolicitation} from '@shared/whisper/requesterActions'
 import {
@@ -20,6 +20,7 @@ import * as Web3 from 'web3'
 import {signPaymentAuthorization} from '@shared/ethereum/signingLogic'
 import {notifyCollectData} from '@shared/webhookHandler'
 const uuid = require('uuidv4')
+let envPr = env()
 
 // list all requests
 export const show = (req: any, res: any) => {
@@ -40,6 +41,7 @@ export const show = (req: any, res: any) => {
 
 // create request
 export const create = async (req: any, res: any) => {
+  let e = await envPr
   let attestationId: string
   if (req.body.id && v.isUUID(req.body.id)) {
     attestationId = req.body.id
@@ -80,18 +82,24 @@ export const create = async (req: any, res: any) => {
   await initiateSolicitation(
     attestation.id,
     reward,
-    toTopic(getTopic(attestation_type)),
-    env.whisper.password,
-    requesterWallet,
+    await toTopic(await getTopic(attestation_type)),
+    e.whisper.password,
+    await requesterWallet,
     attestation.id
   )
 
-  newrelic.recordCustomEvent('AttestationEvent', {
-    Action: 'Solicit',
-    AttestationId: attestation.id,
-    BypassNegotiation: false,
-    Type: attestation_type,
-  })
+  log(
+    {
+      name: 'AttestationEvent',
+      event: {
+        Action: 'Solicit',
+        AttestationId: attestation.id,
+        BypassNegotiation: false,
+        Type: attestation_type,
+      },
+    },
+    {event: true}
+  )
 
   res.json({success: true, sessionId: attestation.id})
 }
@@ -114,20 +122,22 @@ export const createBypass = async (req: any, res: any) => {
   )
 
   const paymentNonce = HashingLogic.generateNonce()
+  let reqWallet = await requesterWallet
+  let attWallet = await attesterWallet
   const paymentSig = signPaymentAuthorization(
-    env.tokenEscrowMarketplace.address,
-    requesterWallet.getAddressString(),
-    attesterWallet.getAddressString(),
+    await getContractAddr('TokenEscrowMarketplace'),
+    reqWallet.getAddressString(),
+    attWallet.getAddressString(),
     reward.toString(10),
     paymentNonce,
-    requesterWallet.getPrivateKey()
+    reqWallet.getPrivateKey()
   )
 
   const att: Partial<m.Attestation> = {
     id: req.body.id,
     subject: toBuffer(req.body.subject_eth_address),
-    attester: attesterWallet.getAddress(),
-    requester: requesterWallet.getAddress(),
+    attester: attWallet.getAddress(),
+    requester: reqWallet.getAddress(),
     status: AttestationStatus.ready,
     type: attestation_type,
     types: [req.body.attestation_type_id],
@@ -153,12 +163,18 @@ export const createBypass = async (req: any, res: any) => {
     'v2'
   )
 
-  newrelic.recordCustomEvent('AttestationEvent', {
-    Action: 'Solicit',
-    AttestationId: attestation.id,
-    BypassNegotiation: true,
-    Type: attestation_type,
-  })
+  log(
+    {
+      name: 'AttestationEvent',
+      event: {
+        Action: 'Solicit',
+        AttestationId: attestation.id,
+        BypassNegotiation: true,
+        Type: attestation_type,
+      },
+    },
+    {event: true}
+  )
 
   res.json({success: true, sessionId: attestation.id})
 }

@@ -1,5 +1,4 @@
-import * as newrelic from 'newrelic'
-import {serverLogger} from '@shared/logger'
+import {log} from '@shared/logger'
 const uuid = require('uuidv4')
 import * as Wallet from 'ethereumjs-wallet'
 import BigNumber from 'bignumber.js'
@@ -27,28 +26,37 @@ import {
   PersistDataTypes,
 } from '@shared/whisper/persistDataHandler'
 import {rewardMatchesBid, isApprovedRequester} from '@shared/whisper/validateMsg'
-import {hashedTopicToAttestationType} from '@shared/attestations/AttestationUtils'
+import {hashedTopicToAttestationTypePr} from '@shared/attestations/AttestationUtils'
 import * as Web3 from 'web3'
 import {AttestationStatus} from '@bloomprotocol/attestations-lib'
 import {notifyCollectData} from '@shared/webhookHandler'
 import {validatePaymentSig} from '@shared/attestations/validateAttestParams'
-import {env} from '@shared/environment'
+import {env, getContractAddr} from '@shared/environment'
+
+let envPr = env()
 
 export const listenForSolicitations = async (
   listeningTopic: string,
   password: string,
   attester: string
 ) => {
+  let e = await envPr
   const filter = await WhisperFilters.findOne({
     where: {topic: toBuffer(listeningTopic), entity: attester},
-    logging: env.logs.whisper.sql,
+    logging: e.logs.whisper.sql,
   })
   if (filter === null) {
     // This can't use a delayed job or tons will fill up the queue if redis is bogged down
-    newrelic.recordCustomEvent('WhisperEvent', {
-      Action: 'ListenForSolicitations',
-      Topic: listeningTopic,
-    })
+    log(
+      {
+        name: 'WhisperEvent',
+        event: {
+          Action: 'ListenForSolicitations',
+          Topic: listeningTopic,
+        },
+      },
+      {event: true}
+    )
     await newBroadcastSession(listeningTopic, password, attester)
   }
 }
@@ -58,29 +66,28 @@ export const handleSolicitation: TMsgHandler = async (
   messageTopic: string,
   attesterWallet: Wallet.Wallet
 ) => {
+  let e = await envPr
   let decision: IMessageDecision
   // replyTo: indicate that a new key should be generated
   const newSession = uuid()
   // Bid acceptance would come through channel based on new session and new privkey
-  const newTopic = toTopic(newSession)
+  const newTopic = await toTopic(newSession)
 
-  const attestationType = hashedTopicToAttestationType[messageTopic]
+  const attestationType = (await hashedTopicToAttestationTypePr)[messageTopic]
 
-  if (!env.attester_rewards) {
+  if (!e.attester_rewards) {
     throw new Error(
       'Could not handle solicitation - attester_rewards env variable missing'
     )
   }
 
   const acceptableReward = new BigNumber(
-    Web3.prototype.toWei(env.attester_rewards[attestationType], 'ether')
+    Web3.prototype.toWei(e.attester_rewards[attestationType], 'ether')
   )
 
   const askReward = new BigNumber(message.rewardAsk)
   if (acceptableReward.greaterThan(askReward)) {
-    serverLogger.info(
-      `Acceptable reward ${acceptableReward} greater than askReward ${askReward}`
-    )
+    log(`Acceptable reward ${acceptableReward} greater than askReward ${askReward}`)
     // future nice-to-have - Reply with acceptable bid
     return false
   }
@@ -103,7 +110,7 @@ export const handleSolicitation: TMsgHandler = async (
 
   const recipient: IDirectMessageSubscriber = {
     messageType: MessageSubscribers.directMessage,
-    topic: toTopic(message.session),
+    topic: await toTopic(message.session),
     publicKey: message.replyTo,
   }
 
@@ -125,10 +132,16 @@ export const handleSolicitation: TMsgHandler = async (
     respondWith: attestationBid,
     persist: persistData,
   }
-  newrelic.recordCustomEvent('WhisperEvent', {
-    Action: 'Bid',
-    NegotiationSession: message.session,
-  })
+  log(
+    {
+      name: 'WhisperEvent',
+      event: {
+        Action: 'Bid',
+        NegotiationSession: message.session,
+      },
+    },
+    {event: true}
+  )
   return decision
 }
 
@@ -137,21 +150,21 @@ export const handlePaymentAuthorization: TMsgHandler = async (
   messageTopic: string,
   attesterWallet: Wallet.Wallet
 ) => {
-  serverLogger.info(
+  log(
     'DEBUG [handlePaymentAuthorization] ' +
       JSON.stringify({message, messageTopic, attesterWallet})
   )
   const _isApprovedRequester = await isApprovedRequester(message)
   const _rewardMatchesBid = await rewardMatchesBid(message)
   const _validatePaymentSig = await validatePaymentSig(
-    env.tokenEscrowMarketplace.address,
+    await getContractAddr('TokenEscrowMarketplace'),
     message.requester,
     message.attester,
     message.reward,
     message.paymentNonce,
     message.paymentSig
   )
-  serverLogger.info(
+  log(
     `_isApprovedRequester = ${_isApprovedRequester} _rewardMatchesBid = ${_rewardMatchesBid}
     _validatePaymentSig = ${_validatePaymentSig}
     `
@@ -176,7 +189,7 @@ export const handlePaymentAuthorization: TMsgHandler = async (
     status: AttestationStatus.ready,
   })
 
-  serverLogger.info(`nonce ${attestation.paymentNonce}`)
+  log(`nonce ${attestation.paymentNonce}`)
 
   if (_isApprovedRequester && _rewardMatchesBid && _validatePaymentSig) {
     await notifyCollectData(
@@ -191,7 +204,7 @@ export const handlePaymentAuthorization: TMsgHandler = async (
       'v2'
     )
   } else {
-    serverLogger.info(
+    log(
       `Message rejected.  Approved requester: ${_isApprovedRequester}; Reward matches bid: ${_rewardMatchesBid}; `
     )
   }

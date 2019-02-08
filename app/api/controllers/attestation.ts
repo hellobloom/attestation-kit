@@ -1,6 +1,5 @@
-import * as newrelic from 'newrelic'
 import * as m from '@shared/models'
-import {serverLogger} from '@shared/logger'
+import {log} from '@shared/logger'
 import {boss} from '@shared/jobs/boss'
 import * as dc from 'deepcopy'
 import * as express from 'express'
@@ -9,13 +8,15 @@ import {
   HashingLogic,
   AttestationStatus,
 } from '@bloomprotocol/attestations-lib'
-import {env} from '@shared/environment'
+import {env, getContractAddr} from '@shared/environment'
 import {toBuffer, bufferToHex} from 'ethereumjs-util'
 import {Attestation} from '@shared/models'
 import {
   IAttestParams,
   validateAttestParams,
 } from '@shared/attestations/validateAttestParams'
+
+let envPr = env()
 
 // list all attestations
 export const show = (req: any, res: any) => {
@@ -38,7 +39,7 @@ export const show = (req: any, res: any) => {
 export const perform = async (req: any, res: any) => {
   const attestation = await m.Attestation.findById(req.body.attestation_id)
   if (attestation) {
-    serverLogger.info('Received request to perform attestation...')
+    log('Received request to perform attestation...')
     attestation.update({
       result: {
         attestationId: attestation.id,
@@ -72,6 +73,7 @@ let dataNodeTests = {
 }
 
 export const receiveSubjectData: express.RequestHandler = async (req, res) => {
+  let e = await envPr
   if (!Array.isArray(req.body.dataNodes) || !req.body.dataNodes.length) {
     return res.status(400).json({
       success: false,
@@ -106,12 +108,12 @@ export const receiveSubjectData: express.RequestHandler = async (req, res) => {
   }
 
   const dataNodes: HashingLogic.IAttestation[] = req.body.dataNodes
-  const attesterPrivateKey = toBuffer(env.owner.ethPrivKey)
+  const attesterPrivateKey = toBuffer(e.owner.ethPrivKey)
   const merkleTreeComponents = HashingLogic.getSignedMerkleTreeComponents(
     dataNodes,
     attesterPrivateKey
   )
-  serverLogger.info(
+  log(
     `[receiveSubjectData] merkleTreeComponents: ${JSON.stringify(
       merkleTreeComponents
     )}`
@@ -164,8 +166,8 @@ export const receiveSignedAgreement: express.RequestHandler = async (req, res) =
     dataHash: req.body.dataHash,
     requestNonce: req.body.nonce,
     subjectSig: req.body.signature,
-    attestationLogicAddress: env.attestationContracts.logicAddress,
-    tokenEscrowMarketplaceAddress: env.tokenEscrowMarketplace.address,
+    attestationLogicAddress: await getContractAddr('AttestationLogic'),
+    tokenEscrowMarketplaceAddress: await getContractAddr('TokenEscrowMarketplace'),
   }
 
   const validationResult = await validateAttestParams(attestParams)
@@ -178,10 +180,16 @@ export const receiveSignedAgreement: express.RequestHandler = async (req, res) =
     })
     bossInstance.publish('submit-attestation', attestParams)
 
-    newrelic.recordCustomEvent('AttestationEvent', {
-      Action: 'EnqueueAttest',
-      AttestationId: attestParams.attestationId,
-    })
+    log(
+      {
+        name: 'AttestationEvent',
+        event: {
+          Action: 'EnqueueAttest',
+          AttestationId: attestParams.attestationId,
+        },
+      },
+      {event: true}
+    )
 
     return res.status(200).json({success: true})
   } else {
