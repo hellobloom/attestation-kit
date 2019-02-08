@@ -8,8 +8,6 @@ jest.mock('@shared/logger', () => {
   const silentLogger = new winston.Logger({transports: []})
 
   return {
-    pollTrackerLogger: silentLogger,
-    delayedJobLogger: silentLogger,
-    log: silentLogger,
+    log: silentLogger.info,
   }
 })

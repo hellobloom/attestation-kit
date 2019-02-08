@@ -201,13 +201,22 @@ const envVar = async (
 export const getEnvFromHttp = async (): Promise<IEnvironmentConfig> => {
   const conf = await envVar(process.env, 'ENV_SOURCE_HTTP', 'json')
 
-  let resp = await axios({
+  let axiosArgs: any = {
     method: conf.method,
     url: conf.url,
     headers: conf.headers,
     data: conf.data,
     responseType: 'json',
-  })
+  }
+
+  if (process.env.NODE_ENV === 'test') {
+    var path = require('path')
+    var lib = path.join(path.dirname(require.resolve('axios')), 'lib/adapters/http')
+    var http = require(lib)
+    axiosArgs.adapter = http
+  }
+
+  const resp = await axios(axiosArgs)
 
   if (resp.data.success === true) {
     return resp.data.env
