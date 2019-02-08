@@ -96,7 +96,7 @@ envPr.then(async env => {
       resetShh()
     }
 
-    setTimeout(main, env.whisperPollInterval)
+    setTimeout(main, env.whisper.pollInterval)
   }
 
   main()

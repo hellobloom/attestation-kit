@@ -11,7 +11,7 @@ let marketplacePr = envPr.then(async e => {
   const Marketplace = loadTokenEscrowMarketplace(
     await getContractAddr('TokenEscrowMarketplace')
   )
-  return privateEngine(e.owner.ethPrivKey, {stage: 'rinkeby'}).then(pe => {
+  return privateEngine(e.owner.key, {stage: 'rinkeby'}).then(pe => {
     const marketplace = Marketplace.withProvider(pe)
     return marketplace
   })

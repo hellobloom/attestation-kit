@@ -79,11 +79,11 @@ export interface IEnvironmentConfig {
   }
 
   // Whisper config
-  whisperPollInterval?: number
   whisper: {
     provider: string
     password: string
     topicPrefix: string
+    pollInterval: number
     ping: {
       enabled: boolean
       interval: number
@@ -94,8 +94,8 @@ export interface IEnvironmentConfig {
 
   // Ethereum key config
   owner: {
-    ethAddress: string
-    ethPrivKey: string
+    address: string
+    key: string
   }
 
   // (Optional) Logstash setup
@@ -295,6 +295,13 @@ export const getEnvFromEnv = async (): Promise<IEnvironmentConfig> => {
       provider: await envVar(process.env, 'WHISPER_PROVIDER'),
       password: await envVar(process.env, 'WHISPER_PASSWORD'),
       topicPrefix: await envVar(process.env, 'WHISPER_TOPIC_PREFIX'),
+      pollInterval: await envVar(
+        process.env,
+        'WHISPER_POLL_INTERVAL',
+        'int',
+        false,
+        5000
+      ),
       ping: {
         enabled: await envVar(process.env, 'WHISPER_PING_ENABLED', 'bool', false), // Defaults to false if not specified
         interval: await envVar(
@@ -319,18 +326,11 @@ export const getEnvFromEnv = async (): Promise<IEnvironmentConfig> => {
         ),
       },
     },
-    whisperPollInterval: await envVar(
-      process.env,
-      'WHISPER_POLL_INTERVAL',
-      'int',
-      false,
-      5000
-    ),
 
     // Ethereum key config
     owner: {
-      ethAddress: await envVar(process.env, 'PRIMARY_ETH_ADDRESS'),
-      ethPrivKey: await envVar(process.env, 'PRIMARY_ETH_PRIVKEY'),
+      address: await envVar(process.env, 'PRIMARY_ETH_ADDRESS'),
+      key: await envVar(process.env, 'PRIMARY_ETH_PRIVKEY'),
     },
 
     // (Optional) Logstash setup

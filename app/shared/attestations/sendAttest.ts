@@ -10,7 +10,7 @@ let envPr = env()
 
 const attestationLogic = envPr.then(async e =>
   loadAttestationLogic(await getContractAddr('AttestationLogic')).withProvider(
-    await privateEngine(e.owner.ethPrivKey, {stage: 'rinkeby'})
+    await privateEngine(e.owner.key, {stage: 'rinkeby'})
   )
 )
 

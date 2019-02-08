@@ -16,7 +16,7 @@ let envPr = env()
 const getAttestationBid = (e: IEnvironmentConfig, invalid: boolean = false) => {
   const zeroReward = new BigNumber(0).toString(10)
   const reSessionId = uuid()
-  const reSessionSigned = signSessionID(reSessionId, toBuffer(e.owner.ethPrivKey))
+  const reSessionSigned = signSessionID(reSessionId, toBuffer(e.owner.key))
   const negotiationSession = uuid()
   if (!invalid) {
     const attestationBid: IAttestationBid = {
@@ -198,7 +198,7 @@ describe('Handling bid', async () => {
 //   env.cognito.ethAddress,
 //   zeroReward,
 //   'testDigest',
-//   toBuffer(env.cognito.ethPrivKey)
+//   toBuffer(env.cognito.key)
 // )
 // const attestationRequest: IAttestationRequest = {
 //   messageType: EMsgTypes.attestationRequest,
