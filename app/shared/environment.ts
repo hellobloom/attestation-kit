@@ -40,17 +40,17 @@ export type TContracts = {
 export interface IEnvironmentConfig {
   // Main config
   appId: string
-  appPort: number
   dbUrl: string
 
   // Environment & version
   nodeEnv: string
   pipelineStage?: string
   sourceVersion?: string
+
+  // Access key
   apiKey: string
 
   // Logging
-  log_level?: string
   logs: {
     whisper: {
       pings: boolean
@@ -64,7 +64,7 @@ export interface IEnvironmentConfig {
   approved_requesters?: IAttestationTypesToArrAnyAll
   attester_rewards?: IAttestationTypesToStrAll
 
-  // Network/contract config
+  // Provider/contract config
   providers: TProviders
   contracts: TContracts
 
@@ -72,8 +72,10 @@ export interface IEnvironmentConfig {
   sentryDSN: string
 
   // Response webhooks config
-  webhook_host: string
-  webhook_key: string
+  webhook: {
+    key: string
+    address: string
+  }
 
   // Whisper config
   whisperPollInterval?: number
@@ -201,7 +203,6 @@ export const getEnvFromEnv = async (): Promise<IEnvironmentConfig> => {
   return {
     // Main config
     appId: await envVar(process.env, 'APP_ID', 'string', true), // e.g., attestation-kit_dev_bob
-    appPort: await envVar(process.env, 'PORT', 'int', false, 3000),
     dbUrl: await envVar(process.env, 'PG_URL'),
 
     // Environment & version
@@ -220,10 +221,11 @@ export const getEnvFromEnv = async (): Promise<IEnvironmentConfig> => {
       false,
       'Unspecified'
     ),
+
+    // Access key
     apiKey: await envVar(process.env, 'API_KEY_SHA256'),
 
     // Logging
-    log_level: await envVar(process.env, 'LOG_LEVEL', 'string', false, 'info'),
     logs: {
       whisper: {
         sql: await envVar(process.env, 'LOG_WHISPER_SQL', 'bool', false),
@@ -247,7 +249,7 @@ export const getEnvFromEnv = async (): Promise<IEnvironmentConfig> => {
     ),
     attester_rewards: await envVar(process.env, 'ATTESTER_MIN_REWARDS', 'json'),
 
-    // Network/contract config
+    // Provider/contract config
     providers: await envVar(process.env, 'PROVIDERS', 'json'),
     contracts: await envVar(process.env, 'CONTRACTS', 'json'),
 
@@ -255,8 +257,10 @@ export const getEnvFromEnv = async (): Promise<IEnvironmentConfig> => {
     sentryDSN: await envVar(process.env, 'SENTRY_DSN'),
 
     // Response webhooks config
-    webhook_host: await envVar(process.env, 'WEBHOOK_HOST'),
-    webhook_key: await envVar(process.env, 'WEBHOOK_KEY'),
+    webhook: {
+      key: await envVar(process.env, 'WEBHOOK_KEY'),
+      address: await envVar(process.env, 'WEBHOOK_HOST'),
+    },
 
     // Whisper config
     whisper: {
