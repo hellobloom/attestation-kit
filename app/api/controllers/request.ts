@@ -152,6 +152,8 @@ export const createBypass = async (req: any, res: any) => {
 
   const attestation = await m.Attestation.create(att)
 
+  log('Created attestation')
+
   await notifyCollectData(
     {
       status: attestation.status,
@@ -162,6 +164,8 @@ export const createBypass = async (req: any, res: any) => {
     },
     'v2'
   )
+
+  log('notifyCollectData executed')
 
   log(
     {
@@ -175,6 +179,8 @@ export const createBypass = async (req: any, res: any) => {
     },
     {event: true}
   )
+
+  log('AttestationEvent recorded', {level: 'debug'})
 
   res.json({success: true, sessionId: attestation.id})
 }
