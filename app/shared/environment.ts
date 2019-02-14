@@ -4,6 +4,7 @@ import {toBuffer} from 'ethereumjs-util'
 import {AttestationTypeID} from '@bloomprotocol/attestations-lib'
 import {EContractNames} from '@shared/method_manifest'
 import axios from 'axios'
+import {pickBy} from 'lodash'
 
 dotenv.config()
 
@@ -136,6 +137,18 @@ const testBool = (value: string) =>
   (['true', 't', 'yes', 'y'] as any).includes(value.toLowerCase())
 
 // Throw an error if the specified environment variable is not defined
+const envVarSilent = (
+  e: any,
+  name: string,
+  type: TEnvType = 'string',
+  required: boolean = true,
+  defaultVal?: any,
+  opts?: {
+    baseToParseInto?: number
+    silent?: boolean
+  }
+) => envVar(e, name, type, required, defaultVal, {silent: true, ...opts})
+
 const envVar = async (
   e: any,
   name: string,
@@ -144,18 +157,28 @@ const envVar = async (
   defaultVal?: any,
   opts?: {
     baseToParseInto?: number
+    silent?: boolean
   }
 ): Promise<any> => {
   const value = e[name]
+  const silent = opts && opts.silent
   if (required) {
     if (!value) {
-      throw new Error(`Expected environment variable ${name}`)
+      if (!silent) {
+        throw new Error(`Expected environment variable ${name}`)
+      } else {
+        return 'UNSPECIFIED_ENV_VALUE'
+      }
     }
     switch (type) {
       case 'string':
         return value
       case 'json':
-        return JSON.parse(value)
+        try {
+          return JSON.parse(value)
+        } catch (err) {
+          console.log('WARNING: Parsing JSON env failed', name, value)
+        }
       case 'int':
         return parseInt(value, opts && opts.baseToParseInto)
       case 'float':
@@ -167,7 +190,9 @@ const envVar = async (
       case 'bn':
         return new bn(value)
       default:
-        throw new Error(`Unhandled type ${type}`)
+        if (!silent) {
+          throw new Error(`Unhandled type ${type}`)
+        }
     }
   } else {
     if (!value && typeof defaultVal !== 'undefined') return defaultVal
@@ -175,7 +200,11 @@ const envVar = async (
       case 'string':
         return value
       case 'json':
-        return value && JSON.parse(value)
+        try {
+          return value && JSON.parse(value)
+        } catch (err) {
+          console.log('WARNING: Parsing JSON env failed', name, value)
+        }
       case 'int':
         return value && parseInt(value)
       case 'bool':
@@ -185,7 +214,9 @@ const envVar = async (
       case 'bn':
         return value && new bn(value)
       default:
-        throw new Error(`Unhandled type ${type}`)
+        if (!silent) {
+          throw new Error(`Unhandled type ${type}`)
+        }
     }
   }
 }
@@ -219,30 +250,42 @@ export const getEnvFromHttp = async (): Promise<IEnvironmentConfig> => {
   const resp = await axios(axiosArgs)
 
   if (resp.data.success === true) {
-    return resp.data.env
+    return await localOverrides(resp.data.env)
   }
 
   throw new Error(`Environment config retrieval from ${conf.url} failed`)
 }
 
+const localOverrides = async (
+  httpEnv: IEnvironmentConfig
+): Promise<IEnvironmentConfig> => {
+  return Object.assign(
+    httpEnv,
+    pickBy(await getEnvFromEnv(true), (value: any, key: string) => {
+      return value !== 'UNSPECIFIED_ENV_VALUE'
+    })
+  )
+}
+
 // export const getEnvFromDb = async (): Promise<IEnvironmentConfig> => {}
 
-export const getEnvFromEnv = async (): Promise<IEnvironmentConfig> => {
+export const getEnvFromEnv = async (silent = true): Promise<IEnvironmentConfig> => {
+  var ev = silent ? envVarSilent : envVar
   return {
     // Main config
-    appId: await envVar(process.env, 'APP_ID', 'string', true), // e.g., attestation-kit_dev_bob
-    dbUrl: await envVar(process.env, 'PG_URL'),
+    appId: await ev(process.env, 'APP_ID', 'string', true), // e.g., attestation-kit_dev_bob
+    dbUrl: await ev(process.env, 'PG_URL'),
 
     // Environment & version
-    nodeEnv: await envVar(process.env, 'NODE_ENV'),
-    pipelineStage: await envVar(
+    nodeEnv: await ev(process.env, 'NODE_ENV'),
+    pipelineStage: await ev(
       process.env,
       'PIPELINE_STAGE',
       'string',
       false,
       'production'
     ),
-    sourceVersion: await envVar(
+    sourceVersion: await ev(
       process.env,
       'SOURCE_VERSION',
       'string',
@@ -251,51 +294,41 @@ export const getEnvFromEnv = async (): Promise<IEnvironmentConfig> => {
     ),
 
     // Access key
-    apiKey: await envVar(process.env, 'API_KEY_SHA256'),
+    apiKey: await ev(process.env, 'API_KEY_SHA256'),
 
     // Logging
     logs: {
       whisper: {
-        sql: await envVar(process.env, 'LOG_WHISPER_SQL', 'bool', false),
-        pings: await envVar(process.env, 'LOG_WHISPER_PINGS', 'bool', false),
+        sql: await ev(process.env, 'LOG_WHISPER_SQL', 'bool', false),
+        pings: await ev(process.env, 'LOG_WHISPER_PINGS', 'bool', false),
       },
-      level: await envVar(process.env, 'LOG_LEVEL', 'string', false),
+      level: await ev(process.env, 'LOG_LEVEL', 'string', false),
     },
 
     // Attester/requester config
-    approved_attesters: await envVar(
-      process.env,
-      'APPROVED_ATTESTERS',
-      'json',
-      false
-    ),
-    approved_requesters: await envVar(
-      process.env,
-      'APPROVED_REQUESTERS',
-      'json',
-      false
-    ),
-    attester_rewards: await envVar(process.env, 'ATTESTER_MIN_REWARDS', 'json'),
+    approved_attesters: await ev(process.env, 'APPROVED_ATTESTERS', 'json', false),
+    approved_requesters: await ev(process.env, 'APPROVED_REQUESTERS', 'json', false),
+    attester_rewards: await ev(process.env, 'ATTESTER_MIN_REWARDS', 'json'),
 
     // Provider/contract config
-    providers: await envVar(process.env, 'PROVIDERS', 'json'),
-    contracts: await envVar(process.env, 'CONTRACTS', 'json'),
+    providers: await ev(process.env, 'PROVIDERS', 'json'),
+    contracts: await ev(process.env, 'CONTRACTS', 'json'),
 
     // Debugging
-    sentryDSN: await envVar(process.env, 'SENTRY_DSN'),
+    sentryDSN: await ev(process.env, 'SENTRY_DSN'),
 
     // Response webhooks config
     webhook: {
-      key: await envVar(process.env, 'WEBHOOK_KEY'),
-      address: await envVar(process.env, 'WEBHOOK_HOST'),
+      key: await ev(process.env, 'WEBHOOK_KEY'),
+      address: await ev(process.env, 'WEBHOOK_HOST'),
     },
 
     // Whisper config
     whisper: {
-      provider: await envVar(process.env, 'WHISPER_PROVIDER'),
-      password: await envVar(process.env, 'WHISPER_PASSWORD'),
-      topicPrefix: await envVar(process.env, 'WHISPER_TOPIC_PREFIX'),
-      pollInterval: await envVar(
+      provider: await ev(process.env, 'WHISPER_PROVIDER'),
+      password: await ev(process.env, 'WHISPER_PASSWORD'),
+      topicPrefix: await ev(process.env, 'WHISPER_TOPIC_PREFIX'),
+      pollInterval: await ev(
         process.env,
         'WHISPER_POLL_INTERVAL',
         'int',
@@ -303,45 +336,45 @@ export const getEnvFromEnv = async (): Promise<IEnvironmentConfig> => {
         5000
       ),
       ping: {
-        enabled: await envVar(process.env, 'WHISPER_PING_ENABLED', 'bool', false), // Defaults to false if not specified
-        interval: await envVar(
+        enabled: await ev(process.env, 'WHISPER_PING_ENABLED', 'bool', false), // Defaults to false if not specified
+        interval: await ev(
           process.env,
           'WHISPER_PING_INTERVAL',
           'string',
           false,
           '1 minute'
         ), // PostgreSQL interval - Defaults to 1 min if not specified
-        alertInterval: await envVar(
+        alertInterval: await ev(
           process.env,
           'WHISPER_PING_ALERT_INTERVAL',
           'string',
           false,
           '5 minutes'
         ), // PostgreSQL interval - Defaults to 1 min if not specified
-        password: await envVar(
+        password: await ev(
           process.env,
           'WHISPER_PING_PASSWORD',
           'string',
-          await envVar(process.env, 'WHISPER_PING_ENABLED', 'bool', false) // Whether or not it's required dependent on whether or not whisper ping is enabled
+          await ev(process.env, 'WHISPER_PING_ENABLED', 'bool', false) // Whether or not it's required dependent on whether or not whisper ping is enabled
         ),
       },
     },
 
     // Ethereum key config
     owner: {
-      address: await envVar(process.env, 'PRIMARY_ETH_ADDRESS'),
-      key: await envVar(process.env, 'PRIMARY_ETH_PRIVKEY'),
+      address: await ev(process.env, 'PRIMARY_ETH_ADDRESS'),
+      key: await ev(process.env, 'PRIMARY_ETH_PRIVKEY'),
     },
 
     // (Optional) Logstash setup
-    logstash: await envVar(process.env, 'LOGSTASH', 'json', false),
+    logstash: await ev(process.env, 'LOGSTASH', 'json', false),
 
     // (Optional) External service for transaction handling
     txService: process.env['TX_SERVICE_ADDRESS']
       ? {
-          address: await envVar(process.env, 'TX_SERVICE_ADDRESS'),
-          key: await envVar(process.env, 'TX_SERVICE_KEY'),
-          webhookKeySha: await envVar(process.env, 'TX_SERVICE_KEY_SHA256'),
+          address: await ev(process.env, 'TX_SERVICE_ADDRESS'),
+          key: await ev(process.env, 'TX_SERVICE_KEY'),
+          webhookKeySha: await ev(process.env, 'TX_SERVICE_KEY_SHA256'),
         }
       : undefined,
   }
