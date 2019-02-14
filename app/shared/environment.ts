@@ -4,6 +4,7 @@ import {toBuffer} from 'ethereumjs-util'
 import {AttestationTypeID} from '@bloomprotocol/attestations-lib'
 import {EContractNames} from '@shared/method_manifest'
 import axios from 'axios'
+import * as merge from 'deepmerge'
 
 dotenv.config()
 
@@ -136,6 +137,7 @@ const testBool = (value: string) =>
   (['true', 't', 'yes', 'y'] as any).includes(value.toLowerCase())
 
 // Throw an error if the specified environment variable is not defined
+
 const envVar = async (
   e: any,
   name: string,
@@ -155,7 +157,11 @@ const envVar = async (
       case 'string':
         return value
       case 'json':
-        return JSON.parse(value)
+        try {
+          return JSON.parse(value)
+        } catch (err) {
+          console.log('WARNING: Parsing JSON env failed', name, value)
+        }
       case 'int':
         return parseInt(value, opts && opts.baseToParseInto)
       case 'float':
@@ -175,7 +181,11 @@ const envVar = async (
       case 'string':
         return value
       case 'json':
-        return value && JSON.parse(value)
+        try {
+          return value && JSON.parse(value)
+        } catch (err) {
+          console.log('WARNING: Parsing JSON env failed', name, value)
+        }
       case 'int':
         return value && parseInt(value)
       case 'bool':
@@ -219,10 +229,18 @@ export const getEnvFromHttp = async (): Promise<IEnvironmentConfig> => {
   const resp = await axios(axiosArgs)
 
   if (resp.data.success === true) {
-    return resp.data.env
+    return await localOverrides(resp.data.env)
   }
 
   throw new Error(`Environment config retrieval from ${conf.url} failed`)
+}
+
+const localOverrides = async (
+  httpEnv: IEnvironmentConfig
+): Promise<IEnvironmentConfig> => {
+  return process.env.ENV_OVERRIDE
+    ? merge(httpEnv, JSON.parse(process.env.ENV_OVERRIDE))
+    : httpEnv
 }
 
 // export const getEnvFromDb = async (): Promise<IEnvironmentConfig> => {}

@@ -25,6 +25,11 @@ RUN mkdir -p /app
 RUN chown -R ubuntu /vol/app-logs /app
 
 USER ubuntu
+ADD ./package.json /app/package.json
+ADD ./package-lock.json /app/package-lock.json
+ADD ./bin /app/bin
+WORKDIR /app
+RUN npm ci
 ADD . /app
 
 USER root
@@ -36,7 +41,6 @@ RUN chown -R ubuntu /vol/app-logs /app
 USER ubuntu
 WORKDIR /app
 RUN /app/bin/docker-cleanup-env
-RUN npm ci
 RUN /app/bin/build
 
 # EXPOSE PORT
