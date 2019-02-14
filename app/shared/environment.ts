@@ -146,12 +146,18 @@ const envVar = async (
   defaultVal?: any,
   opts?: {
     baseToParseInto?: number
+    silent?: boolean
   }
 ): Promise<any> => {
   const value = e[name]
+  const silent = opts && opts.silent
   if (required) {
     if (!value) {
-      throw new Error(`Expected environment variable ${name}`)
+      if (!silent) {
+        throw new Error(`Expected environment variable ${name}`)
+      } else {
+        return 'UNSPECIFIED_ENV_VALUE'
+      }
     }
     switch (type) {
       case 'string':
@@ -173,7 +179,9 @@ const envVar = async (
       case 'bn':
         return new bn(value)
       default:
-        throw new Error(`Unhandled type ${type}`)
+        if (!silent) {
+          throw new Error(`Unhandled type ${type}`)
+        }
     }
   } else {
     if (!value && typeof defaultVal !== 'undefined') return defaultVal
@@ -195,7 +203,9 @@ const envVar = async (
       case 'bn':
         return value && new bn(value)
       default:
-        throw new Error(`Unhandled type ${type}`)
+        if (!silent) {
+          throw new Error(`Unhandled type ${type}`)
+        }
     }
   }
 }
@@ -245,7 +255,7 @@ const localOverrides = async (
 
 // export const getEnvFromDb = async (): Promise<IEnvironmentConfig> => {}
 
-export const getEnvFromEnv = async (): Promise<IEnvironmentConfig> => {
+export const getEnvFromEnv = async (silent = true): Promise<IEnvironmentConfig> => {
   return {
     // Main config
     appId: await envVar(process.env, 'APP_ID', 'string', true), // e.g., attestation-kit_dev_bob
