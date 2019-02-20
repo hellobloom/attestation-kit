@@ -35,7 +35,7 @@ ADD . /app
 USER root
 RUN rm -f /app/build/api.js /app/build/worker.js /app/build/whisperWorker.js
 RUN cp /app/supervisord.conf /etc/supervisord.conf
-RUN chown -R ubuntu /vol/app-logs /app
+RUN chown -R ubuntu /vol/app-logs
 
 # INITIALIZE APP
 USER ubuntu
