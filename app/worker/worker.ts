@@ -11,42 +11,49 @@ import {whisperNewBroadcastSession} from '@worker/jobs/whisper-new-broadcast-ses
 import {whisperSubscribeThenBroadcast} from '@worker/jobs/whisper-subscribe-then-broadcast'
 import {whisperSubscribeThenDirectMessage} from '@worker/jobs/whisper-subscribe-then-direct-message'
 
+log('Starting job worker...')
+
+const onError = (error: Error) => {
+  // Failsafe log
+  console.log('Error encountered in job worker', error)
+
+  log(error, {
+    full: true,
+    tags: {logger: 'unhandled_job_error'},
+  })
+}
+
 let envPr = env()
 
-envPr.then(env => {
-  Sentry.init({
-    dsn: env.sentryDSN,
-    environment: env.pipelineStage,
-    release: env.sourceVersion,
-  })
+envPr
+  .then(env => {
+    Sentry.init({
+      dsn: env.sentryDSN,
+      environment: env.pipelineStage,
+      release: env.sourceVersion,
+    })
 
-  boss.then(ready).catch(onError)
+    boss.then(ready).catch(onError)
 
-  function ready(boss: any) {
-    boss.on('error', onError)
+    function ready(boss: any) {
+      boss.on('error', onError)
 
-    const jobs = {
-      'submit-attestation': submitAttestation,
-      'whisper-broadcast-message': whisperBroadcastMessage,
-      'whisper-direct-message': whisperDirectMessage,
-      'whisper-end-session': whisperEndSession,
-      'whisper-new-broadcast-session': whisperNewBroadcastSession,
-      'whisper-subscribe-then-broadcast': whisperSubscribeThenBroadcast,
-      'whisper-subscribe-then-direct-message': whisperSubscribeThenDirectMessage,
+      const jobs = {
+        'submit-attestation': submitAttestation,
+        'whisper-broadcast-message': whisperBroadcastMessage,
+        'whisper-direct-message': whisperDirectMessage,
+        'whisper-end-session': whisperEndSession,
+        'whisper-new-broadcast-session': whisperNewBroadcastSession,
+        'whisper-subscribe-then-broadcast': whisperSubscribeThenBroadcast,
+        'whisper-subscribe-then-direct-message': whisperSubscribeThenDirectMessage,
+      }
+
+      Object.keys(jobs).forEach((key: string) => {
+        boss
+          .subscribe(key, jobs[key])
+          .then(() => log('Subscribed to ' + key))
+          .catch(onError)
+      })
     }
-
-    Object.keys(jobs).forEach((key: string) => {
-      boss
-        .subscribe(key, jobs[key])
-        .then(() => log('Subscribed to ' + key))
-        .catch(onError)
-    })
-  }
-
-  function onError(error: Error) {
-    log(error, {
-      full: true,
-      tags: {logger: 'unhandled_job_error'},
-    })
-  }
-})
+  })
+  .catch(onError)
