@@ -4,6 +4,5 @@ const PgBoss = require('pg-boss')
 export const boss = (async () => {
   let e = await env()
   const boss_raw = new PgBoss(e.dbUrl)
-  boss_raw.start()
-  return boss_raw
+  return boss_raw.start()
 })()

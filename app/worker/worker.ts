@@ -36,6 +36,7 @@ envPr
     boss.then(ready).catch(onError)
 
     function ready(boss: any) {
+      console.log('PgBoss ready, connecting to jobs...')
       boss.on('error', onError)
 
       const jobs = {
