@@ -460,6 +460,10 @@ export const getJobConfig = async (jn: keyof typeof EJobNames) => {
   if (e.jobs && e.jobs[jn]) {
     return e.jobs[jn]
   } else {
-    return {}
+    return {
+      retryLimit: 100,
+      retryDelay: 5,
+      expireIn: '24 hours',
+    }
   }
 }
