@@ -14,7 +14,7 @@ import {
 import * as Shh from 'web3-shh'
 import * as Web3 from 'web3'
 import * as Wallet from 'ethereumjs-wallet'
-import {getProvider} from '@shared/environment'
+import {getProvider, getJobConfig} from '@shared/environment'
 import {fetchAllMessages, TWhisperEntity} from '@shared/whisper'
 import {
   handleSolicitation,
@@ -165,20 +165,28 @@ export const actOnMessage = async (
   if (messageDecision.subscribeTo === null && messageDecision.respondTo !== null) {
     switch (messageDecision.respondTo.messageType) {
       case MessageSubscribers.broadcastMessage:
-        await boss_instance.publish('whisper-broadcast-message', {
-          message: messageDecision.respondWith,
-          topic: messageDecision.respondTo.topic,
-          password: messageDecision.respondTo.password,
-          replyToTopic: null,
-        })
+        await boss_instance.publish(
+          'whisper-broadcast-message',
+          {
+            message: messageDecision.respondWith,
+            topic: messageDecision.respondTo.topic,
+            password: messageDecision.respondTo.password,
+            replyToTopic: null,
+          },
+          await getJobConfig('whisperBroadcastMessage')
+        )
         break
       case MessageSubscribers.directMessage:
-        await boss_instance.publish('whisper-direct-message', {
-          message: messageDecision.respondWith,
-          topic: messageDecision.respondTo.topic,
-          publicKey: messageDecision.respondTo.publicKey,
-          replyToTopic: null,
-        })
+        await boss_instance.publish(
+          'whisper-direct-message',
+          {
+            message: messageDecision.respondWith,
+            topic: messageDecision.respondTo.topic,
+            publicKey: messageDecision.respondTo.publicKey,
+            replyToTopic: null,
+          },
+          await getJobConfig('whisperDirectMessage')
+        )
         break
       default:
         break
@@ -190,22 +198,30 @@ export const actOnMessage = async (
   ) {
     switch (messageDecision.respondTo.messageType) {
       case MessageSubscribers.broadcastMessage:
-        await boss_instance.publish('whisper-subscribe-then-broadcast', {
-          entity: entity,
-          message: messageDecision.respondWith,
-          topic: messageDecision.respondTo.topic,
-          password: messageDecision.respondTo.password,
-          replyToTopic: messageDecision.subscribeTo.topic,
-        })
+        await boss_instance.publish(
+          'whisper-subscribe-then-broadcast',
+          {
+            entity: entity,
+            message: messageDecision.respondWith,
+            topic: messageDecision.respondTo.topic,
+            password: messageDecision.respondTo.password,
+            replyToTopic: messageDecision.subscribeTo.topic,
+          },
+          await getJobConfig('whisperSubscribeThenBroadcast')
+        )
         break
       case MessageSubscribers.directMessage:
-        await boss_instance.publish('whisper-subscribe-then-direct-message', {
-          entity: entity,
-          message: messageDecision.respondWith,
-          topic: messageDecision.respondTo.topic,
-          publicKey: messageDecision.respondTo.publicKey,
-          replyToTopic: messageDecision.subscribeTo.topic,
-        })
+        await boss_instance.publish(
+          'whisper-subscribe-then-direct-message',
+          {
+            entity: entity,
+            message: messageDecision.respondWith,
+            topic: messageDecision.respondTo.topic,
+            publicKey: messageDecision.respondTo.publicKey,
+            replyToTopic: messageDecision.subscribeTo.topic,
+          },
+          await getJobConfig('whisperSubscribeThenDirectMessage')
+        )
         break
       default:
         break

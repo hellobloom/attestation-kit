@@ -54,7 +54,7 @@ export const perform = async (req: any, res: any) => {
         attestationId: attestation.id,
         gasPrice: req.body.gas_price,
       },
-      getJobConfig('submitAttestation')
+      await getJobConfig('submitAttestation')
     )
     //
     res.json({success: true, attestation})
@@ -182,7 +182,11 @@ export const receiveSignedAgreement: express.RequestHandler = async (req, res) =
       gasPrice: req.body.gasPrice,
       network: req.body.network,
     })
-    bossInstance.publish('submit-attestation', attestParams)
+    bossInstance.publish(
+      'submit-attestation',
+      attestParams,
+      await getJobConfig('submitAttestation')
+    )
 
     log(
       {

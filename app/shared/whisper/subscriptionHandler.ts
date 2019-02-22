@@ -1,7 +1,7 @@
 import {toBuffer} from 'ethereumjs-util'
 import {WhisperFilters} from '@shared/models'
 import {boss} from '@shared/jobs/boss'
-import {env} from '@shared/environment'
+import {env, getJobConfig} from '@shared/environment'
 
 let envPr = env()
 
@@ -35,10 +35,14 @@ export const unsubscribeFromTopic = async (topic: string) => {
     const keypairId = filter.keypairId
     // Enqueue job to delete filter and keypair
     let boss_instance = await boss
-    await boss_instance.publish('whisper-end-session', {
-      filterId: filterIDToRemove,
-      keypairId: keypairId,
-    })
+    await boss_instance.publish(
+      'whisper-end-session',
+      {
+        filterId: filterIDToRemove,
+        keypairId: keypairId,
+      },
+      await getJobConfig('whisperEndSession')
+    )
   }
 }
 
@@ -48,9 +52,13 @@ export const subscribeToBroadcast = async (
   entity: string
 ) => {
   let boss_instance = await boss
-  await boss_instance.publish('whisper-new-broadcast-session', {
-    newTopic: topic,
-    entity: entity,
-    password: password,
-  })
+  await boss_instance.publish(
+    'whisper-new-broadcast-session',
+    {
+      newTopic: topic,
+      entity: entity,
+      password: password,
+    },
+    await getJobConfig('whisperNewBroadcastSession')
+  )
 }

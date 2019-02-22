@@ -1,7 +1,7 @@
 import {boss} from '@shared/jobs/boss'
 import {log} from '@shared/logger'
-
 import {resetShh, newDirectMessageSession} from '@shared/whisper'
+import {getJobConfig} from '@shared/environment'
 
 export const whisperSubscribeThenDirectMessage = async (job: any) => {
   if (job.data.message === null) {
@@ -11,12 +11,16 @@ export const whisperSubscribeThenDirectMessage = async (job: any) => {
     await resetShh()
     await newDirectMessageSession(job.data.replyToTopic, job.data.entity)
     let boss_instance = await boss
-    await boss_instance.publish('whisper-direct-message', {
-      message: job.data.message,
-      topic: job.data.topic,
-      publicKey: job.data.publicKey,
-      replyToTopic: job.data.replyToTopic,
-    })
+    await boss_instance.publish(
+      'whisper-direct-message',
+      {
+        message: job.data.message,
+        topic: job.data.topic,
+        publicKey: job.data.publicKey,
+        replyToTopic: job.data.replyToTopic,
+      },
+      await getJobConfig('whisperDirectMessage')
+    )
   } catch (e) {
     log(
       {
