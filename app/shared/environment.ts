@@ -43,6 +43,11 @@ export interface IJobConfig {
   retryLimit?: number
   retryDelay?: number
   retryBackoff?: boolean
+  expireIn?: string
+  teamSize?: number
+  teamConcurrency?: number
+  batchSize?: number
+  newJobCheckInterval?: number
 }
 
 export enum EJobNames {
@@ -455,15 +460,18 @@ export const getProvider = async (network: keyof typeof ENetworks = 'mainnet') =
   return e.providers.all || e.providers[network]
 }
 
-export const getJobConfig = async (jn: keyof typeof EJobNames) => {
+export const getJobConfig = async (
+  jn: keyof typeof EJobNames
+): Promise<IJobConfig> => {
   let e = await envPr
   if (e.jobs && e.jobs[jn]) {
-    return e.jobs[jn]
+    return e.jobs[jn] as IJobConfig
   } else {
     return {
       retryLimit: 100,
       retryDelay: 5,
-      expireIn: '24 hours',
+      retryBackoff: true,
+      expireIn: '72 hours',
     }
   }
 }
