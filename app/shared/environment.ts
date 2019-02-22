@@ -39,6 +39,22 @@ export type TContracts = {
   }
 }
 
+export interface IJobConfig {
+  retryLimit?: number
+  retryDelay?: number
+  retryBackoff?: boolean
+}
+
+export enum EJobNames {
+  'submitAttestation' = 'submitAttestation',
+  'whisperDirectMessage' = 'whisperDirectMessage',
+  'whisperBroadcastMessage' = 'whisperBroadcastMessage',
+  'whisperEndSession' = 'whisperEndSession',
+  'whisperNewBroadcastSession' = 'whisperNewBroadcastSession',
+  'whisperSubscribeThenBroadcast' = 'whisperSubscribeThenBroadcast',
+  'whisperSubscribeThenDirectMessage' = 'whisperSubscribeThenDirectMessage',
+}
+
 export interface IEnvironmentConfig {
   // Main config
   appId: string
@@ -112,6 +128,8 @@ export interface IEnvironmentConfig {
     key: string
     webhookKeySha: string
   }
+
+  jobs: {[P in keyof typeof EJobNames]?: IJobConfig}
 }
 
 export type TAtTypeAll = keyof typeof AttestationTypeID | 'all'
@@ -168,8 +186,9 @@ const envVar = async (
         } catch (err) {
           console.log('WARNING: Parsing JSON env failed', name, value)
         }
+        break
       case 'int':
-        return parseInt(value, opts && opts.baseToParseInto)
+        return parseInt(value, (opts && opts.baseToParseInto) || 10)
       case 'float':
         return parseFloat(value)
       case 'bool':
@@ -194,8 +213,9 @@ const envVar = async (
         } catch (err) {
           console.log('WARNING: Parsing JSON env failed', name, value)
         }
+        break
       case 'int':
-        return value && parseInt(value)
+        return value && parseInt(value, 10)
       case 'bool':
         return value ? testBool(value) : false
       case 'buffer':
@@ -217,6 +237,14 @@ const envVar = async (
   topics[k] = topics[k].toString()
 })
 */
+
+const localOverrides = async (
+  httpEnv: IEnvironmentConfig
+): Promise<IEnvironmentConfig> => {
+  return process.env.ENV_OVERRIDE
+    ? merge(httpEnv, JSON.parse(process.env.ENV_OVERRIDE))
+    : httpEnv
+}
 
 export const getEnvFromHttp = async (): Promise<IEnvironmentConfig> => {
   const conf = await envVar(process.env, 'ENV_SOURCE_HTTP', 'json')
@@ -243,14 +271,6 @@ export const getEnvFromHttp = async (): Promise<IEnvironmentConfig> => {
   }
 
   throw new Error(`Environment config retrieval from ${conf.url} failed`)
-}
-
-const localOverrides = async (
-  httpEnv: IEnvironmentConfig
-): Promise<IEnvironmentConfig> => {
-  return process.env.ENV_OVERRIDE
-    ? merge(httpEnv, JSON.parse(process.env.ENV_OVERRIDE))
-    : httpEnv
 }
 
 // export const getEnvFromDb = async (): Promise<IEnvironmentConfig> => {}
@@ -350,7 +370,8 @@ export const getEnvFromEnv = async (silent = true): Promise<IEnvironmentConfig> 
           process.env,
           'WHISPER_PING_PASSWORD',
           'string',
-          await envVar(process.env, 'WHISPER_PING_ENABLED', 'bool', false) // Whether or not it's required dependent on whether or not whisper ping is enabled
+          // Whether or not the below is required dependent on whether or not whisper ping is enabled
+          await envVar(process.env, 'WHISPER_PING_ENABLED', 'bool', false)
         ),
       },
     },
@@ -372,6 +393,7 @@ export const getEnvFromEnv = async (silent = true): Promise<IEnvironmentConfig> 
           webhookKeySha: await envVar(process.env, 'TX_SERVICE_KEY_SHA256'),
         }
       : undefined,
+    jobs: await envVar(process.env, 'JOBS', 'json', false, {default: {}}),
   }
 }
 
@@ -388,7 +410,7 @@ const getEnv = async (): Promise<IEnvironmentConfig> => {
       return await getEnvFromHttp()
     case 'db':
       throw new Error('Environment config from database not yet supported')
-    //return await getEnvFromDb()
+    // return await getEnvFromDb()
     default:
       throw new Error('No enviroment source configured!  Aborting.')
   }
@@ -409,6 +431,10 @@ export const contractObjByContractAndNetwork = (
   return networkObj
 }
 
+var envPr: Promise<IEnvironmentConfig> = new Promise((res, rej) => {
+  return getEnv().then(res)
+})
+
 export const getContractAddr = async (
   contract: keyof typeof EContractNames,
   network: keyof typeof ENetworks = 'mainnet'
@@ -418,16 +444,22 @@ export const getContractAddr = async (
   return addr
 }
 
-var envPr: Promise<IEnvironmentConfig> = new Promise((res, rej) => {
-  getEnv().then(res)
-})
+// Wrapper function
+export const env = async () => {
+  return await envPr
+}
 
+// Env accessor functions
 export const getProvider = async (network: keyof typeof ENetworks = 'mainnet') => {
   let e = await env()
   return e.providers.all || e.providers[network]
 }
 
-// Wrapper function
-export const env = async () => {
-  return await envPr
+export const getJobConfig = async (jn: keyof typeof EJobNames) => {
+  let e = await envPr
+  if (e.jobs && e.jobs[jn]) {
+    return e.jobs[jn]
+  } else {
+    return {}
+  }
 }

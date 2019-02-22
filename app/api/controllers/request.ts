@@ -27,8 +27,8 @@ export const show = (req: any, res: any) => {
   const where = req.body.where ? dc(req.body.where) : {}
   where.role = 'requester'
 
-  let per_page = req.body.per_page ? parseInt(req.body.per_page) : 100
-  let offset = req.body.page ? per_page * parseInt(req.body.page) : 0
+  let per_page = req.body.per_page ? parseInt(req.body.per_page, 10) : 100
+  let offset = req.body.page ? per_page * parseInt(req.body.page, 10) : 0
 
   m.Attestation.findAll({
     where: where,

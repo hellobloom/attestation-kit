@@ -26,18 +26,18 @@ const onError = (error: Error) => {
 let envPr = env()
 
 envPr
-  .then(env => {
+  .then(e => {
     Sentry.init({
-      dsn: env.sentryDSN,
-      environment: env.pipelineStage,
-      release: env.sourceVersion,
+      dsn: e.sentryDSN,
+      environment: e.pipelineStage,
+      release: e.sourceVersion,
     })
 
     boss.then(ready).catch(onError)
 
-    function ready(boss: any) {
+    function ready(b: any) {
       console.log('PgBoss ready, connecting to jobs...')
-      boss.on('error', onError)
+      b.on('error', onError)
 
       const jobs = {
         'submit-attestation': submitAttestation,
@@ -50,8 +50,7 @@ envPr
       }
 
       Object.keys(jobs).forEach((key: string) => {
-        boss
-          .subscribe(key, jobs[key])
+        b.subscribe(key, jobs[key])
           .then(() => log('Subscribed to ' + key))
           .catch(onError)
       })

@@ -8,7 +8,7 @@ import {
   HashingLogic,
   AttestationStatus,
 } from '@bloomprotocol/attestations-lib'
-import {env, getContractAddr} from '@shared/environment'
+import {env, getContractAddr, getJobConfig} from '@shared/environment'
 import {toBuffer, bufferToHex} from 'ethereumjs-util'
 import {Attestation} from '@shared/models'
 import {
@@ -47,11 +47,15 @@ export const perform = async (req: any, res: any) => {
     })
     // tie in - perform attestation
     const bossInstance = await boss
-    bossInstance.publish('submit-attestation', {
-      negotiationId: req.body.negotiation_id || attestation.negotiationId,
-      attestationId: attestation.id,
-      gasPrice: req.body.gas_price,
-    })
+    bossInstance.publish(
+      'submit-attestation',
+      {
+        negotiationId: req.body.negotiation_id || attestation.negotiationId,
+        attestationId: attestation.id,
+        gasPrice: req.body.gas_price,
+      },
+      getJobConfig('submitAttestation')
+    )
     //
     res.json({success: true, attestation})
   } else {

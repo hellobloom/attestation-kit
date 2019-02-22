@@ -13,7 +13,7 @@ export type TWhisperEntity = keyof AttestationTypeManifest | 'ping' | 'requester
 
 var shh: any
 
-envPr.then(e => {
+void envPr.then(e => {
   shh = new Shh(e.whisper.provider)
 })
 
@@ -29,7 +29,7 @@ export const toTopic = async (ascii: string) => {
 export const getTopic = async (at: TWhisperEntity) => {
   let e = await envPr
   var name = `${e.whisper.topicPrefix}-${at}`
-  var camelName = name.replace(/-([a-z])/g, function(g) {
+  var camelName = name.replace(/-([a-z])/g, (g: string) => {
     return g[1].toUpperCase()
   })
   return camelName

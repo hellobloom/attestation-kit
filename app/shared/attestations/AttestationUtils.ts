@@ -55,11 +55,11 @@ export const topicsHashedPr = allTopicsPr
     return Promise.all(Object.values(ats).map(toTopic))
   })
   .then(ths => {
-    let topicsHashed = {}
+    let nths = {}
     allTopicTypes.forEach((k, i) => {
-      topicsHashed[k] = ths[i]
+      nths[k] = ths[i]
     })
-    return topicsHashed
+    return nths
   })
 
 // resolves to toTopic(getTopic[tt]) => topicType

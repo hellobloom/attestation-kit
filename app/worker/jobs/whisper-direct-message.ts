@@ -6,7 +6,7 @@ export const whisperDirectMessage = async (job: any) => {
     return
   }
   try {
-    resetShh()
+    await resetShh()
 
     await directMessage(
       job.data.message,

@@ -19,11 +19,11 @@ import {WhisperFilters} from '@shared/models'
 
 let envPr = env()
 
-envPr.then(async env => {
+void envPr.then(async e => {
   Sentry.init({
-    dsn: env.sentryDSN,
-    environment: env.pipelineStage,
-    release: env.sourceVersion,
+    dsn: e.sentryDSN,
+    environment: e.pipelineStage,
+    release: e.sourceVersion,
   })
 
   const web3 = new Web3(
@@ -31,30 +31,29 @@ envPr.then(async env => {
   )
   const toTopic = (ascii: string) => web3.sha3(ascii).slice(0, 10)
 
-  const password = env.whisper.password
+  const password = e.whisper.password
 
   const getPingFilter = async () => {
-    if (env.logs.whisper.pings) {
+    if (e.logs.whisper.pings) {
       log('Ping filter needs refreshing, getting a new one')
     }
     let existing = await WhisperFilters.findOne({
       where: {entity: 'ping'},
-      logging: env.logs.whisper.sql,
+      logging: e.logs.whisper.sql,
     })
     return (
       existing ||
       newBroadcastSession(
         await toTopic(await getTopic('ping')),
-        env.whisper.ping.password,
+        e.whisper.ping.password,
         'ping'
       )
     )
   }
 
   const main = async () => {
-    let env = await envPr
     try {
-      if (env.whisper.ping.enabled) {
+      if (e.whisper.ping.enabled) {
         try {
           const wf = await getPingFilter()
           if (wf) {
@@ -77,8 +76,8 @@ envPr.then(async env => {
         }
       }
 
-      if (env.attester_rewards) {
-        Object.keys(env.attester_rewards).forEach(
+      if (e.attester_rewards) {
+        Object.keys(e.attester_rewards).forEach(
           async (topic_name: TWhisperEntity) => {
             let hashed_topic = await toTopic(await getTopic(topic_name))
             await listenForSolicitations(hashed_topic, password, topic_name)
@@ -93,10 +92,10 @@ envPr.then(async env => {
       log({name: 'WhisperError', event: {Entity: 'Attester'}}, {event: true})
       log(`Encountered error in Whisper worker! ${error}`)
       console.log(error, error.stack)
-      resetShh()
+      await resetShh()
     }
 
-    setTimeout(main, env.whisper.pollInterval)
+    setTimeout(main, e.whisper.pollInterval)
   }
 
   main()

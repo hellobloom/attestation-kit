@@ -7,7 +7,7 @@ export const whisperBroadcastMessage = async (job: any) => {
     return
   }
   try {
-    resetShh()
+    await resetShh()
     log('Broadcasting message...')
     await broadcastMessage(
       job.data.message,

@@ -8,7 +8,7 @@ export const whisperSubscribeThenDirectMessage = async (job: any) => {
     return
   }
   try {
-    resetShh()
+    await resetShh()
     await newDirectMessageSession(job.data.replyToTopic, job.data.entity)
     let boss_instance = await boss
     await boss_instance.publish('whisper-direct-message', {

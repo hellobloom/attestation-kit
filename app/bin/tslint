@@ -18,6 +18,7 @@ tslint_project() {
     --project "$config_file"                    \
     --format verbose                            \
     --exclude "$directory/**/*.test.{ts,tx}"    \
+    --exclude "$directory/**/*truffle.d.ts"     \
     "$directory/**/*.{ts,tsx}"                  \
     "$@" # Pass in commands passed to our executable
 }
@@ -25,11 +26,23 @@ tslint_project() {
 # Track if either task failed.
 linting_passed="true"
 
-if ! tslint_project tsconfig.server.json server "$@"; then
+if ! tslint_project tsconfig.json api "$@"; then
   linting_passed="false"
 fi
 
-if ! tslint_project tsconfig.json client "$@"; then
+if ! tslint_project tsconfig.json worker "$@"; then
+  linting_passed="false"
+fi
+
+if ! tslint_project tsconfig.json whisperWorker "$@"; then
+  linting_passed="false"
+fi
+
+if ! tslint_project tsconfig.json shared "$@"; then
+  linting_passed="false"
+fi
+
+if ! tslint_project tsconfig.json test "$@"; then
   linting_passed="false"
 fi
 

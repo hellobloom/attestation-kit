@@ -8,81 +8,6 @@ interface ITypedDataParam {
   name: string
 }
 
-interface IFormattedTypedData {
-  types: {
-    EIP712Domain: ITypedDataParam[]
-    [key: string]: ITypedDataParam[]
-  }
-  primaryType: string
-  domain: {
-    name: string
-    version: string
-    chainId: number
-    verifyingContract: string
-  }
-  message: {[key: string]: string}
-}
-
-export const signAttestationRequest = (
-  contractAddress: string,
-  dataHash: string,
-  requestNonce: string,
-  privKey: Buffer
-) =>
-  ethSigUtil.signTypedData(privKey, {
-    data: HashingLogic.getAttestationAgreement(
-      contractAddress,
-      1,
-      dataHash,
-      requestNonce
-    ),
-  })
-
-export const signAttestForDelegation = (
-  contractAddress: string,
-  attestParams: IAttestParams,
-  privKey: Buffer
-) =>
-  ethSigUtil.signTypedData(privKey, {
-    data: getFormattedTypedDataAttestFor(
-      contractAddress,
-      1,
-      attestParams.subject,
-      attestParams.requester,
-      attestParams.reward.toString(10),
-      attestParams.dataHash,
-      attestParams.requestNonce
-    ),
-  })
-
-export const signPaymentAuthorization = (
-  contractAddress: string,
-  sender: string,
-  receiver: string,
-  amount: string,
-  nonce: string,
-  privKey: Buffer
-) =>
-  ethSigUtil.signTypedData(privKey, {
-    data: getFormattedTypedDataPayTokens(
-      contractAddress,
-      1,
-      sender,
-      receiver,
-      amount,
-      nonce
-    ),
-  })
-
-export const signSessionID = (session: string, privKey: Buffer) =>
-  HashingLogic.signHash(toBuffer(HashingLogic.hashMessage(session)), privKey)
-
-export const recoverSessionIDSig = (session: string, signature: string) =>
-  HashingLogic.recoverHashSigner(
-    toBuffer(HashingLogic.hashMessage(session)),
-    signature
-  )
-
 export const getFormattedTypedDataPayTokens = (
   contractAddress: string,
   chainId: number,
@@ -163,3 +88,78 @@ export const getFormattedTypedDataAttestFor = (
     },
   }
 }
+
+interface IFormattedTypedData {
+  types: {
+    EIP712Domain: ITypedDataParam[]
+    [key: string]: ITypedDataParam[]
+  }
+  primaryType: string
+  domain: {
+    name: string
+    version: string
+    chainId: number
+    verifyingContract: string
+  }
+  message: {[key: string]: string}
+}
+
+export const signAttestationRequest = (
+  contractAddress: string,
+  dataHash: string,
+  requestNonce: string,
+  privKey: Buffer
+) =>
+  ethSigUtil.signTypedData(privKey, {
+    data: HashingLogic.getAttestationAgreement(
+      contractAddress,
+      1,
+      dataHash,
+      requestNonce
+    ),
+  })
+
+export const signAttestForDelegation = (
+  contractAddress: string,
+  attestParams: IAttestParams,
+  privKey: Buffer
+) =>
+  ethSigUtil.signTypedData(privKey, {
+    data: getFormattedTypedDataAttestFor(
+      contractAddress,
+      1,
+      attestParams.subject,
+      attestParams.requester,
+      attestParams.reward.toString(10),
+      attestParams.dataHash,
+      attestParams.requestNonce
+    ),
+  })
+
+export const signPaymentAuthorization = (
+  contractAddress: string,
+  sender: string,
+  receiver: string,
+  amount: string,
+  nonce: string,
+  privKey: Buffer
+) =>
+  ethSigUtil.signTypedData(privKey, {
+    data: getFormattedTypedDataPayTokens(
+      contractAddress,
+      1,
+      sender,
+      receiver,
+      amount,
+      nonce
+    ),
+  })
+
+export const signSessionID = (session: string, privKey: Buffer) =>
+  HashingLogic.signHash(toBuffer(HashingLogic.hashMessage(session)), privKey)
+
+export const recoverSessionIDSig = (session: string, signature: string) =>
+  HashingLogic.recoverHashSigner(
+    toBuffer(HashingLogic.hashMessage(session)),
+    signature
+  )
