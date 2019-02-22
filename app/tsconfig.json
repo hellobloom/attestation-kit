@@ -24,6 +24,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
+  "include": ["api/**/*", "worker/**/*", "whisperWorker/**/*", "shared/**/*", "test/**/*", "typings/**/*"],
   "exclude": [
     "node_modules",
     "build",

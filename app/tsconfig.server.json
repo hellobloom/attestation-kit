@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+
+  "compilerOptions": {
+    "target": "es6",
+    "outDir": "build"
+  },
+  "include": ["api/**/*", "worker/**/*", "whisperWorker/**/*", "shared/**/*", "test/**/*", "typings/**/*"]
+}
