@@ -111,9 +111,9 @@ export const receiveSubjectData: express.RequestHandler = async (req, res) => {
     })
   }
 
-  const dataNodes: HashingLogic.IAttestation[] = req.body.dataNodes
+  const dataNodes: HashingLogic.IAttestationLegacy[] = req.body.dataNodes
   const attesterPrivateKey = toBuffer(e.owner.key)
-  const merkleTreeComponents = HashingLogic.getSignedMerkleTreeComponents(
+  const merkleTreeComponents = HashingLogic.getSignedMerkleTreeComponentsLegacy(
     dataNodes,
     attesterPrivateKey
   )
