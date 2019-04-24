@@ -8,6 +8,7 @@ import {
   HashingLogic,
   AttestationStatus,
 } from '@bloomprotocol/attestations-lib'
+import {validateDateTime} from '@bloomprotocol/attestations-lib/src/RFC3339DateTime'
 import {env, getContractAddr, getJobConfig} from '@shared/environment'
 import {toBuffer, bufferToHex} from 'ethereumjs-util'
 import {Attestation} from '@shared/models'
@@ -63,20 +64,20 @@ export const perform = async (req: any, res: any) => {
   }
 }
 
-let dataNodeTests = {
-  defined: (dataNode: any) => typeof dataNode !== 'undefined',
-  dataDefined: (dataNode: any) => typeof dataNode.data !== 'undefined',
-  dataDataDefined: (dataNode: any) => typeof dataNode.data.data === 'string',
-  dataNonceDefined: (dataNode: any) => typeof dataNode.data.nonce === 'string',
-  dataVersionDefined: (dataNode: any) => typeof dataNode.data.version === 'string',
-  typeDefined: (dataNode: any) => typeof dataNode.type !== 'undefined',
-  validType: (dataNode: any) =>
-    AttestationTypeNames.indexOf(dataNode.type.type) > -1,
-  typeNonceDefined: (dataNode: any) => typeof dataNode.type.nonce === 'string',
-  auxDefined: (dataNode: any) => typeof dataNode.aux === 'string',
+let claimNodeTests = {
+  defined: (claimNode: any) => typeof claimNode !== 'undefined',
+  dataDefined: (claimNode: any) => typeof claimNode.data !== 'undefined',
+  dataDataDefined: (claimNode: any) => typeof claimNode.data.data === 'string',
+  dataNonceDefined: (claimNode: any) => typeof claimNode.data.nonce === 'string',
+  dataVersionDefined: (claimNode: any) => typeof claimNode.data.version === 'string',
+  typeDefined: (claimNode: any) => typeof claimNode.type !== 'undefined',
+  validType: (claimNode: any) =>
+    AttestationTypeNames.indexOf(claimNode.type.type) > -1,
+  typeNonceDefined: (claimNode: any) => typeof claimNode.type.nonce === 'string',
+  auxDefined: (claimNode: any) => typeof claimNode.aux === 'string',
 }
 
-export const receiveSubjectData: express.RequestHandler = async (req, res) => {
+export const receiveSubjectDataLegacy: express.RequestHandler = async (req, res) => {
   let e = await envPr
   if (!Array.isArray(req.body.dataNodes) || !req.body.dataNodes.length) {
     return res.status(400).json({
@@ -89,8 +90,8 @@ export const receiveSubjectData: express.RequestHandler = async (req, res) => {
 
   let nodes = req.body.dataNodes as Array<any>
   nodes.forEach((dataNode: any, i) => {
-    Object.keys(dataNodeTests).forEach(k => {
-      let test = dataNodeTests[k]
+    Object.keys(claimNodeTests).forEach(k => {
+      let test = claimNodeTests[k]
       try {
         let testResult = test(dataNode)
         if (!testResult) {
@@ -126,7 +127,87 @@ export const receiveSubjectData: express.RequestHandler = async (req, res) => {
   return res.status(200).json({merkleTreeComponents})
 }
 
-export const receiveSignedAgreement: express.RequestHandler = async (req, res) => {
+export const receiveSubjectData: express.RequestHandler = async (req, res) => {
+  let e = await envPr
+  if (!Array.isArray(req.body.dataNodes) || !req.body.dataNodes.length) {
+    return res.status(400).json({
+      success: false,
+      message: 'Request body must contain a non-empty dataNodes array.',
+    })
+  }
+  if (
+    typeof req.body.issuanceDate !== 'string' ||
+    typeof req.body.expirationDate !== 'string'
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: 'Request body must contain issuanceDate and expirationDate.',
+    })
+  }
+
+  let errors: Array<{error: string; index: number; testFailed?: boolean}> = []
+
+  let nodes = req.body.claimNodes as Array<any>
+  nodes.forEach((dataNode: any, i) => {
+    Object.keys(claimNodeTests).forEach(k => {
+      let test = claimNodeTests[k]
+      try {
+        let testResult = test(dataNode)
+        if (!testResult) {
+          errors.push({error: k, index: i})
+        }
+      } catch (err) {
+        errors.push({error: k, index: i, testFailed: true})
+      }
+    })
+  })
+
+  if (errors.length > 0) {
+    return res.status(400).json({
+      success: false,
+      message:
+        'Each data node in the dataNodes field must contain a properly structured IAttestation.',
+      errors: errors,
+    })
+  }
+
+  let issuanceDate: string
+  let expirationDate: string
+
+  if (
+    validateDateTime(req.body.issuanceDate) &&
+    validateDateTime(req.body.expirationDate)
+  ) {
+    issuanceDate = req.body.issuanceDate
+    expirationDate = req.body.expirationDate
+  } else {
+    return res.status(400).json({
+      success: false,
+      message: `Issuance and expiration date must be valid RFC3339 timestamp`,
+    })
+  }
+
+  const dataNodes: HashingLogic.IClaimNode[] = req.body.dataNodes
+  const attesterPrivateKey = toBuffer(e.owner.key)
+  const merkleTreeComponents = HashingLogic.getSignedMerkleTreeComponents(
+    dataNodes,
+    issuanceDate,
+    expirationDate,
+    attesterPrivateKey
+  )
+  log(
+    `[receiveSubjectData] merkleTreeComponents: ${JSON.stringify(
+      merkleTreeComponents
+    )}`
+  )
+
+  return res.status(200).json({merkleTreeComponents})
+}
+
+export const receiveSignedAgreementLegacy: express.RequestHandler = async (
+  req,
+  res
+) => {
   if (
     typeof req.body.negotiationId !== 'string' ||
     typeof req.body.subject !== 'string' ||
@@ -204,6 +285,40 @@ export const receiveSignedAgreement: express.RequestHandler = async (req, res) =
     return res.status(400).json({
       success: false,
       message: validationResult.message,
+    })
+  }
+}
+
+export const receiveSignedAgreement: express.RequestHandler = async (req, res) => {
+  let e = await envPr
+  if (
+    typeof req.body.contractAddress !== 'string' ||
+    typeof req.body.subject !== 'string' ||
+    typeof req.body.subjectSig !== 'string' ||
+    typeof req.body.components !== 'object'
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: 'Request body must contain contract address, subject and subjectSig',
+    })
+  }
+
+  const attesterPrivateKey = toBuffer(e.owner.key)
+
+  try {
+    const batchComponents = HashingLogic.getSignedBatchMerkleTreeComponents(
+      req.body.components,
+      req.body.contractAddress,
+      req.body.subjectSig,
+      req.body.subject,
+      attesterPrivateKey
+    )
+    return res.status(200).json(batchComponents)
+  } catch (err) {
+    return res.status(400).json({
+      success: false,
+      message: 'Failed to construct batch merkle tree',
+      error: err,
     })
   }
 }
