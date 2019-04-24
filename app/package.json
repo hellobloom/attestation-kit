@@ -6,7 +6,7 @@
     "node": "^8.9.4"
   },
   "dependencies": {
-    "@bloomprotocol/attestations-lib": "^4.0.0",
+    "@bloomprotocol/attestations-lib": "^4.0.1",
     "@sentry/browser": "^4.5.3",
     "@sentry/node": "^4.5.3",
     "@sentry/types": "^4.5.3",
