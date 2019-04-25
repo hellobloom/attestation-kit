@@ -9,7 +9,7 @@ import {
   Validation,
   AttestationStatus,
 } from '@bloomprotocol/attestations-lib'
-import {validateDateTime} from '@bloomprotocol/attestations-lib/src/RFC3339DateTime'
+import {RFC3339DateTime} from '@bloomprotocol/attestations-lib'
 import {env, getContractAddr, getJobConfig} from '@shared/environment'
 import {toBuffer, bufferToHex} from 'ethereumjs-util'
 import {Attestation} from '@shared/models'
@@ -130,7 +130,7 @@ export const receiveSubjectDataLegacy: express.RequestHandler = async (req, res)
 
 export const receiveSubjectData: express.RequestHandler = async (req, res) => {
   let e = await envPr
-  if (!Array.isArray(req.body.dataNodes) || !req.body.dataNodes.length) {
+  if (!Array.isArray(req.body.claimNodes) || !req.body.claimNodes.length) {
     return res.status(400).json({
       success: false,
       message: 'Request body must contain a non-empty dataNodes array.',
@@ -176,8 +176,8 @@ export const receiveSubjectData: express.RequestHandler = async (req, res) => {
   let expirationDate: string
 
   if (
-    validateDateTime(req.body.issuanceDate) &&
-    validateDateTime(req.body.expirationDate)
+    RFC3339DateTime.validateDateTime(req.body.issuanceDate) &&
+    RFC3339DateTime.validateDateTime(req.body.expirationDate)
   ) {
     issuanceDate = req.body.issuanceDate
     expirationDate = req.body.expirationDate
@@ -188,7 +188,7 @@ export const receiveSubjectData: express.RequestHandler = async (req, res) => {
     })
   }
 
-  const dataNodes: HashingLogic.IClaimNode[] = req.body.dataNodes
+  const dataNodes: HashingLogic.IClaimNode[] = req.body.claimNodes
   const attesterPrivateKey = toBuffer(e.owner.key)
   try {
     const merkleTreeComponents = HashingLogic.getSignedMerkleTreeComponents(
