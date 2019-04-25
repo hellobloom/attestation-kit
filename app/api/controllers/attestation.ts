@@ -6,6 +6,7 @@ import * as express from 'express'
 import {
   AttestationTypeNames,
   HashingLogic,
+  Validation,
   AttestationStatus,
 } from '@bloomprotocol/attestations-lib'
 import {validateDateTime} from '@bloomprotocol/attestations-lib/src/RFC3339DateTime'
@@ -189,19 +190,33 @@ export const receiveSubjectData: express.RequestHandler = async (req, res) => {
 
   const dataNodes: HashingLogic.IClaimNode[] = req.body.dataNodes
   const attesterPrivateKey = toBuffer(e.owner.key)
-  const merkleTreeComponents = HashingLogic.getSignedMerkleTreeComponents(
-    dataNodes,
-    issuanceDate,
-    expirationDate,
-    attesterPrivateKey
-  )
-  log(
-    `[receiveSubjectData] merkleTreeComponents: ${JSON.stringify(
-      merkleTreeComponents
-    )}`
-  )
+  try {
+    const merkleTreeComponents = HashingLogic.getSignedMerkleTreeComponents(
+      dataNodes,
+      issuanceDate,
+      expirationDate,
+      attesterPrivateKey
+    )
+    log(
+      `[receiveSubjectData] merkleTreeComponents: ${JSON.stringify(
+        merkleTreeComponents
+      )}`
+    )
 
-  return res.status(200).json({merkleTreeComponents})
+    const outcome = Validation.validateBloomMerkleTreeComponents(
+      merkleTreeComponents
+    )
+    if (outcome.kind === 'invalid_param') {
+      throw new Error(`Validation failed on merkle tree: ${outcome.message}`)
+    }
+    return res.status(200).json(outcome.data)
+  } catch (err) {
+    return res.status(400).json({
+      success: false,
+      message: 'Failed to construct merkle tree',
+      error: err,
+    })
+  }
 }
 
 export const receiveSignedAgreementLegacy: express.RequestHandler = async (
@@ -302,6 +317,15 @@ export const receiveSignedAgreement: express.RequestHandler = async (req, res) =
       message: 'Request body must contain contract address, subject and subjectSig',
     })
   }
+  const componentOutcome = Validation.validateBloomMerkleTreeComponents(
+    req.body.components
+  )
+  if (componentOutcome.kind === 'invalid_param') {
+    return res.status(400).json({
+      success: false,
+      message: `Components failed validation ${componentOutcome.message}`,
+    })
+  }
 
   const attesterPrivateKey = toBuffer(e.owner.key)
 
@@ -311,9 +335,16 @@ export const receiveSignedAgreement: express.RequestHandler = async (req, res) =
       req.body.contractAddress,
       req.body.subjectSig,
       req.body.subject,
+      req.body.requestNonce,
       attesterPrivateKey
     )
-    return res.status(200).json(batchComponents)
+    const outcome = Validation.validateBloomBatchMerkleTreeComponents(
+      batchComponents
+    )
+    if (outcome.kind === 'invalid_param') {
+      throw new Error(`Validation failed on batch merkle tree: ${outcome.message}`)
+    }
+    return res.status(200).json(outcome.data)
   } catch (err) {
     return res.status(400).json({
       success: false,
