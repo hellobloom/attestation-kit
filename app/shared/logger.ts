@@ -174,7 +174,7 @@ export const log = (msg: any, opts: ILogOpts = {}) => {
   }
   if (opts.event) {
     if (msgIsEventLog) {
-      // void logEvent(msg, opts)
+      logEvent(msg, opts).catch(e => console.log(`Event logging failed: ${e}`))
       console.log(`not logging event ${JSON.stringify(msg)}`)
     } else {
       console.log(
