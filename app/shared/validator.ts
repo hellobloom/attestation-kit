@@ -18,7 +18,7 @@ export const genParamsValidator = <ParamType>(
   >
 ) => {
   return (data: TUnvalidated<ParamType>, reject: TReject): data is ParamType => {
-    const requiredFields = uniq(validations.map(([first]) => first))
+    const requiredFields = uniq(validations.map(([first]) => first as string))
 
     if (!requiredFields.every(U.requiredField(reject, data))) return false
 
