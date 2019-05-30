@@ -34,7 +34,7 @@ services:
     restart: always
     build: ./app
     ports:
-      - "3000:13000"
+      - "3000:6000"
     depends_on: 
       - pgdb
       - gethworker

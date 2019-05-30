@@ -62,6 +62,6 @@ app.post('/api/attestations', attCtrl.perform)
 
 // IP todo tx_mined and tx_failed?
 
-app.listen(13000, () => console.log('App listening on port 13000'))
+app.listen(6000, () => console.log('App listening on port 6000'))
 
 export default app

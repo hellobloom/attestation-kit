@@ -44,6 +44,6 @@ RUN /app/bin/docker-cleanup-env
 RUN /app/bin/build
 
 # EXPOSE PORT
-EXPOSE 13000
+EXPOSE 6000
 
 # CMD ["/app/bin/start-supervisor"]

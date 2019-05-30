@@ -3,7 +3,7 @@ services:
   app:
     build: ./app
     ports:
-      - "6000:13000"
+      - "6000:6000"
     volumes:
       - appvol:/vol
     env_file:
