@@ -21,7 +21,6 @@ server/.build
 .env.development.local
 .env.test.local
 .env.production.local
-.vscode
 supervisord.dev.conf
 
 npm-debug.log*

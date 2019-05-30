@@ -1,0 +1,5 @@
+#!/bin/bash
+
+sleep 10
+
+./wait-for-it.sh debugpg:5432 -- node node_modules/.bin/nodemon --signal SIGINT --watch ./build -r ./tsconfig-paths.js --inspect=0.0.0.0:9242 ./build/whisperWorker/index.js

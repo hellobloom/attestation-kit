@@ -3,6 +3,7 @@ import {BigNumber as bn} from 'bignumber.js'
 import {toBuffer} from 'ethereumjs-util'
 import {AttestationTypeID} from '@bloomprotocol/attestations-lib'
 import {EContractNames} from '@shared/method_manifest'
+import * as config from '../config/database'
 import axios from 'axios'
 import * as merge from 'deepmerge'
 
@@ -284,7 +285,7 @@ export const getEnvFromEnv = async (silent = true): Promise<IEnvironmentConfig> 
   return {
     // Main config
     appId: await envVar(process.env, 'APP_ID', 'string', true), // e.g., attestation-kit_dev_bob
-    dbUrl: await envVar(process.env, 'PG_URL'),
+    dbUrl: await envVar(config[process.env.NODE_ENV as string], 'dbUrl'),
 
     // Environment & version
     nodeEnv: await envVar(process.env, 'NODE_ENV'),
