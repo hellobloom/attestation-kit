@@ -1,0 +1,22 @@
+#!/bin/bash
+source './bin/shared/strict-mode.sh'
+
+while IFS='' read -r line || [[ -n "$line" ]]; do
+    if [[ ! $line = \#* && ! $line = "" ]]; then
+      export $line
+    fi
+done < "../.env"
+
+echo $PG_URL
+
+bin/migrate
+
+bin/build
+
+node_modules/.bin/tsc -w -p tsconfig.server.json &
+
+node node_modules/.bin/nodemon --signal SIGINT --watch ./build -r ./tsconfig-paths.js --inspect=0.0.0.0:9240 ./build/api/index.js &
+node node_modules/.bin/nodemon --signal SIGINT --watch ./build -r ./tsconfig-paths.js --inspect=0.0.0.0:9242 ./build/whisperWorker/index.js &
+node node_modules/.bin/nodemon --signal SIGINT --watch ./build -r ./tsconfig-paths.js --inspect=0.0.0.0:9241 ./build/worker/worker.js &
+
+wait

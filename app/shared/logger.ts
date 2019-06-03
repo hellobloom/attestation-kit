@@ -139,7 +139,7 @@ export const logToSentry = async (msg: TLogMsg, opts: ILogOpts) => {
             msg.stack
           )}`
         } catch {
-          msg = `Failed error message: ${msg.message}`
+          msg = `Failed error message: ${msg instanceof Error ? msg.message : msg}`
         }
       } else {
         msg = "Sentry error logging failed (can't log message)"

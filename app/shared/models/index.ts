@@ -28,13 +28,17 @@ const environmentConfig = {
 let sequelize: Sequelize
 
 // Configure Sequelize using an environment variable or via JSON config depending on ENV
-const environmentUri = environmentConfig.dbUrl
-if (!environmentUri) {
-  throw new Error(
-    `Expected to find a database URI at PG_URL`
-  )
+if (environmentConfig.use_env_variable) {
+  const environmentUri = process.env[environmentConfig.use_env_variable]
+  if (!environmentUri) {
+    throw new Error(
+      `Expected to find a database URI at ${environmentConfig.use_env_variable}`
+    )
+  }
+  sequelize = new Sequelize({url: environmentUri, ...environmentConfig})
+} else {
+  sequelize = new Sequelize(environmentConfig)
 }
-sequelize = new Sequelize({url: environmentUri, ...environmentConfig})
 
 // Register models with sequelize. We need to do this for all models in the project
 sequelize.addModels([

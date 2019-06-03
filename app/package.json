@@ -77,7 +77,6 @@
     "truffle-contract": "^3.0.1",
     "ts-jest": "^22.0.0",
     "typedarray-to-buffer": "^3.1.5",
-    "typescript": "^2.9.2",
     "underscore": "^1.8.3",
     "urijs": "^1.19.1",
     "uuidv4": "^1.0.0",
@@ -125,6 +124,7 @@
     "tslint-microsoft-contrib": "^5.0.3",
     "tslint-no-focused-test": "^0.1.2",
     "tslint-react": "^3.6.0",
+    "typescript": "^3.5.1",
     "web3-fake-provider": "^0.1.0"
   },
   "jest": {

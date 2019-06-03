@@ -1,8 +1,0 @@
-#!/bin/bash
-source './bin/shared/strict-mode.sh'
-
-sleep 10
-
-bin/migrate
-
-./wait-for-it.sh debugpg:5432 -- node node_modules/.bin/nodemon --signal SIGINT --watch ./build -r ./tsconfig-paths.js --inspect=0.0.0.0:9240 ./build/api/index.js
