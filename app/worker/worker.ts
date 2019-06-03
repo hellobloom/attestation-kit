@@ -2,6 +2,7 @@ import {boss} from '@shared/jobs/boss'
 import * as Sentry from '@sentry/node'
 import {env} from '@shared/environment'
 import {log} from '@shared/logger'
+import '@worker/batch'
 
 import {submitAttestation} from '@worker/jobs/submit-attestation'
 import {whisperBroadcastMessage} from '@worker/jobs/whisper-broadcast-message'
@@ -57,45 +58,3 @@ envPr
     }
   })
   .catch(onError)
-
-import * as BatchQueue from '@shared/models/Attestations/BatchQueue'
-import { HashingLogic } from '@bloomprotocol/attestations-lib';
-
-const timeout = 10000
-
-async function sleep(miliseconds: number) {
-  return new Promise(resolve => setTimeout(resolve, miliseconds))
-}
-
-class LoopThrottler {
-  public lastStartTime: number = Date.now()
-
-  constructor(public minLoopTimeMs: number) {}
-
-  public async wait() {
-    const loopTime = Date.now() - this.lastStartTime
-    const remainingTime = this.minLoopTimeMs - loopTime
-    if (remainingTime > 0) await sleep(remainingTime)
-    this.lastStartTime = Date.now()
-  }
-}
-
-(async function main() {
-  await sleep(timeout)
-  const outerLoop = new LoopThrottler(timeout)
-
-  while (true) {
-    try {
-      const hashes = await BatchQueue.process()
-
-      if(hashes.length > 0) {
-        const merkleTree = HashingLogic.getMerkleTreeFromLeaves(hashes)
-        // TODO Submit transaction to tx-service
-        await BatchQueue.finish(hashes, merkleTree.getRoot())
-      }
-    } catch (err) {
-      await onError(err)
-    }
-    await outerLoop.wait()
-  }
-})().catch(onError)
