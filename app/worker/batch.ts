@@ -1,6 +1,8 @@
 import * as BatchQueue from '@shared/models/Attestations/BatchQueue'
 import { HashingLogic } from '@bloomprotocol/attestations-lib'
 import { log } from '@shared/logger'
+import { sendTx } from '@shared/txService';
+import { env, TNetworks } from '@shared/environment';
 
 const timeout = 10000
 
@@ -33,7 +35,14 @@ class LoopThrottler {
 
 (async function main() {
   await sleep(timeout)
-  const outerLoop = new LoopThrottler(timeout)
+  const loopTimer = new LoopThrottler(timeout)
+
+  const e = await env()
+  let network: TNetworks
+  if(['development', 'test', 'ci'].indexOf(e.pipelineStage!) !== -1) network = 'local'
+  else if(e.pipelineStage === 'staging') network = 'rinkeby'
+  else if(e.pipelineStage === 'production') network = 'mainnet'
+  else throw new Error(`pipeline stage "${e.pipelineStage}" not supported`)
 
   while (true) {
     try {
@@ -41,12 +50,23 @@ class LoopThrottler {
 
       if(hashes.length > 0) {
         const merkleTree = HashingLogic.getMerkleTreeFromLeaves(hashes)
-        // TODO Submit transaction to tx-service
-        await BatchQueue.finish(hashes, merkleTree.getRoot())
+        const response = await sendTx({
+          tx: {
+            network,
+            contract_name: 'BatchAttestationLogic',
+            method: 'batchAttest',
+            args: {dataHash: `0x${merkleTree.getRoot().toString('hex')}`},
+          },
+        })
+        
+        if(response) {
+          if(!response.ok) throw new Error(`Recieved status ${response.status} from ts-service`)
+          await BatchQueue.finish(hashes, merkleTree.getRoot())
+        }
       }
     } catch (err) {
       await onError(err)
     }
-    await outerLoop.wait()
+    await loopTimer.wait()
   }
 })().catch(onError)

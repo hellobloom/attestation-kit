@@ -41,34 +41,41 @@ export async function process() {
 }
 
 export async function finish(hashes: string[], root: Buffer) {
-  console.log('hello')
-  const [tree]: {id: number}[] = await sequelize.query(
-    `
-      insert into "batchTree" (root) values (:root::bytea)
-      returning id;
-    `,
+  return sequelize.transaction(
     {
-      type: sequelize.QueryTypes.SELECT,
-      replacements: {root},
-    }
-  )
-
-  const updated: {id: number}[] = await sequelize.query(
-    `
-      update "batchQueue" set 
-        status = 'submitted', 
-        "updatedAt" = current_timestamp, 
-        "treeId" = ?
-      where status = 'processing' and "batchLayer2Hash" in ${inList(hashes.length)}
-      returning id;
-    `,
-    {
-      type: sequelize.QueryTypes.SELECT,
-      replacements: [tree.id, ...hashes.map(toBuffer)],
-    }
-  )
-
-  if(updated.length !== hashes.length) {
-    throw new Error('invalid number of hashes updated')
-  }
+      isolationLevel: sequelize.Transaction.ISOLATION_LEVELS.READ_COMMITTED,
+    },
+    async transaction => {
+      const [tree]: {id: number}[] = await sequelize.query(
+        `
+          insert into "batchTree" (root) values (:root::bytea)
+          returning id;
+        `,
+        {
+          type: sequelize.QueryTypes.SELECT,
+          replacements: {root},
+          transaction
+        }
+      )
+    
+      const updated: {id: number}[] = await sequelize.query(
+        `
+          update "batchQueue" set 
+            status = 'submitted', 
+            "updatedAt" = current_timestamp, 
+            "treeId" = ?
+          where status = 'processing' and "batchLayer2Hash" in ${inList(hashes.length)}
+          returning id;
+        `,
+        {
+          type: sequelize.QueryTypes.SELECT,
+          replacements: [tree.id, ...hashes.map(toBuffer)],
+          transaction
+        }
+      )
+    
+      if(updated.length !== hashes.length) {
+        throw new Error('invalid number of hashes updated')
+      }
+    })
 }
