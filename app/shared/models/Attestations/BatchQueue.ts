@@ -11,10 +11,57 @@ export function inList(count: number) {
 
 export async function push(batchLayer2Hash: string) {
   return sequelize.query(
-    `insert into "batchQueue" values (:batchLayer2Hash)`,
+    `insert into "batchQueue" ("batchLayer2Hash") values (:batchLayer2Hash)`,
     {
       type: sequelize.QueryTypes.SELECT,
       replacements: {batchLayer2Hash: toBuffer(batchLayer2Hash)},
+    }
+  )
+}
+
+export async function getLeaves(root: Buffer) {
+  const leaves: {batchLayer2Hash: Buffer, txHash: Buffer}[] = await sequelize.query(
+    `
+      select "batchLayer2Hash", "txHash" from "batchQueue" bq
+      join "batchTree" bt on bt.id = bq."treeId"
+      where bt.root = :root
+    `,
+    {
+      type: sequelize.QueryTypes.SELECT,
+      replacements: {root}
+    }
+  )
+
+  let txHash: string | null = null
+  if(leaves.length > 0 && leaves[0].txHash) {
+    txHash = `0x${leaves[0].txHash.toString('hex')}`
+  }
+
+  return {
+    leaves: leaves.map(h => `0x${h.batchLayer2Hash.toString('hex')}`),
+    txHash
+  } 
+}
+
+export async function setMined(txServiceId: number, txhash: string) {
+  return sequelize.transaction(
+    {
+      isolationLevel: sequelize.Transaction.ISOLATION_LEVELS.READ_COMMITTED,
+    },
+    async transaction => {
+      const mined = await sequelize.query(
+        `update "batchTree" set "txHash" = :txhash::bytea where "txServiceId" = :txServiceId
+        returning id`,
+        {
+          type: sequelize.QueryTypes.SELECT,
+          replacements: {txhash: toBuffer(txhash), txServiceId},
+          transaction
+        }
+      )
+    
+      if(mined.length === 0) {
+        throw new Error('Could not find batchTree with the specified hash')
+      }
     }
   )
 }
@@ -40,7 +87,7 @@ export async function process() {
   return hashes.map(h =>  `0x${h.batchLayer2Hash.toString('hex')}`)
 }
 
-export async function finish(hashes: string[], root: Buffer) {
+export async function finish(hashes: string[], root: Buffer, txServiceId: number) {
   return sequelize.transaction(
     {
       isolationLevel: sequelize.Transaction.ISOLATION_LEVELS.READ_COMMITTED,
@@ -48,12 +95,12 @@ export async function finish(hashes: string[], root: Buffer) {
     async transaction => {
       const [tree]: {id: number}[] = await sequelize.query(
         `
-          insert into "batchTree" (root) values (:root::bytea)
+          insert into "batchTree" (root, "txServiceId") values (:root::bytea, :txServiceId)
           returning id;
         `,
         {
           type: sequelize.QueryTypes.SELECT,
-          replacements: {root},
+          replacements: {root, txServiceId},
           transaction
         }
       )

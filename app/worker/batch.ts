@@ -46,10 +46,19 @@ class LoopThrottler {
 
   while (true) {
     try {
+      await loopTimer.wait()
+
+      if(!e.txService) continue
+
+      if(!e.attester) {
+        throw new Error('attester must be specified in env if txService is to be used')
+      }
+
       const hashes = await BatchQueue.process()
 
       if(hashes.length > 0) {
         const merkleTree = HashingLogic.getMerkleTreeFromLeaves(hashes)
+        
         const response = await sendTx({
           tx: {
             network,
@@ -57,16 +66,22 @@ class LoopThrottler {
             method: 'batchAttest',
             args: {dataHash: `0x${merkleTree.getRoot().toString('hex')}`},
           },
+          webhook: {
+            mined: true,
+            address: e.attester.address,
+            key: e.attester.key,
+          }
         })
         
         if(response) {
           if(!response.ok) throw new Error(`Recieved status ${response.status} from ts-service`)
-          await BatchQueue.finish(hashes, merkleTree.getRoot())
+          const body = await response.json()
+          if(typeof body.tx.id !== 'number') throw new Error('expected tx.id from txService')
+          await BatchQueue.finish(hashes, merkleTree.getRoot(), body.tx.id)
         }
       }
     } catch (err) {
       await onError(err)
     }
-    await loopTimer.wait()
   }
 })().catch(onError)

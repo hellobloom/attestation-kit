@@ -12,7 +12,9 @@ module.exports = {
         "root" bytea
           not null
           unique
-          check ( octet_length(root) = 32 )
+          check ( octet_length(root) = 32 ),
+        "txServiceId" integer unique,
+        "txHash" ethereum_transaction_id unique
       );
     
       create table "batchQueue" (
@@ -23,7 +25,7 @@ module.exports = {
           not null
           unique
           check ( octet_length("batchLayer2Hash") = 32 ),
-        status varchar(20) not null check (status in ('enqueued', 'processing', 'submitted')) default 'enqueued',
+        status varchar(20) not null check (status in ('enqueued', 'processing', 'submitted', 'mined')) default 'enqueued',
 
         "treeId" integer references "batchTree"
       );

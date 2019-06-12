@@ -134,6 +134,18 @@ export interface IEnvironmentConfig {
     webhookKeySha: string
   }
 
+  attester?: {
+    address: string
+    key: string
+    webhookKeySha: string
+  }
+
+  requester?: {
+    address: string
+    key: string
+    webhookKeySha: string
+  }
+
   jobs: {[P in keyof typeof EJobNames]?: IJobConfig}
 }
 
@@ -343,6 +355,23 @@ export const getEnvFromEnv = async (silent = true): Promise<IEnvironmentConfig> 
       address: await envVar(process.env, 'WEBHOOK_HOST'),
     },
 
+    // (Optional) External service for transaction handling
+    attester: process.env['ATTESTER_ADDRESS']
+      ? {
+          address: await envVar(process.env, 'ATTESTER_ADDRESS'),
+          key: await envVar(process.env, 'ATTESTER_KEY'),
+          webhookKeySha: await envVar(process.env, 'ATTESTER_KEY_SHA256'),
+        }
+      : undefined,
+    // (Optional) External service for transaction handling
+    requester: process.env['REQUESTER_ADDRESS']
+      ? {
+          address: await envVar(process.env, 'REQUESTER_ADDRESS'),
+          key: await envVar(process.env, 'REQUESTER_KEY'),
+          webhookKeySha: await envVar(process.env, 'REQUESTER_KEY_SHA256'),
+        }
+      : undefined,
+
     // Whisper config
     whisper: {
       provider: await envVar(process.env, 'WHISPER_PROVIDER'),
@@ -398,6 +427,8 @@ export const getEnvFromEnv = async (silent = true): Promise<IEnvironmentConfig> 
           webhookKeySha: await envVar(process.env, 'TX_SERVICE_KEY_SHA256'),
         }
       : undefined,
+
+    
     jobs: await envVar(process.env, 'JOBS', 'json', false, {default: {}}),
   }
 }

@@ -17,6 +17,7 @@ import {
   IAttestParams,
   validateAttestParams,
 } from '@shared/attestations/validateAttestParams'
+import * as BatchQueue from '@shared/models/Attestations/BatchQueue'
 
 let envPr = env()
 
@@ -344,6 +345,8 @@ export const receiveSignedAgreement: express.RequestHandler = async (req, res) =
     if (outcome.kind === 'invalid_param') {
       throw new Error(`Validation failed on batch merkle tree: ${outcome.message}`)
     }
+
+    await BatchQueue.push(batchComponents.batchLayer2Hash)
     return res.status(200).json(outcome.data)
   } catch (err) {
     return res.status(400).json({
