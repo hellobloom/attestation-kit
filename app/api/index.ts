@@ -63,7 +63,7 @@ app.get('/api/attestations', attCtrl.show)
 app.post('/api/attestations', attCtrl.perform)
 
 app.post('/api/webhooks/tx_mined', txMined)
-app.get('/api/merkle-proof/get-proof', getProof)
+app.post('/api/merkle-proof', getProof)
 
 // IP todo tx_mined and tx_failed?
 

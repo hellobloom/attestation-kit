@@ -19,7 +19,23 @@ export async function push(batchLayer2Hash: string) {
   )
 }
 
-export async function getLeaves(root: Buffer) {
+export async function getRoot(leaf: Buffer) {
+  const result: {root: Buffer}[] = await sequelize.query(
+    `
+      select root from "batchQueue" bq
+      join "batchTree" bt on bt.id = bq."treeId"
+      where bq."batchLayer2Hash" = :leaf
+    `,
+    {
+      type: sequelize.QueryTypes.SELECT,
+      replacements: {leaf}
+    }
+  )
+  
+  return result.length === 1 ? result[0].root : null
+}
+
+export async function getLeaves(root: Buffer | null) {
   const leaves: {batchLayer2Hash: Buffer, txHash: Buffer}[] = await sequelize.query(
     `
       select "batchLayer2Hash", "txHash" from "batchQueue" bq
