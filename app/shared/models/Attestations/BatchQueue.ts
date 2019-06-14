@@ -60,26 +60,18 @@ export async function getLeaves(root: Buffer | null) {
 }
 
 export async function setMined(txServiceId: number, txhash: string) {
-  return sequelize.transaction(
+  const mined = await sequelize.query(
+    `update "batchTree" set "txHash" = :txhash::bytea where "txServiceId" = :txServiceId
+    returning id`,
     {
-      isolationLevel: sequelize.Transaction.ISOLATION_LEVELS.READ_COMMITTED,
-    },
-    async transaction => {
-      const mined = await sequelize.query(
-        `update "batchTree" set "txHash" = :txhash::bytea where "txServiceId" = :txServiceId
-        returning id`,
-        {
-          type: sequelize.QueryTypes.SELECT,
-          replacements: {txhash: toBuffer(txhash), txServiceId},
-          transaction
-        }
-      )
-    
-      if(mined.length === 0) {
-        throw new Error('Could not find batchTree with the specified hash')
-      }
+      type: sequelize.QueryTypes.SELECT,
+      replacements: {txhash: toBuffer(txhash), txServiceId},
     }
   )
+
+  if(mined.length === 0) {
+    throw new Error('Could not find batchTree with the specified hash')
+  }
 }
 
 export async function process() {

@@ -25,7 +25,7 @@ module.exports = {
           not null
           unique
           check ( octet_length("batchLayer2Hash") = 32 ),
-        status varchar(20) not null check (status in ('enqueued', 'processing', 'submitted', 'mined')) default 'enqueued',
+        status varchar(20) not null check (status in ('enqueued', 'processing', 'submitted')) default 'enqueued',
 
         "treeId" integer references "batchTree"
       );
