@@ -41,6 +41,12 @@ export const sendTx = (params: {
     method: string
     args: object
     max_estimate_retries?: number
+    
+  }
+  webhook?: {
+    mined?: boolean,
+    address?: string,
+    key?: string,
   }
   expireIn?: number
 }) => {

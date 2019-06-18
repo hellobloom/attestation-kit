@@ -3,7 +3,8 @@
 
   "compilerOptions": {
     "target": "es6",
-    "outDir": "build"
+    "outDir": "build",
+    "incremental": true,
   },
   "include": ["api/**/*", "worker/**/*", "whisperWorker/**/*", "shared/**/*", "test/**/*", "typings/**/*"]
 }

@@ -5,6 +5,8 @@ import * as attCtrl from '@api/controllers/attestation'
 import * as reqCtrl from '@api/controllers/request'
 import {sha256} from 'ethereumjs-util'
 import * as bodyParser from 'body-parser'
+import { txMined } from './controllers/webhooks';
+import { getProof } from './controllers/merkleProof';
 
 let envPr = env()
 
@@ -60,8 +62,11 @@ app.post('/api/v3/submit-signed-agreement', attCtrl.receiveSignedAgreement)
 app.get('/api/attestations', attCtrl.show)
 app.post('/api/attestations', attCtrl.perform)
 
+app.post('/api/webhooks/tx_mined', txMined)
+app.post('/api/merkle-proof', getProof)
+
 // IP todo tx_mined and tx_failed?
 
-app.listen(13000, () => console.log('App listening on port 13000'))
+app.listen(6000, () => console.log('App listening on port 6000'))
 
 export default app

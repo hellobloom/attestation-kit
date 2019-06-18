@@ -33,7 +33,7 @@ RUN npm ci
 ADD . /app
 
 USER root
-RUN rm -f /app/build/api.js /app/build/worker.js /app/build/whisperWorker.js
+RUN rm -f /app/build/api/index.js /app/build/worker/worker.js /app/build/whisperWorker/index.js
 RUN cp /app/supervisord.conf /etc/supervisord.conf
 RUN chown -R ubuntu /vol/app-logs
 
@@ -44,6 +44,6 @@ RUN /app/bin/docker-cleanup-env
 RUN /app/bin/build
 
 # EXPOSE PORT
-EXPOSE 13000
+EXPOSE 6000
 
 # CMD ["/app/bin/start-supervisor"]

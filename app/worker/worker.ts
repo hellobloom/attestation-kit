@@ -2,6 +2,7 @@ import {boss} from '@shared/jobs/boss'
 import * as Sentry from '@sentry/node'
 import {env} from '@shared/environment'
 import {log} from '@shared/logger'
+import '@worker/batch'
 
 import {submitAttestation} from '@worker/jobs/submit-attestation'
 import {whisperBroadcastMessage} from '@worker/jobs/whisper-broadcast-message'

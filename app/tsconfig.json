@@ -3,7 +3,7 @@
     "module": "commonjs",
     "target": "ESNEXT",
     "lib": ["esnext", "dom", "esnext.asynciterable"],
-    "sourceMap": true,
+    "inlineSourceMap": true,
     "allowJs": true,
     "baseUrl": ".",
     "paths": {

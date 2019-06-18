@@ -12,7 +12,7 @@ services:
     restart: always
     build: ./app
     ports:
-      - "6000:13000"
+      - "6000:6000"
     depends_on: 
       - gethworker
     volumes:
