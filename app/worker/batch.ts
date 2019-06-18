@@ -1,10 +1,11 @@
 import * as BatchQueue from '@shared/models/Attestations/BatchQueue'
 import { HashingLogic } from '@bloomprotocol/attestations-lib'
 import { log } from '@shared/logger'
-import { sendTx } from '@shared/txService';
-import { env, TNetworks } from '@shared/environment';
+import { sendTx } from '@shared/txService'
+import { env, TNetworks } from '@shared/environment'
 
-const timeout = 10000
+// TODO make into env var
+const timeout = 3600000
 
 const onError = (error: Error) => {
   // Failsafe log
