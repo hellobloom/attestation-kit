@@ -1,7 +1,6 @@
 import * as winston from 'winston'
 import {env} from '@shared/environment'
 import * as Sentry from '@sentry/node'
-import * as newrelic from 'newrelic'
 import {inspect} from 'util'
 import axios from 'axios'
 
@@ -92,19 +91,9 @@ export const sendToLogstash = async (
   return true
 }
 
-export const sendToNewrelic = async (msg: any, opts: ILogOpts) => {
-  newrelic.recordCustomEvent(msg.name, msg.event)
-  return true
-}
-
 export const logEvent = async (msg: IEventLog, opts: ILogOpts) => {
   try {
     await sendToLogstash(msg, 'event', opts)
-  } catch (err) {
-    console.log('Failed to send message to Logstash', err.message, err.stack)
-  }
-  try {
-    await sendToNewrelic(msg, opts)
   } catch (err) {
     console.log('Failed to send message to Logstash', err.message, err.stack)
   }
@@ -150,7 +139,7 @@ export const logToSentry = async (msg: TLogMsg, opts: ILogOpts) => {
             msg.stack
           )}`
         } catch {
-          msg = `Failed error message: ${msg.message}`
+          msg = `Failed error message: ${msg instanceof Error ? msg.message : msg}`
         }
       } else {
         msg = "Sentry error logging failed (can't log message)"
@@ -185,7 +174,8 @@ export const log = (msg: any, opts: ILogOpts = {}) => {
   }
   if (opts.event) {
     if (msgIsEventLog) {
-      void logEvent(msg, opts)
+      logEvent(msg, opts).catch(e => console.log(`Event logging failed: ${e}`))
+      console.log(`not logging event ${JSON.stringify(msg)}`)
     } else {
       console.log(
         'WARNING: Event logging configured incorrectly',

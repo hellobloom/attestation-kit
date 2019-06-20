@@ -1,32 +1,22 @@
 #!/bin/bash
+source './bin/shared/strict-mode.sh'
 
-./bin/start-dev-whisper &
+while IFS='' read -r line || [[ -n "$line" ]]; do
+    if [[ ! $line = \#* && ! $line = "" ]]; then
+      export $line
+    fi
+done < "../.env"
 
-# Make sure that build files exists before we run it
-./node_modules/webpack/bin/webpack.js --config config/webpack.server.ts
+echo $PG_URL
 
-# Start whisper worker process
-node_modules/nodemon/bin/nodemon.js \
-    --watch 'whisperWorker/**/*.ts' \
-    --watch 'shared/**/*.ts' \
-    --ignore 'whisperWorker/**/*.spec.ts' \
-    --exec 'node' build/whisperWorker.js &
+bin/migrate
 
-# Start delayed job worker process
-node_modules/nodemon/bin/nodemon.js \
-    --watch 'worker/**/*.ts' \
-    --watch 'shared/**/*.ts' \
-    --ignore 'worker/**/*.spec.ts' \
-    --exec 'node' build/worker.js \
+bin/build
 
-# Start api process
-node_modules/nodemon/bin/nodemon.js \
-    --watch 'api/**/*.ts' \
-    --watch 'shared/**/*.ts' \
-    --ignore 'api/**/*.spec.ts' \
-    --exec 'node' build/api.js &
+node_modules/.bin/tsc -w -p tsconfig.server.json &
 
-# Rebuild the worker now that it exists and we are rebuilding on change
-./node_modules/webpack/bin/webpack.js --config config/webpack.server.ts --watch &
+node node_modules/.bin/nodemon --signal SIGINT --watch ./build -r ./tsconfig-paths.js --inspect=0.0.0.0:9240 ./build/api/index.js &
+node node_modules/.bin/nodemon --signal SIGINT --watch ./build -r ./tsconfig-paths.js --inspect=0.0.0.0:9242 ./build/whisperWorker/index.js &
+node node_modules/.bin/nodemon --signal SIGINT --watch ./build -r ./tsconfig-paths.js --inspect=0.0.0.0:9241 ./build/worker/worker.js &
 
 wait
