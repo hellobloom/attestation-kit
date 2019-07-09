@@ -42,7 +42,7 @@ services:
       - appvol:/vol
     env_file:
       - .env
-    command: ["./wait-for-it.sh", "pgdb:5432", "--", "/app/bin/start-supervisor"]
+    command: ["./wait-for-it.sh", "attestation-kit_pgdb_1:5432", "--", "/app/bin/start-supervisor"]
     logging:
       options:
         max-size: 100m
