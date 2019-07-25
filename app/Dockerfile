@@ -42,6 +42,7 @@ USER ubuntu
 WORKDIR /app
 RUN /app/bin/docker-cleanup-env
 RUN /app/bin/build
+RUN cp /app/shared/contracts/*.json /app/build/shared/contracts/
 
 # EXPOSE PORT
 EXPOSE 6000
