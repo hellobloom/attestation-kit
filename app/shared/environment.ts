@@ -290,6 +290,23 @@ export const getEnvFromHttp = async (): Promise<IEnvironmentConfig> => {
   throw new Error(`Environment config retrieval from ${conf.url} failed`)
 }
 
+export const getEnvFromHVault = async (): Promise<IEnvironmentConfig> => {
+  const conf = await envVar(process.env, 'ENV_SOURCE_HASHICORP_VAULT', 'json')
+  const vault = require('node-vault')
+
+  const options = {
+    apiVersion: 'v1',
+    endpoint: conf.host,
+  }
+  const vaultInstance = vault(options)
+  await vaultInstance.userpassLogin({
+    username: conf.username,
+    password: conf.password,
+  })
+  let envResp = await vaultInstance.read(conf.secret_path)
+  return envResp.data.data
+}
+
 // export const getEnvFromDb = async (): Promise<IEnvironmentConfig> => {}
 
 export const getEnvFromEnv = async (silent = true): Promise<IEnvironmentConfig> => {
@@ -428,7 +445,6 @@ export const getEnvFromEnv = async (silent = true): Promise<IEnvironmentConfig> 
         }
       : undefined,
 
-    
     jobs: await envVar(process.env, 'JOBS', 'json', false, {default: {}}),
   }
 }
@@ -444,6 +460,8 @@ const getEnv = async (): Promise<IEnvironmentConfig> => {
       return await getEnvFromEnv()
     case 'http':
       return await getEnvFromHttp()
+    case 'hashicorpvault':
+      return await getEnvFromHVault()
     case 'db':
       throw new Error('Environment config from database not yet supported')
     // return await getEnvFromDb()
