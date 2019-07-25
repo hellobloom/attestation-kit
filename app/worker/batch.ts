@@ -35,7 +35,9 @@ class LoopThrottler {
 }
 
 (async function main() {
+  console.log(`starting batch worker`)
   const e = await env()
+  console.log(`with timeout of ${JSON.stringify(e.batchTimeout)}`)
   await sleep(e.batchTimeout || timeout)
   const loopTimer = new LoopThrottler(timeout)
 
