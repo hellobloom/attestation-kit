@@ -449,7 +449,7 @@ export const getEnvFromEnv = async (silent = true): Promise<IEnvironmentConfig> 
   }
 }
 
-const envSources = ['env', 'http', 'db']
+const envSources = ['env', 'http', 'db', 'hashicorpvault']
 const getEnv = async (): Promise<IEnvironmentConfig> => {
   let envSource = process.env.ENV_SOURCE
   if (typeof envSource === 'undefined' || envSources.indexOf(envSource) === -1) {
