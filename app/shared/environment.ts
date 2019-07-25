@@ -147,6 +147,8 @@ export interface IEnvironmentConfig {
   }
 
   jobs: {[P in keyof typeof EJobNames]?: IJobConfig}
+
+  batchTimeout?: number
 }
 
 export type TAtTypeAll = keyof typeof AttestationTypeID | 'all'
