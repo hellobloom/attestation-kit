@@ -35,9 +35,7 @@ class LoopThrottler {
 }
 
 (async function main() {
-  console.log(`DEBUG AKB: starting batch worker`)
   const e = await env()
-  console.log(`with timeout of ${JSON.stringify(e.batchTimeout)}`)
   await sleep(e.batchTimeout || timeout)
   const loopTimer = new LoopThrottler(e.batchTimeout || timeout)
 
@@ -49,13 +47,10 @@ class LoopThrottler {
   else throw new Error(`pipeline stage "${e.pipelineStage}" not supported`)
 
   while (true) {
-    console.log(`DEBUG AKB: attempt start`)
     try {
       await loopTimer.wait()
-      console.log(`DEBUG AKB: wait over`)
 
       if (!e.txService) continue
-      console.log(`DEBUG AKB: TXS exists`)
 
       if (!e.attester) {
         throw new Error(
