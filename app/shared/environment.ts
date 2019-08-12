@@ -306,7 +306,8 @@ export const getEnvFromHVault = async (): Promise<IEnvironmentConfig> => {
     password: conf.password,
   })
   let envResp = await vaultInstance.read(conf.secret_path)
-  return envResp.data.data
+  let data = envResp.data.data
+  return await localOverrides(data)
 }
 
 // export const getEnvFromDb = async (): Promise<IEnvironmentConfig> => {}
