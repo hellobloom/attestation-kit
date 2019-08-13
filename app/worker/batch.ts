@@ -34,7 +34,7 @@ class LoopThrottler {
   }
 }
 
-(async function main() {
+const main = async () => {
   const e = await env()
   await sleep(e.batchTimeout || timeout)
   const loopTimer = new LoopThrottler(e.batchTimeout || timeout)
@@ -60,11 +60,10 @@ class LoopThrottler {
 
       const hashes = await BatchQueue.process()
 
-      console.log(
-        `DEBUG AKB: Sending batch with ${JSON.stringify(hashes.length)} hashes`
-      )
-
       if (hashes.length > 0) {
+        console.log(
+          `DEBUG AKB: Sending batch with ${JSON.stringify(hashes.length)} hashes`
+        )
         const merkleTree = HashingLogic.getMerkleTreeFromLeaves(hashes)
 
         const response = await sendTx({
@@ -91,9 +90,13 @@ class LoopThrottler {
           }
           await BatchQueue.finish(hashes, merkleTree.getRoot(), body.tx.id)
         }
+      } else {
+        console.log(`DEBUG AKB: Zero hashes, not sending batch`)
       }
     } catch (err) {
       await onError(err)
     }
   }
-})().catch(onError)
+}
+
+main().catch(onError)
