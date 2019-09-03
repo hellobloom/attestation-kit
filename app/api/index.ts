@@ -5,8 +5,8 @@ import * as attCtrl from '@api/controllers/attestation'
 import * as reqCtrl from '@api/controllers/request'
 import {sha256} from 'ethereumjs-util'
 import * as bodyParser from 'body-parser'
-import { txMined } from './controllers/webhooks';
-import { getProof } from './controllers/merkleProof';
+import {txMined} from './controllers/webhooks'
+import {getProof} from './controllers/merkleProof'
 
 let envPr = env()
 
@@ -28,7 +28,7 @@ app.use(
   bodyParser.json({
     type: '*/*',
     verify: captureRawBody,
-    limit: '10mb', // https://stackoverflow.com/a/19965089/1165441
+    limit: '20mb', // https://stackoverflow.com/a/19965089/1165441
   })
 )
 
