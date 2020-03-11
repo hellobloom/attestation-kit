@@ -1,5 +1,5 @@
 import {sequelize} from '@shared/models'
-import { toBuffer } from 'ethereumjs-util'
+import {toBuffer} from 'ethereumjs-util'
 
 export function inList(count: number) {
   let query = `(`
@@ -28,15 +28,15 @@ export async function getRoot(leaf: Buffer) {
     `,
     {
       type: sequelize.QueryTypes.SELECT,
-      replacements: {leaf}
+      replacements: {leaf},
     }
   )
-  
+
   return result.length === 1 ? result[0].root : null
 }
 
 export async function getLeaves(root: Buffer | null) {
-  const leaves: {batchLayer2Hash: Buffer, txHash: Buffer}[] = await sequelize.query(
+  const leaves: {batchLayer2Hash: Buffer; txHash: Buffer}[] = await sequelize.query(
     `
       select "batchLayer2Hash", "txHash" from "batchQueue" bq
       join "batchTree" bt on bt.id = bq."treeId"
@@ -44,19 +44,19 @@ export async function getLeaves(root: Buffer | null) {
     `,
     {
       type: sequelize.QueryTypes.SELECT,
-      replacements: {root}
+      replacements: {root},
     }
   )
 
   let txHash: string | null = null
-  if(leaves.length > 0 && leaves[0].txHash) {
+  if (leaves.length > 0 && leaves[0].txHash) {
     txHash = `0x${leaves[0].txHash.toString('hex')}`
   }
 
   return {
     leaves: leaves.map(h => `0x${h.batchLayer2Hash.toString('hex')}`),
-    txHash
-  } 
+    txHash,
+  }
 }
 
 export async function setMined(txServiceId: number, txhash: string) {
@@ -69,7 +69,7 @@ export async function setMined(txServiceId: number, txhash: string) {
     }
   )
 
-  if(mined.length === 0) {
+  if (mined.length === 0) {
     throw new Error('Could not find batchTree with the specified hash')
   }
 }
@@ -92,7 +92,7 @@ export async function process() {
     }
   )
 
-  return hashes.map(h =>  `0x${h.batchLayer2Hash.toString('hex')}`)
+  return hashes.map(h => `0x${h.batchLayer2Hash.toString('hex')}`)
 }
 
 export async function finish(hashes: string[], root: Buffer, txServiceId: number) {
@@ -109,28 +109,31 @@ export async function finish(hashes: string[], root: Buffer, txServiceId: number
         {
           type: sequelize.QueryTypes.SELECT,
           replacements: {root, txServiceId},
-          transaction
+          transaction,
         }
       )
-    
+
       const updated: {id: number}[] = await sequelize.query(
         `
           update "batchQueue" set 
             status = 'submitted', 
             "updatedAt" = current_timestamp, 
             "treeId" = ?
-          where status = 'processing' and "batchLayer2Hash" in ${inList(hashes.length)}
+          where status = 'processing' and "batchLayer2Hash" in ${inList(
+            hashes.length
+          )}
           returning id;
         `,
         {
           type: sequelize.QueryTypes.SELECT,
           replacements: [tree.id, ...hashes.map(toBuffer)],
-          transaction
+          transaction,
         }
       )
-    
-      if(updated.length !== hashes.length) {
+
+      if (updated.length !== hashes.length) {
         throw new Error('invalid number of hashes updated')
       }
-    })
+    }
+  )
 }
